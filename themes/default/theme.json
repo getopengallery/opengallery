@@ -1,0 +1,342 @@
+{
+    "name": "theme-default::theme.name",
+    "version": "2.0.0",
+    "description": "theme-default::theme.description",
+    "author": "OpenGallery",
+    "variables": {
+        "--og-canvas": "#FFFFFF",
+        "--og-surface": "#F3F3F3",
+        "--og-ink": "#1A1A1A",
+        "--og-muted": "#6B6B6B",
+        "--og-line": "#E3E3E3",
+        "--og-primary": "#1A1A1A",
+        "--og-on-primary": "#FFFFFF",
+        "--og-danger": "#DC2626",
+        "--og-on-danger": "#FFFFFF",
+        "--og-radius": "6px",
+        "--og-font-sans": "'Hanken Grotesk Variable'"
+    },
+    "variables_dark": {
+        "--og-canvas": "#1B1B1B",
+        "--og-surface": "#252525",
+        "--og-ink": "#EDEDED",
+        "--og-muted": "#9B9B9B",
+        "--og-line": "#323232",
+        "--og-primary": "#EDEDED",
+        "--og-on-primary": "#1B1B1B",
+        "--og-danger": "#F87171",
+        "--og-on-danger": "#1B1B1B"
+    },
+    "palettes": {
+        "neutral": {
+            "label": "theme-default::settings.palettes.neutral"
+        },
+        "moss": {
+            "label": "theme-default::settings.palettes.moss",
+            "variables": {
+                "--og-canvas": "#FFFFFF",
+                "--og-surface": "#F2F4EF",
+                "--og-ink": "#1C211B",
+                "--og-muted": "#626B5F",
+                "--og-line": "#E1E5DC",
+                "--og-primary": "#3F5A3C",
+                "--og-on-primary": "#FFFFFF"
+            },
+            "variables_dark": {
+                "--og-canvas": "#171A16",
+                "--og-surface": "#20241F",
+                "--og-ink": "#E8EBE5",
+                "--og-muted": "#9DA699",
+                "--og-line": "#30362E",
+                "--og-primary": "#B5C9A8",
+                "--og-on-primary": "#171A16"
+            }
+        },
+        "exp": {
+            "label": "theme-default::settings.palettes.exp",
+            "variables": {
+                "--og-canvas": "#FFFFFF",
+                "--og-surface": "#FBF4F1",
+                "--og-ink": "#221512",
+                "--og-muted": "#7A625A",
+                "--og-line": "#F0DED6",
+                "--og-primary": "#FF5C35",
+                "--og-on-primary": "#FFFFFF",
+                "--og-radius": "14px",
+                "--og-font-sans": "ui-serif, Georgia, serif",
+                "--og-header-canvas": "#FF5C35",
+                "--og-header-surface": "#FF7A57",
+                "--og-header-ink": "#FFFFFF",
+                "--og-header-muted": "#FFE1D7",
+                "--og-header-line": "#FF7A57"
+            },
+            "variables_dark": {
+                "--og-canvas": "#181210",
+                "--og-surface": "#221916",
+                "--og-ink": "#F5E9E4",
+                "--og-muted": "#B39C93",
+                "--og-line": "#33241F",
+                "--og-primary": "#FF7A5A",
+                "--og-on-primary": "#181210"
+            }
+        }
+    },
+    "settings": [
+        {
+            "key": "colours",
+            "label": "theme-default::settings.sections.colours.label",
+            "fields": [
+                {
+                    "key": "palette",
+                    "type": "palette",
+                    "label": "theme-default::settings.fields.palette.label",
+                    "default": "neutral",
+                    "help": "theme-default::settings.fields.palette.help"
+                },
+                {
+                    "key": "custom_colors",
+                    "type": "toggle",
+                    "label": "theme-default::settings.fields.custom_colors.label",
+                    "default": false,
+                    "help": "theme-default::settings.fields.custom_colors.help"
+                },
+                {
+                    "key": "colors",
+                    "type": "colors",
+                    "tokens": [
+                        "primary",
+                        "on-primary",
+                        "canvas",
+                        "surface",
+                        "ink",
+                        "muted",
+                        "line"
+                    ],
+                    "visible_if": {
+                        "custom_colors": true
+                    }
+                },
+                {
+                    "key": "radius",
+                    "type": "select",
+                    "label": "theme-default::settings.fields.radius.label",
+                    "css_variable": "--og-radius",
+                    "default": "",
+                    "options": {
+                        "": "theme-default::settings.fields.radius.options.from_the_palette",
+                        "0px": "theme-default::settings.fields.radius.options.square",
+                        "6px": "theme-default::settings.fields.radius.options.slightly_rounded",
+                        "14px": "theme-default::settings.fields.radius.options.rounded"
+                    }
+                },
+                {
+                    "key": "font",
+                    "type": "select",
+                    "label": "theme-default::settings.fields.font.label",
+                    "css_variable": "--og-font-sans",
+                    "default": "",
+                    "options": {
+                        "": "theme-default::settings.fields.font.options.from_the_palette",
+                        "'Hanken Grotesk Variable'": "theme-default::settings.fields.font.options.hanken_grotesk",
+                        "system-ui, sans-serif": "theme-default::settings.fields.font.options.system",
+                        "ui-serif, Georgia, serif": "theme-default::settings.fields.font.options.serif"
+                    },
+                    "help": "theme-default::settings.fields.font.help"
+                }
+            ]
+        },
+        {
+            "key": "header",
+            "label": "theme-default::settings.sections.header.label",
+            "fields": [
+                {
+                    "key": "header_layout",
+                    "type": "layout",
+                    "label": "theme-default::settings.fields.header_layout.label",
+                    "block": "site-header",
+                    "default": "default",
+                    "options": {
+                        "default": "theme-default::settings.fields.header_layout.options.classic",
+                        "centered": "theme-default::settings.fields.header_layout.options.centered",
+                        "minimal": "theme-default::settings.fields.header_layout.options.minimal"
+                    },
+                    "help": "theme-default::settings.fields.header_layout.help"
+                },
+                {
+                    "key": "header_pages",
+                    "type": "pages",
+                    "label": "theme-default::settings.fields.header_pages.label"
+                },
+                {
+                    "key": "header_mode_toggle",
+                    "type": "toggle",
+                    "label": "theme-default::settings.fields.header_mode_toggle.label",
+                    "default": true
+                },
+                {
+                    "key": "header_sticky",
+                    "type": "toggle",
+                    "label": "theme-default::settings.fields.header_sticky.label",
+                    "default": false
+                }
+            ]
+        },
+        {
+            "key": "footer",
+            "label": "theme-default::settings.sections.footer.label",
+            "fields": [
+                {
+                    "key": "footer_layout",
+                    "type": "layout",
+                    "label": "theme-default::settings.fields.footer_layout.label",
+                    "block": "site-footer",
+                    "default": "default",
+                    "options": {
+                        "default": "theme-default::settings.fields.footer_layout.options.one_line",
+                        "columns": "theme-default::settings.fields.footer_layout.options.columns",
+                        "none": "theme-default::settings.fields.footer_layout.options.no_footer"
+                    }
+                },
+                {
+                    "key": "footer_text",
+                    "type": "textarea",
+                    "label": "theme-default::settings.fields.footer_text.label",
+                    "help": "theme-default::settings.fields.footer_text.help"
+                },
+                {
+                    "key": "footer_pages",
+                    "type": "pages",
+                    "label": "theme-default::settings.fields.footer_pages.label",
+                    "help": "theme-default::settings.fields.footer_pages.help"
+                }
+            ]
+        },
+        {
+            "key": "albums",
+            "label": "theme-default::settings.sections.albums.label",
+            "fields": [
+                {
+                    "key": "album_grid_layout",
+                    "type": "layout",
+                    "label": "theme-default::settings.fields.album_grid_layout.label",
+                    "block": "album-grid",
+                    "default": "default",
+                    "options": {
+                        "default": "theme-default::settings.fields.album_grid_layout.options.grid",
+                        "large": "theme-default::settings.fields.album_grid_layout.options.large"
+                    },
+                    "help": "theme-default::settings.fields.album_grid_layout.help"
+                },
+                {
+                    "key": "photo_grid_layout",
+                    "type": "layout",
+                    "label": "theme-default::settings.fields.photo_grid_layout.label",
+                    "block": "photo-grid",
+                    "default": "default",
+                    "options": {
+                        "default": "theme-default::settings.fields.photo_grid_layout.options.justified_rows",
+                        "square": "theme-default::settings.fields.photo_grid_layout.options.square_crops"
+                    },
+                    "help": "theme-default::settings.fields.photo_grid_layout.help"
+                }
+            ]
+        },
+        {
+            "key": "landing",
+            "label": "theme-default::settings.sections.landing.label",
+            "description": "theme-default::settings.sections.landing.description",
+            "fields": [
+                {
+                    "key": "landing_on_home",
+                    "type": "select",
+                    "label": "theme-default::settings.fields.landing_on_home.label",
+                    "default": "never",
+                    "options": {
+                        "never": "theme-default::settings.fields.landing_on_home.options.never",
+                        "guests": "theme-default::settings.fields.landing_on_home.options.guests",
+                        "everyone": "theme-default::settings.fields.landing_on_home.options.everyone"
+                    },
+                    "help": "theme-default::settings.fields.landing_on_home.help"
+                },
+                {
+                    "key": "landing_layout",
+                    "type": "layout",
+                    "label": "theme-default::settings.fields.landing_layout.label",
+                    "block": "landing",
+                    "default": "default",
+                    "options": {
+                        "default": "theme-default::settings.fields.landing_layout.options.text_only",
+                        "split": "theme-default::settings.fields.landing_layout.options.text_and_image",
+                        "cover": "theme-default::settings.fields.landing_layout.options.full_screen_image"
+                    }
+                },
+                {
+                    "key": "landing_heading",
+                    "type": "text",
+                    "label": "theme-default::settings.fields.landing_heading.label",
+                    "help": "theme-default::settings.fields.landing_heading.help"
+                },
+                {
+                    "key": "landing_text",
+                    "type": "textarea",
+                    "label": "theme-default::settings.fields.landing_text.label"
+                },
+                {
+                    "key": "landing_image",
+                    "type": "image",
+                    "label": "theme-default::settings.fields.landing_image.label",
+                    "help": "theme-default::settings.fields.landing_image.help"
+                },
+                {
+                    "key": "landing_show_register",
+                    "type": "toggle",
+                    "label": "theme-default::settings.fields.landing_show_register.label",
+                    "default": true
+                }
+            ]
+        },
+        {
+            "key": "auth",
+            "label": "theme-default::settings.sections.auth.label",
+            "fields": [
+                {
+                    "key": "auth_layout",
+                    "type": "layout",
+                    "label": "theme-default::settings.fields.auth_layout.label",
+                    "block": "auth-shell",
+                    "default": "default",
+                    "options": {
+                        "default": "theme-default::settings.fields.auth_layout.options.centered",
+                        "split": "theme-default::settings.fields.auth_layout.options.form_and_image",
+                        "cover": "theme-default::settings.fields.auth_layout.options.form_on_an_image"
+                    }
+                },
+                {
+                    "key": "auth_image",
+                    "type": "image",
+                    "label": "theme-default::settings.fields.auth_image.label",
+                    "help": "theme-default::settings.fields.auth_image.help"
+                },
+                {
+                    "key": "auth_caption",
+                    "type": "text",
+                    "label": "theme-default::settings.fields.auth_caption.label",
+                    "help": "theme-default::settings.fields.auth_caption.help"
+                }
+            ]
+        },
+        {
+            "key": "custom_css",
+            "label": "theme-default::settings.sections.custom_css.label",
+            "description": "theme-default::settings.sections.custom_css.description",
+            "fields": [
+                {
+                    "key": "custom_css",
+                    "type": "css",
+                    "label": "theme-default::settings.fields.custom_css.label",
+                    "help": "theme-default::settings.fields.custom_css.help"
+                }
+            ]
+        }
+    ]
+}

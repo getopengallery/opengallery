@@ -1,0 +1,11 @@
+{
+    "name": "identity-providers::plugin.name",
+    "version": "1.0.0",
+    "description": "identity-providers::plugin.description",
+    "author": "OpenGallery",
+    "autoload": {
+        "Plugins\\IdentityProviders\\": "src/"
+    },
+    "provider": "Plugins\\IdentityProviders\\IdentityProvidersServiceProvider",
+    "settings": "Plugins\\IdentityProviders\\Filament\\Settings"
+}

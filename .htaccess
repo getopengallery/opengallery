@@ -1,0 +1,8 @@
+# The gallery is served from the "public" folder only. If the web server is
+# pointed at this folder by mistake, this keeps the configuration, the database
+# and private photos from being downloaded. Rules in public/.htaccess replace
+# these, so the site itself is not affected.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^ - [F,L]
+</IfModule>

@@ -1,0 +1,183 @@
+@import '@fontsource-variable/hanken-grotesk/wght.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens. The active theme (themes/{slug}/theme.json → "variables" /
+ * "variables_dark") overrides these through an inline <style> in the layout.
+ * Colour values are RGB channels so Tailwind opacity modifiers work.
+ *
+ * Principle: the interface is the mat around a print. Greys are strictly
+ * achromatic so they never tint the photos, and there is no chromatic
+ * accent: the primary action is ink on paper.
+ */
+@layer base {
+    :root {
+        --og-font-sans: 'Hanken Grotesk Variable';
+        --og-canvas: 255 255 255;
+        --og-surface: 243 243 243;
+        --og-ink: 26 26 26;
+        --og-muted: 107 107 107;
+        --og-line: 227 227 227;
+        --og-primary: 26 26 26;
+        --og-on-primary: 255 255 255;
+        --og-danger: 220 38 38;
+        --og-on-danger: 255 255 255;
+        --og-radius: 6px;
+
+        /*
+         * Header colours. They follow the page colours unless the theme or
+         * palette sets them (e.g. a coloured header); see .og-header.
+         */
+        --og-header-canvas: var(--og-canvas);
+        --og-header-surface: var(--og-surface);
+        --og-header-ink: var(--og-ink);
+        --og-header-muted: var(--og-muted);
+        --og-header-line: var(--og-line);
+        color-scheme: light;
+    }
+
+    :root.dark {
+        --og-canvas: 27 27 27;
+        --og-surface: 37 37 37;
+        --og-ink: 237 237 237;
+        --og-muted: 155 155 155;
+        --og-line: 50 50 50;
+        --og-primary: 237 237 237;
+        --og-on-primary: 27 27 27;
+        --og-danger: 248 113 113;
+        --og-on-danger: 27 27 27;
+        color-scheme: dark;
+    }
+
+    html {
+        @apply bg-canvas text-ink antialiased;
+        font-feature-settings: 'ss01', 'tnum';
+    }
+
+    :focus-visible {
+        outline: 2px solid rgb(var(--og-ink));
+        outline-offset: 2px;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    /*
+     * The site header. Inside it the page tokens are swapped for the header
+     * tokens, so every header layout follows a coloured header without
+     * changing its markup (primary buttons turn into header-ink buttons).
+     */
+    .og-header {
+        --og-canvas: var(--og-header-canvas);
+        --og-surface: var(--og-header-surface);
+        --og-ink: var(--og-header-ink);
+        --og-muted: var(--og-header-muted);
+        --og-line: var(--og-header-line);
+        --og-primary: var(--og-header-ink);
+        --og-on-primary: var(--og-header-canvas);
+        background-color: rgb(var(--og-canvas));
+        color: rgb(var(--og-ink));
+    }
+
+    .og-container {
+        @apply mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8;
+    }
+
+    .og-btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-og px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40;
+    }
+
+    .og-btn-primary {
+        @apply og-btn bg-primary text-on-primary hover:bg-primary/85;
+    }
+
+    .og-btn-secondary {
+        @apply og-btn bg-surface text-ink hover:bg-line;
+    }
+
+    .og-btn-danger {
+        @apply og-btn bg-danger text-on-danger hover:bg-danger/85;
+    }
+
+    .og-input {
+        @apply block rounded-og border-line bg-canvas text-ink placeholder:text-muted focus:border-ink focus:ring-0;
+    }
+
+    /*
+     * Justified rows: each item grows in proportion to its aspect ratio
+     * (--r), so every item in a row ends up the same height. The ::after
+     * spacer stops the last row from stretching.
+     */
+    .og-justified {
+        --row: 140px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .og-justified > li {
+        flex: var(--r) 1 calc(var(--r) * var(--row));
+        aspect-ratio: var(--r);
+        min-width: 0;
+    }
+
+    .og-justified::after {
+        content: '';
+        flex: 999 1 0;
+    }
+
+    @media (min-width: 1024px) {
+        .og-justified {
+            --row: 230px;
+        }
+    }
+
+    /* Rich text written in the admin (pages). */
+    .og-prose {
+        @apply text-body text-ink;
+    }
+    .og-prose > * + * { margin-top: 1em; }
+    .og-prose h2 { @apply mt-10 text-title font-semibold; }
+    .og-prose h3 { @apply mt-8 font-semibold; }
+    .og-prose a { @apply underline decoration-line underline-offset-4 hover:decoration-ink; }
+    .og-prose ul { @apply list-disc ps-6; }
+    .og-prose ol { @apply list-decimal ps-6; }
+    .og-prose li + li { margin-top: 0.25em; }
+    .og-prose blockquote { @apply border-s-2 border-line ps-4 text-muted; }
+    .og-prose hr { @apply my-10 border-line; }
+
+    /* Photos and galleries in page content */
+    .og-prose .og-figure { margin-block: 2em; }
+    .og-prose .og-figure figcaption { @apply mt-2 text-caption text-muted; }
+    /* "Wide": grows to the right, up to the page width (pages are left-aligned). */
+    .og-prose .og-wide { width: min(76rem, calc(100vw - 2rem)); max-width: none; }
+    @media (min-width: 640px) { .og-prose .og-wide { width: min(76rem, calc(100vw - 3rem)); } }
+    @media (min-width: 1024px) { .og-prose .og-wide { width: min(76rem, calc(100vw - 4rem)); } }
+    .og-gallery-grid { display: grid; gap: 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (min-width: 640px) { .og-gallery-grid { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); } }
+    .og-gallery-grid > li { aspect-ratio: 1; }
+    .og-prose ul.og-gallery-grid, .og-prose ul.og-justified { list-style: none; padding: 0; }
+    .og-prose .og-figure li + li { margin-top: 0; }
+
+    .og-link {
+        @apply underline decoration-line underline-offset-4 hover:decoration-ink;
+    }
+
+    /* Profile picture or initials (x-avatar). */
+    .og-avatar {
+        @apply inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-line font-semibold leading-none text-ink;
+    }
+}

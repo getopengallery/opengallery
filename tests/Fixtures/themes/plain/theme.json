@@ -1,0 +1,22 @@
+{
+    "name": "Plain",
+    "variables": { "--og-primary": "#1A1A1A", "--og-canvas": "#FFFFFF" },
+    "variables_dark": { "--og-primary": "#EDEDED" },
+    "settings": [
+        {
+            "key": "look",
+            "label": "Look",
+            "fields": [
+                { "key": "auth_layout", "type": "layout", "label": "Login layout", "block": "auth-shell", "default": "default", "options": { "default": "Centered" } },
+                { "key": "tagline", "type": "text", "label": "Tagline", "default": "Plain tagline" },
+                { "key": "legacy", "type": "toggle", "label": "Legacy option" }
+            ]
+        },
+        {
+            "label": "Extras",
+            "fields": [
+                { "key": "extra", "type": "toggle", "label": "Extra" }
+            ]
+        }
+    ]
+}

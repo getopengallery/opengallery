@@ -1,0 +1,26 @@
+{
+    "name": "Contact sheet",
+    "parent": "plain",
+    "variables": { "--og-primary": "#C2410C", "--og-evil": "red;}body{display:none" },
+    "blocks": { "photo-grid": "square", "album-grid": "does-not-exist", "pagination": "compact" },
+    "styles": ["theme.css"],
+    "settings": [
+        {
+            "key": "look",
+            "label": "Look and feel",
+            "fields": [
+                { "key": "auth_layout", "default": "polaroid", "options": { "polaroid": "Polaroid" } },
+                { "key": "legacy", "remove": true },
+                { "key": "tilt", "type": "toggle", "label": "Tilt the frame", "default": true },
+                { "key": "typeless" }
+            ]
+        },
+        { "label": "Extras", "remove": true },
+        {
+            "label": "Contact sheet",
+            "fields": [
+                { "key": "frame_colour", "type": "text", "label": "Frame colour", "default": "orange" }
+            ]
+        }
+    ]
+}

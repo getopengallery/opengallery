@@ -1,0 +1,25 @@
+* text=auto eol=lf
+
+*.blade.php diff=html
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php
+
+# Left out of release archives (php artisan gallery:release) and git archive downloads:
+# development and agent tooling only.
+/.ai export-ignore
+/.editorconfig export-ignore
+/.gitattributes export-ignore
+/.github export-ignore
+/.gitignore export-ignore
+/.mcp.json export-ignore
+/AGENTS.md export-ignore
+/CLAUDE.md export-ignore
+/CONTRIBUTING.md export-ignore
+/SECURITY.md export-ignore
+/boost.json export-ignore
+/phpunit.xml export-ignore
+/tests export-ignore
+CHANGELOG.md export-ignore
+.styleci.yml export-ignore

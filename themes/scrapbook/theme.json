@@ -1,0 +1,361 @@
+{
+    "name": "theme-scrapbook::theme.name",
+    "version": "1.0.0",
+    "description": "theme-scrapbook::theme.description",
+    "author": "OpenGallery",
+    "styles": ["scrapbook.css"],
+    "variables": {
+        "--og-canvas": "#FFF8EC",
+        "--og-surface": "#FFEBD2",
+        "--og-ink": "#2B1B3D",
+        "--og-muted": "#74597F",
+        "--og-line": "#F0D6B4",
+        "--og-primary": "#D81B60",
+        "--og-on-primary": "#FFFFFF",
+        "--og-danger": "#C62828",
+        "--og-on-danger": "#FFFFFF",
+        "--og-radius": "16px",
+        "--og-font-sans": "ui-rounded, 'Nunito', 'Trebuchet MS', system-ui, sans-serif",
+        "--og-font-display": "'Marker Felt', 'Chalkboard SE', 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive",
+        "--og-paper": "radial-gradient(rgb(var(--og-line)) 1.5px, transparent 1.7px)",
+        "--og-pop-1": "#FF4F8B",
+        "--og-pop-2": "#FFC93C",
+        "--og-pop-3": "#2EC4B6",
+        "--og-pop-4": "#7B61FF",
+        "--og-on-pop": "#2B1B3D",
+        "--og-print": "#FFFFFF",
+        "--og-header-canvas": "#FFC93C",
+        "--og-header-surface": "#FFDB73",
+        "--og-header-ink": "#2B1B3D",
+        "--og-header-muted": "#5E4320",
+        "--og-header-line": "#E8A800"
+    },
+    "variables_dark": {
+        "--og-canvas": "#1C1229",
+        "--og-surface": "#2A1D3B",
+        "--og-ink": "#FFF1E0",
+        "--og-muted": "#BFA8CF",
+        "--og-line": "#3D2C52",
+        "--og-primary": "#FF6FA3",
+        "--og-on-primary": "#1C1229",
+        "--og-danger": "#FF8A80",
+        "--og-on-danger": "#1C1229",
+        "--og-pop-1": "#FF6FA3",
+        "--og-pop-2": "#FFD45E",
+        "--og-pop-3": "#3FE0D0",
+        "--og-pop-4": "#9E8BFF",
+        "--og-print": "#2E2042",
+        "--og-header-canvas": "#3A2552",
+        "--og-header-surface": "#4A3166",
+        "--og-header-ink": "#FFD45E",
+        "--og-header-muted": "#E6CFA0",
+        "--og-header-line": "#5A3E7A"
+    },
+    "palettes": {
+        "bubblegum": {
+            "label": "theme-scrapbook::settings.palettes.bubblegum"
+        },
+        "lemonade": {
+            "label": "theme-scrapbook::settings.palettes.lemonade",
+            "variables": {
+                "--og-canvas": "#FFFDE9",
+                "--og-surface": "#FFF4B8",
+                "--og-ink": "#1F3A1A",
+                "--og-muted": "#586E4B",
+                "--og-line": "#EDE3A1",
+                "--og-primary": "#2E7D32",
+                "--og-on-primary": "#FFFFFF",
+                "--og-pop-1": "#FF8A3D",
+                "--og-pop-2": "#FFE14D",
+                "--og-pop-3": "#8BD650",
+                "--og-pop-4": "#4CB7E8",
+                "--og-on-pop": "#1F3A1A",
+                "--og-header-canvas": "#8BD650",
+                "--og-header-surface": "#A3E070",
+                "--og-header-ink": "#1F3A1A",
+                "--og-header-muted": "#34522A",
+                "--og-header-line": "#6FBF35"
+            },
+            "variables_dark": {
+                "--og-canvas": "#13200F",
+                "--og-surface": "#1C2E16",
+                "--og-ink": "#F4F8DA",
+                "--og-muted": "#A8BB93",
+                "--og-line": "#2B4021",
+                "--og-primary": "#B5E86A",
+                "--og-on-primary": "#13200F",
+                "--og-pop-1": "#FFA066",
+                "--og-pop-2": "#FFE873",
+                "--og-pop-3": "#A5E876",
+                "--og-pop-4": "#6CC8F0",
+                "--og-print": "#22361B",
+                "--og-header-canvas": "#1C2E16",
+                "--og-header-surface": "#2B4021",
+                "--og-header-ink": "#FFE873",
+                "--og-header-muted": "#CFE3A8",
+                "--og-header-line": "#36502A"
+            }
+        },
+        "circus": {
+            "label": "theme-scrapbook::settings.palettes.circus",
+            "variables": {
+                "--og-canvas": "#FFF5F0",
+                "--og-surface": "#FDE4DC",
+                "--og-ink": "#2A0F12",
+                "--og-muted": "#7D4A4F",
+                "--og-line": "#F3CDC6",
+                "--og-primary": "#C8102E",
+                "--og-on-primary": "#FFFFFF",
+                "--og-radius": "4px",
+                "--og-font-display": "'Cooper Black', 'Rockwell Extra Bold', 'Rockwell', ui-serif, Georgia, serif",
+                "--og-pop-1": "#FF5A6E",
+                "--og-pop-2": "#F7B801",
+                "--og-pop-3": "#00B3B3",
+                "--og-pop-4": "#6E8BFF",
+                "--og-on-pop": "#2A0F12",
+                "--og-header-canvas": "#C8102E",
+                "--og-header-surface": "#A50D26",
+                "--og-header-ink": "#FFFFFF",
+                "--og-header-muted": "#FFD6DC",
+                "--og-header-line": "#E0304C"
+            },
+            "variables_dark": {
+                "--og-canvas": "#1A0B0D",
+                "--og-surface": "#2A1215",
+                "--og-ink": "#FCEDEE",
+                "--og-muted": "#C99A9F",
+                "--og-line": "#3F1D22",
+                "--og-primary": "#FF5A6E",
+                "--og-on-primary": "#1A0B0D",
+                "--og-pop-1": "#FF5A6E",
+                "--og-pop-2": "#FFD13F",
+                "--og-pop-3": "#2ED3D3",
+                "--og-pop-4": "#8FA5FF",
+                "--og-print": "#2A1215",
+                "--og-header-canvas": "#8E0B20",
+                "--og-header-surface": "#A50D26",
+                "--og-header-ink": "#FFFFFF",
+                "--og-header-muted": "#FFC2CB",
+                "--og-header-line": "#B3142F"
+            }
+        }
+    },
+    "settings": [
+        {
+            "key": "colours",
+            "label": "theme-scrapbook::settings.sections.colours.label",
+            "fields": [
+                {
+                    "key": "palette",
+                    "type": "palette",
+                    "label": "theme-scrapbook::settings.fields.palette.label",
+                    "default": "bubblegum",
+                    "help": "theme-scrapbook::settings.fields.palette.help"
+                },
+                {
+                    "key": "custom_colors",
+                    "type": "toggle",
+                    "label": "theme-scrapbook::settings.fields.custom_colors.label",
+                    "default": false,
+                    "help": "theme-scrapbook::settings.fields.custom_colors.help"
+                },
+                {
+                    "key": "colors",
+                    "type": "colors",
+                    "tokens": ["primary", "on-primary", "canvas", "surface", "ink", "muted", "line"],
+                    "visible_if": {
+                        "custom_colors": true
+                    }
+                },
+                {
+                    "key": "radius",
+                    "type": "select",
+                    "label": "theme-scrapbook::settings.fields.radius.label",
+                    "css_variable": "--og-radius",
+                    "default": "",
+                    "options": {
+                        "": "theme-scrapbook::settings.fields.radius.options.from_the_palette",
+                        "4px": "theme-scrapbook::settings.fields.radius.options.snipped",
+                        "16px": "theme-scrapbook::settings.fields.radius.options.rounded",
+                        "28px": "theme-scrapbook::settings.fields.radius.options.bubbly"
+                    }
+                },
+                {
+                    "key": "display_font",
+                    "type": "select",
+                    "label": "theme-scrapbook::settings.fields.display_font.label",
+                    "css_variable": "--og-font-display",
+                    "default": "",
+                    "options": {
+                        "": "theme-scrapbook::settings.fields.display_font.options.from_the_palette",
+                        "'Marker Felt', 'Chalkboard SE', 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive": "theme-scrapbook::settings.fields.display_font.options.handwritten",
+                        "ui-rounded, 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif": "theme-scrapbook::settings.fields.display_font.options.rounded",
+                        "'Cooper Black', 'Rockwell Extra Bold', 'Rockwell', ui-serif, Georgia, serif": "theme-scrapbook::settings.fields.display_font.options.chunky_serif"
+                    },
+                    "help": "theme-scrapbook::settings.fields.display_font.help"
+                },
+                {
+                    "key": "paper",
+                    "type": "select",
+                    "label": "theme-scrapbook::settings.fields.paper.label",
+                    "css_variable": "--og-paper",
+                    "default": "",
+                    "options": {
+                        "": "theme-scrapbook::settings.fields.paper.options.dots",
+                        "linear-gradient(rgb(var(--og-line)) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--og-line)) 1px, transparent 1px)": "theme-scrapbook::settings.fields.paper.options.grid",
+                        "radial-gradient(circle at 20% 30%, rgb(var(--og-pop-1) / 0.4) 2px, transparent 2.5px), radial-gradient(circle at 70% 65%, rgb(var(--og-pop-3) / 0.45) 2.5px, transparent 3px), radial-gradient(circle at 45% 90%, rgb(var(--og-pop-2) / 0.6) 2px, transparent 2.5px)": "theme-scrapbook::settings.fields.paper.options.confetti",
+                        "none": "theme-scrapbook::settings.fields.paper.options.plain"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "whimsy",
+            "label": "theme-scrapbook::settings.sections.whimsy.label",
+            "description": "theme-scrapbook::settings.sections.whimsy.description",
+            "fields": [
+                {
+                    "key": "wobble",
+                    "type": "toggle",
+                    "label": "theme-scrapbook::settings.fields.wobble.label",
+                    "default": true,
+                    "help": "theme-scrapbook::settings.fields.wobble.help"
+                },
+                {
+                    "key": "doodles",
+                    "type": "toggle",
+                    "label": "theme-scrapbook::settings.fields.doodles.label",
+                    "default": true
+                },
+                {
+                    "key": "ticker",
+                    "type": "toggle",
+                    "label": "theme-scrapbook::settings.fields.ticker.label",
+                    "default": true
+                },
+                {
+                    "key": "ticker_text",
+                    "type": "text",
+                    "label": "theme-scrapbook::settings.fields.ticker_text.label",
+                    "help": "theme-scrapbook::settings.fields.ticker_text.help",
+                    "visible_if": {
+                        "ticker": true
+                    }
+                }
+            ]
+        },
+        {
+            "key": "header",
+            "label": "theme-scrapbook::settings.sections.header.label",
+            "fields": [
+                {
+                    "key": "header_pages",
+                    "type": "pages",
+                    "label": "theme-scrapbook::settings.fields.header_pages.label"
+                },
+                {
+                    "key": "header_mode_toggle",
+                    "type": "toggle",
+                    "label": "theme-scrapbook::settings.fields.header_mode_toggle.label",
+                    "default": true
+                },
+                {
+                    "key": "header_sticky",
+                    "type": "toggle",
+                    "label": "theme-scrapbook::settings.fields.header_sticky.label",
+                    "default": false
+                }
+            ]
+        },
+        {
+            "key": "footer",
+            "label": "theme-scrapbook::settings.sections.footer.label",
+            "fields": [
+                {
+                    "key": "footer_text",
+                    "type": "textarea",
+                    "label": "theme-scrapbook::settings.fields.footer_text.label",
+                    "help": "theme-scrapbook::settings.fields.footer_text.help"
+                },
+                {
+                    "key": "footer_pages",
+                    "type": "pages",
+                    "label": "theme-scrapbook::settings.fields.footer_pages.label"
+                }
+            ]
+        },
+        {
+            "key": "albums",
+            "label": "theme-scrapbook::settings.sections.albums.label",
+            "fields": [
+                {
+                    "key": "photo_grid_layout",
+                    "type": "layout",
+                    "label": "theme-scrapbook::settings.fields.photo_grid_layout.label",
+                    "block": "photo-grid",
+                    "default": "default",
+                    "options": {
+                        "default": "theme-scrapbook::settings.fields.photo_grid_layout.options.pile",
+                        "polaroids": "theme-scrapbook::settings.fields.photo_grid_layout.options.polaroids"
+                    },
+                    "help": "theme-scrapbook::settings.fields.photo_grid_layout.help"
+                }
+            ]
+        },
+        {
+            "key": "landing",
+            "label": "theme-scrapbook::settings.sections.landing.label",
+            "description": "theme-scrapbook::settings.sections.landing.description",
+            "fields": [
+                {
+                    "key": "landing_heading",
+                    "type": "text",
+                    "label": "theme-scrapbook::settings.fields.landing_heading.label",
+                    "help": "theme-scrapbook::settings.fields.landing_heading.help"
+                },
+                {
+                    "key": "landing_text",
+                    "type": "textarea",
+                    "label": "theme-scrapbook::settings.fields.landing_text.label"
+                },
+                {
+                    "key": "landing_image",
+                    "type": "image",
+                    "label": "theme-scrapbook::settings.fields.landing_image.label",
+                    "help": "theme-scrapbook::settings.fields.landing_image.help"
+                },
+                {
+                    "key": "landing_show_register",
+                    "type": "toggle",
+                    "label": "theme-scrapbook::settings.fields.landing_show_register.label",
+                    "default": true
+                }
+            ]
+        },
+        {
+            "key": "auth",
+            "label": "theme-scrapbook::settings.sections.auth.label",
+            "fields": [
+                {
+                    "key": "auth_caption",
+                    "type": "text",
+                    "label": "theme-scrapbook::settings.fields.auth_caption.label",
+                    "help": "theme-scrapbook::settings.fields.auth_caption.help"
+                }
+            ]
+        },
+        {
+            "key": "custom_css",
+            "label": "theme-scrapbook::settings.sections.custom_css.label",
+            "description": "theme-scrapbook::settings.sections.custom_css.description",
+            "fields": [
+                {
+                    "key": "custom_css",
+                    "type": "css",
+                    "label": "theme-scrapbook::settings.fields.custom_css.label",
+                    "help": "theme-scrapbook::settings.fields.custom_css.help"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+/**
+ * Tokens of invitation links (password broker "invitations" in
+ * config/auth.php). Kept apart from password_reset_tokens because they
+ * stay valid much longer than a reset link.
+ */
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('user_invitation_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('user_invitation_tokens');
+    }
+};

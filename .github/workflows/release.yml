@@ -1,0 +1,100 @@
+# Builds the release zip for shared hosting when a version tag (v1.2.0) is pushed.
+# The tests run first. The zip and its checksum then go into a draft GitHub
+# release, which a maintainer checks and publishes by hand. Prereleases are signed
+# here with the dev key; stable releases are signed on the maintainer's machine,
+# so a compromised repository cannot ship code to stable galleries. Only the last
+# job can write to the repository, and it runs no project code.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: Build the release zip
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          extensions: gd, intl, zip, exif, fileinfo, mbstring, pdo_sqlite, sodium
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Prepare the app
+        run: |
+          composer install --no-interaction --prefer-dist
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Build the zip and its checksum
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist
+          php artisan gallery:release "$VERSION" --output=dist
+          cd dist
+          sha256sum "opengallery-$VERSION.zip" > "opengallery-$VERSION.zip.sha256"
+
+      - name: Sign a prerelease with the dev key
+        if: contains(github.ref_name, '-')
+        env:
+          VERSION: ${{ github.ref_name }}
+          GALLERY_SIGNING_KEY: ${{ secrets.DEV_SIGNING_KEY }}
+        run: |
+          if [ -n "$GALLERY_SIGNING_KEY" ]; then
+            php artisan gallery:release-sign "dist/opengallery-$VERSION.zip"
+          else
+            echo "::warning::DEV_SIGNING_KEY is not set, so this prerelease cannot be installed in one click."
+          fi
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Create the draft release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: dist
+
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          flags=()
+          case "$TAG" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "$TAG" dist/* --draft --verify-tag --generate-notes "${flags[@]}"

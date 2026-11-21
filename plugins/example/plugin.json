@@ -1,0 +1,10 @@
+{
+    "name": "Example Plugin",
+    "version": "0.1.0",
+    "description": "Template plugin. Adds an admin page (Appearance & extensions → Example plugin), a dashboard widget, an X-Gallery-Plugin response header and a log line for new photos, to show how to hook into the core. Copy this folder to start a new plugin.",
+    "author": "OpenGallery",
+    "autoload": {
+        "Plugins\\Example\\": "src/"
+    },
+    "provider": "Plugins\\Example\\ExampleServiceProvider"
+}

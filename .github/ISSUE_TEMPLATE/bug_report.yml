@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in OpenGallery does not work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not report security problems here. See the security policy instead. Remove passwords, private addresses and personal photos from anything you paste.
+  - type: input
+    id: version
+    attributes:
+      label: OpenGallery version
+      description: Shown at the bottom of the admin menu.
+      placeholder: 0.2.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Hosting
+      description: PHP version, database and kind of hosting.
+      placeholder: PHP 8.3, MariaDB 10.11, shared hosting
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected and what happened
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error message or log
+      description: The relevant lines from storage/logs/laravel.log, if any.
+      render: text
