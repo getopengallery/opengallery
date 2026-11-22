@@ -53,6 +53,10 @@ About 300 generated photos. Each album demonstrates a feature:
 
 The top-level albums have a custom order. "Unsorted uploads" holds a few fresh uploads, and "Page images" holds the photos used on the demo pages. Photos have a date taken and sample camera data, so the date sorts and the photo details work. The seeder prints the login list, the album password and the share link when it finishes.
 
+## Tags
+
+Family, Nature, Travel and Events are predefined. Most albums have tags set by their owner, and every fourth photo in Landscapes, Mountains, Coastlines, Forest trails, City nights and Product launch has a tag of its own. Landscapes passes its tags on to Mountains and Coastlines. Global tag suggestions stay off, so each account is offered only the tags it can reach.
+
 ## Pages
 
 `DemoPagesSeeder` (called by `DemoSeeder`, or on its own) creates About, Imprint, Privacy, the members-only "Photo walk guide" and an unpublished draft, and links them from the default theme's header and footer if no links are set. With photos from `DemoSeeder`, About contains a photo block and the members-only page a gallery block.
@@ -63,7 +67,7 @@ The seeder replays a year: it moves the clock back and makes each change as the 
 
 ## Running it again
 
-The seeder is safe to re-run. Users are matched by e-mail, groups and albums by name. Photos are only generated for demo albums that are empty, and the year of visits and security entries is added only once (when no demo account has logged in yet). To start over, run `php artisan migrate:fresh --seed` and seed the demo again.
+The seeder is safe to re-run. Users are matched by e-mail, groups and albums by name. Photos are only generated for demo albums that are empty, tags are only added to demo albums without tags, and the year of visits and security entries is added only once (when no demo account has logged in yet). To start over, run `php artisan migrate:fresh --seed` and seed the demo again.
 
 ## Code
 

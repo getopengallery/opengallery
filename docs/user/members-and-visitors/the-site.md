@@ -23,7 +23,7 @@ On small screens the links are collected behind a menu button.
 
 The home page lists the top-level albums the visitor may see, 24 per page, with their cover and number of photos. Albums inside other albums are listed on their parent album's page instead.
 
-The search field at the top finds albums by title or description, also albums inside other albums. It only finds albums the visitor could also reach by clicking through the lists: an album inside an album they may not see stays out of the results. **Show all albums** goes back to the full list.
+The search field at the top finds albums by title, description or [tag](../content/tags.md), also albums inside other albums. While tagging is on it also finds photos by tag, shown below the albums. It only finds what the visitor could also reach by clicking through the lists: an album inside an album they may not see stays out of the results. **Show all albums** goes back to the full list.
 
 What visitors who are not logged in see depends on the [site settings](../administration/settings.md#access):
 

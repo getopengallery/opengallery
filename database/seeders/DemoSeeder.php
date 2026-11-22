@@ -12,10 +12,12 @@ use App\Models\Album;
 use App\Models\Group;
 use App\Models\Photo;
 use App\Models\Setting;
+use App\Models\Tag;
 use App\Models\User;
 use App\Support\ActivityLog;
 use App\Support\Avatars;
 use App\Support\SiteSettings;
+use App\Support\Tagging;
 use Carbon\CarbonImmutable;
 use Database\Seeders\Demo\DemoImages;
 use Illuminate\Database\Seeder;
@@ -30,8 +32,8 @@ use Illuminate\Support\Facades\DB;
  *
  * About 300 generated photos in albums that each demonstrate a feature
  * (visibility levels, shares, password, expiring link, photo order,
- * sub-albums, a "best of" reusing photos, the trash), a cast of users for
- * every role with profile pictures, pages with photo blocks and a year of
+ * sub-albums, a "best of" reusing photos, tags, the trash), a cast of users
+ * for every role with profile pictures, pages with photo blocks and a year of
  * activity.
  *
  * The year is replayed: the clock is moved back and each change is made as
@@ -99,6 +101,46 @@ class DemoSeeder extends Seeder
         'best' => ['title' => 'Best of 2026', 'description' => 'Favourites from this year, collected from the other albums.', 'owner' => 'admin', 'visibility' => Visibility::Public, 'order' => PhotoOrder::Manual, 'photos' => 0, 'motif' => null, 'created' => 40, 'taken' => [0, 0]],
     ];
 
+    /** Offered to everyone in the tag field; "Family" is not used yet, so it only shows up there. */
+    private const PREDEFINED_TAGS = ['Family', 'Nature', 'Travel', 'Events'];
+
+    /**
+     * Tags on the albums, set by their owners.
+     *
+     * @var array<string, list<string>>
+     */
+    private const ALBUM_TAGS = [
+        'landscapes' => ['Nature', 'Landscape', 'Sunset'],
+        'mountains' => ['Mountains', 'Hiking'],
+        'coast' => ['Coast', 'Summer', 'Travel'],
+        'archive' => ['Archive'],
+        'forest' => ['Nature', 'Forest', 'Hiking'],
+        'city' => ['City', 'Night', 'Travel'],
+        'offsite' => ['Team', 'Events'],
+        'launch' => ['Events', 'Stage'],
+        'editorial' => ['Print'],
+        'drafts' => ['Work in progress'],
+        'client' => ['Client', 'Harbour'],
+        'best' => ['Favourites'],
+    ];
+
+    /** Albums whose tags also apply to the albums inside them. */
+    private const TAGS_FOR_SUB_ALBUMS = ['landscapes'];
+
+    /**
+     * A tag on every fourth photo of these albums, besides the album's own.
+     *
+     * @var array<string, string>
+     */
+    private const PHOTO_TAGS = [
+        'landscapes' => 'Golden hour',
+        'mountains' => 'Snow',
+        'coast' => 'Lighthouse',
+        'forest' => 'Morning',
+        'city' => 'Skyline',
+        'launch' => 'Portrait',
+    ];
+
     /** Top-level order after the admin dragged the albums into place. */
     private const TOP_LEVEL_ORDER = ['best', 'landscapes', 'city', 'forest', 'launch', 'offsite', 'editorial', 'client', 'archive', 'drafts'];
 
@@ -132,6 +174,7 @@ class DemoSeeder extends Seeder
             $this->seedPeople($firstRun);
             $this->seedAlbums();
             $this->seedLaterChanges();
+            $this->seedTags();
             $this->seedSystemAlbumsAndPages();
 
             if ($firstRun) {
@@ -354,6 +397,44 @@ class DemoSeeder extends Seeder
             }
             Album::query()->orderBy('parent_id')->get()->sortBy(fn (Album $album) => $album->depth())->each->refreshTreePath();
             ActivityLog::albumsReordered(null);
+        }
+    }
+
+    /**
+     * Predefined tags and tags on albums and photos. Albums that already have
+     * tags are left alone, so running the seeder again changes nothing. Photo
+     * tags are written directly: one log entry per photo would drown the log.
+     */
+    private function seedTags(): void
+    {
+        if (Setting::get(SiteSettings::TAGS_PREDEFINED) === null) {
+            Setting::put(SiteSettings::TAGS_PREDEFINED, self::PREDEFINED_TAGS);
+        }
+
+        foreach (self::ALBUM_TAGS as $key => $names) {
+            $album = $this->albums[$key];
+
+            if ($album->tags()->exists()) {
+                continue;
+            }
+
+            $owner = $this->users[self::ALBUMS[$key]['owner']];
+            $this->at(max(1, self::ALBUMS[$key]['created'] - 1), 11);
+            $this->actingAs($owner);
+
+            Tagging::sync($album, $names, $owner);
+
+            if (in_array($key, self::TAGS_FOR_SUB_ALBUMS, true)) {
+                $album->update(['tags_apply_to_sub_albums' => true]);
+            }
+
+            if (isset(self::PHOTO_TAGS[$key])) {
+                $name = self::PHOTO_TAGS[$key];
+                $tag = Tag::firstOrCreate(['normalized' => Tag::normalize($name)], ['name' => $name, 'created_by' => $owner->id]);
+                $photoIds = $album->photos()->pluck('photos.id')->filter(fn (int $id, int $index) => $index % 4 === 0);
+
+                DB::table('photo_tag')->insertOrIgnore($photoIds->map(fn (int $id) => ['photo_id' => $id, 'tag_id' => $tag->id])->values()->all());
+            }
         }
     }
 

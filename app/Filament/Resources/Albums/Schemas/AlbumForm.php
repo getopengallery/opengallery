@@ -8,6 +8,7 @@ use App\Enums\PhotoOrder;
 use App\Enums\Visibility;
 use App\Filament\Forms\Components\MediaPickerField;
 use App\Filament\Forms\Components\PeopleAndGroupsSelect;
+use App\Filament\Forms\Components\TagPicker;
 use App\Filament\Resources\Albums\Pages\CreateAlbum;
 use App\Models\Album;
 use App\Support\AlbumCollaboration;
@@ -95,6 +96,13 @@ class AlbumForm
                     ->columnSpanFull(),
                 Textarea::make('description')
                     ->rows(3)
+                    ->columnSpanFull(),
+                TagPicker::make('tag_names')
+                    ->columnSpanFull(),
+                Toggle::make('tags_apply_to_sub_albums')
+                    ->label(__('Also apply these tags to sub-albums'))
+                    ->helperText(__('Albums inside this one, at every level, and their photos get these tags too.'))
+                    ->visible(fn (): bool => SiteSettings::taggingEnabled())
                     ->columnSpanFull(),
                 Select::make('parent_id')
                     ->visible(fn (?Album $record, mixed $livewire): bool => ! self::isSubAlbumThroughRole($livewire)

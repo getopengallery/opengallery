@@ -31,6 +31,7 @@ Every attribute is passed to the block's view as a camel-cased variable (`on-hom
 | `auth-shell` | slot | Frame around login, registration and password pages |
 | `album-grid` | `albums` | Album lists |
 | `album-search` | `query` | Search form above the album list (`GET /?q=`) |
+| `search-photos` | `photos`, `query` | Photos found by tag on the search page; a theme that replaces `albums/index.blade.php` should render it when `$photos` has results |
 | `album-tile` | `album` | One album in a grid |
 | `photo-grid` | `photos` | Photos of an album (use `App\Support\PhotoGridItems::from($photos)`) |
 | `lightbox` | none | Full-screen photo viewer, inside an `ogLightbox` Alpine scope |

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Permission;
 use App\Models\Pivots\AlbumPhoto;
+use App\Models\Pivots\PhotoTag;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -91,6 +92,17 @@ class Photo extends Model implements HasMedia
             ->using(AlbumPhoto::class)
             ->withPivot('sort_order')
             ->withTrashed();
+    }
+
+    /**
+     * Tags set on the photo itself; those from its albums are worked out when
+     * needed (App\Support\Tagging).
+     *
+     * @return BelongsToMany<Tag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class)->using(PhotoTag::class);
     }
 
     /** @return Collection<int, Album> albums that are not in the trash */

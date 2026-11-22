@@ -8,6 +8,8 @@ use App\Models\Group;
 use App\Models\Page;
 use App\Models\Photo;
 use App\Models\User;
+use App\Support\SiteSettings;
+use App\Support\Tagging;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -59,6 +61,29 @@ it('can be run again without duplicating anything', function () {
     $this->seed(DemoSeeder::class);
 
     expect($counts())->toBe($before);
+});
+
+it('seeds predefined tags, album and photo tags, and an album that passes its tags on', function () {
+    $this->seed(DemoSeeder::class);
+
+    $landscapes = Album::where('title', 'Landscapes')->sole();
+    $mountains = Album::where('title', 'Mountains')->sole();
+
+    expect(SiteSettings::predefinedTags())->toContain('Nature')
+        ->and(Tagging::namesOf($landscapes))->toBe(['Landscape', 'Nature', 'Sunset'])
+        ->and($landscapes->tags_apply_to_sub_albums)->toBeTrue()
+        ->and(Tagging::namesFromParents($mountains, $mountains->owner))->toContain('Sunset')
+        ->and(Photo::whereHas('tags')->exists())->toBeTrue();
+});
+
+it('keeps tags someone changed when it runs again', function () {
+    $this->seed(DemoSeeder::class);
+    $forest = Album::where('title', 'Forest trails')->sole();
+    Tagging::sync($forest, ['Changed'], $forest->owner);
+
+    $this->seed(DemoSeeder::class);
+
+    expect(Tagging::namesOf($forest))->toBe(['Changed']);
 });
 
 it('only adds photos to demo albums that are empty', function () {

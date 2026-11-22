@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Photos\Schemas;
 
 use App\Models\Album;
 use App\Models\Photo;
+use App\Support\SiteSettings;
+use App\Support\Tagging;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -62,6 +64,16 @@ class PhotoInfolist
                                     ->state(fn (Photo $record) => $record->coverOf()->pluck('title')->all() ?: null)
                                     ->badge()
                                     ->placeholder(__('Not used as a cover')),
+                                TextEntry::make('tag_names')
+                                    ->label(__('Tags'))
+                                    ->state(fn (Photo $record) => Tagging::uniqueNames([
+                                        ...Tagging::namesOf($record),
+                                        ...Tagging::inheritedNames($record, auth()->user()),
+                                    ]) ?: null)
+                                    ->badge()
+                                    ->color('gray')
+                                    ->placeholder(__('No tags'))
+                                    ->visible(fn (): bool => SiteSettings::taggingEnabled()),
                                 TextEntry::make('deleted_at')
                                     ->label(__('In the trash since'))
                                     ->dateTime()

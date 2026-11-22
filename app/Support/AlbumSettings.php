@@ -17,7 +17,7 @@ class AlbumSettings
      * Everything an Editor may change. `Album` also has `owner_id` and
      * `parent_id` in `$fillable`, so nothing else is saved for them.
      */
-    public const EDITOR_FIELDS = ['title', 'description', 'cover_photo_id', 'photo_order', 'visibility', 'password', 'protect', 'access_expires_at', 'allow_downloads'];
+    public const EDITOR_FIELDS = ['title', 'description', 'cover_photo_id', 'photo_order', 'visibility', 'password', 'protect', 'access_expires_at', 'allow_downloads', 'tags_apply_to_sub_albums'];
 
     /**
      * Applies the "Require a password" switch and drops settings that do not

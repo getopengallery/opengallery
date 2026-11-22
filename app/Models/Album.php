@@ -10,6 +10,7 @@ use App\Models\Pivots\AlbumCollaborator;
 use App\Models\Pivots\AlbumGroup;
 use App\Models\Pivots\AlbumGroupCollaborator;
 use App\Models\Pivots\AlbumPhoto;
+use App\Models\Pivots\AlbumTag;
 use App\Models\Pivots\AlbumUser;
 use App\Support\ActivityLog;
 use App\Support\AlbumCollaboration;
@@ -29,7 +30,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-#[Fillable(['parent_id', 'owner_id', 'title', 'slug', 'description', 'visibility', 'cover_photo_id', 'sort_order', 'photo_order', 'password', 'access_expires_at', 'allow_downloads'])]
+#[Fillable(['parent_id', 'owner_id', 'title', 'slug', 'description', 'visibility', 'cover_photo_id', 'sort_order', 'photo_order', 'password', 'access_expires_at', 'allow_downloads', 'tags_apply_to_sub_albums'])]
 #[Hidden(['password'])]
 class Album extends Model
 {
@@ -44,6 +45,7 @@ class Album extends Model
             'password' => 'hashed',
             'access_expires_at' => 'datetime',
             'allow_downloads' => 'boolean',
+            'tags_apply_to_sub_albums' => 'boolean',
         ];
     }
 
@@ -347,6 +349,17 @@ class Album extends Model
     public function coverPhoto(): BelongsTo
     {
         return $this->belongsTo(Photo::class, 'cover_photo_id');
+    }
+
+    /**
+     * The album's own tags. Its photos get them too, and with
+     * `tags_apply_to_sub_albums` also the albums below it (App\Support\Tagging).
+     *
+     * @return BelongsToMany<Tag, $this>
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class)->using(AlbumTag::class);
     }
 
     /** @return BelongsToMany<User, $this> */

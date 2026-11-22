@@ -4,6 +4,10 @@ Notable changes to OpenGallery. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Added
+
+- Albums and photos can be tagged. Album tags also apply to the photos in the album and, when chosen per album, to its sub-albums. The tag field offers existing and similar tags in a dropdown while typing, and the search on the site finds albums and photos by tag. **Settings → Tags** turns tagging on or off, controls new tags and suggestions, and holds predefined tags.
+
 ### Changed
 
 - The admin menu now lists every settings page directly, in a **Settings** and a **System** group, instead of a separate menu inside Settings. The activity log's settings open with a **Log settings** button on the log.

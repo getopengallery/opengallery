@@ -6,7 +6,7 @@ order: 10
 
 Site-wide settings are in the admin menu, with one page per topic. You need the permission "Change site settings". Every change is recorded in the activity log.
 
-- **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos) and [E-mail](#e-mail).
+- **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos), [Tags](#tags) and [E-mail](#e-mail).
 - **System**: [Background jobs](#background-jobs) and [Updates](#updates). The [log settings](#activity-log) open with the **Log settings** button on the activity log.
 
 Each page has its own **Save settings** button and saves only that page. If you try to leave a page with changes you have not saved, the browser asks first. To find a setting, type its name in the search field at the top of the admin, for example "favicon".
@@ -118,6 +118,17 @@ The symbols use the colours of the active theme. Messengers keep previews for a 
 ### Downloads
 
 - **Remove location from downloads**: on by default. Visitors get original photos without the GPS position saved by the camera or phone. The stored files do not change, and people who may edit a photo still get its position.
+
+## Tags
+
+How people label albums and photos. See [Tags](../content/tags.md) for how tagging works.
+
+![The Tags settings page with its switches and predefined tags](../../assets/settings-tags.png)
+
+- **Use tags**: on by default. When off, the tag fields are hidden and the search ignores tags. Existing tags are kept and come back when you turn it on again.
+- **Allow new tags**: on by default. When off, people can only add predefined tags. Tags already on an album or photo stay.
+- **Suggest tags from everyone**: off by default. When on, everyone who tags sees every tag in use, which helps avoid several versions of the same tag. Tag names from private albums are then visible to them. When off, people see predefined tags, their own tags and tags on albums and photos they can open.
+- **Predefined tags**: tags offered to everyone, up to 200. Removing one here does not take it off albums and photos.
 
 ## E-mail
 

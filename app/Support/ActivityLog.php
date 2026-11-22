@@ -12,6 +12,7 @@ use App\Models\Photo;
 use App\Models\Pivots\AlbumCollaborator;
 use App\Models\Pivots\AlbumGroupCollaborator;
 use App\Models\Role;
+use App\Models\Tag;
 use App\Models\User;
 use BackedEnum;
 use DateTimeInterface;
@@ -67,12 +68,12 @@ class ActivityLog
 
     /** Relationship labels by [parent, related]. */
     private const RELATIONS = [
-        Album::class => [User::class => 'shared with users', Group::class => 'shared with groups'],
+        Album::class => [User::class => 'shared with users', Group::class => 'shared with groups', Tag::class => 'tags'],
         Group::class => [User::class => 'members', Album::class => 'albums'],
         User::class => [Group::class => 'groups', Role::class => 'roles', Album::class => 'shared albums'],
         Role::class => [Permission::class => 'permissions', User::class => 'users'],
         // Album → Photo is deliberately missing: uploads are logged once per batch.
-        Photo::class => [Album::class => 'albums'],
+        Photo::class => [Album::class => 'albums', Tag::class => 'tags'],
     ];
 
     /** Labels for pivots that link the same two models as another relation, by [pivot, parent]. */
@@ -572,6 +573,10 @@ class ActivityLog
 
         if ($key === 'locale') {
             return 'Language';
+        }
+
+        if ($key === 'tags_apply_to_sub_albums') {
+            return 'Tags apply to sub-albums';
         }
 
         $name = str_ends_with($key, '_id') ? substr($key, 0, -3) : $key;

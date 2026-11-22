@@ -41,7 +41,11 @@ class AlbumController extends Controller
         $search = is_string($request->query('q')) ? trim($request->query('q')) : '';
 
         if ($search !== '') {
-            return view('albums.index', ['albums' => AlbumSearch::run($request->user(), $search), 'search' => $search]);
+            return view('albums.index', [
+                'albums' => AlbumSearch::run($request->user(), $search),
+                'photos' => AlbumSearch::photos($request->user(), $search),
+                'search' => $search,
+            ]);
         }
 
         $albums = Album::query()
