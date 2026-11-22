@@ -58,7 +58,7 @@ Photos and pages are never stored on the device. Only the site's styles, the log
 
 How the site appears in search results (Google, Bing and others) and in the previews that messengers, chat apps and social networks show when someone shares a link.
 
-![The Search engines settings page](../../assets/settings-search-engines.png) <!-- TODO: screenshot of the Search engines page in Admin → Settings -->
+![The Search engines settings page](../../assets/settings-search-engines.png)
 
 ### Search results
 

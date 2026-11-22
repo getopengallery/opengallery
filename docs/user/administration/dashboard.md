@@ -6,7 +6,7 @@ order: 55
 
 The dashboard is the first page of the admin. It is made of panels, and each person sees only the panels that fit what they may do. Everyone who may open the admin gets at least the welcome panel, so nobody starts on an empty page. You can [arrange your own dashboard](#arranging-your-dashboard): change the order of the panels, hide some and choose how wide they are.
 
-![The admin dashboard of an administrator](../../assets/dashboard-admin.png) <!-- TODO: screenshot of the dashboard as an administrator -->
+![The admin dashboard of an administrator](../../assets/dashboard-admin.png)
 
 ## The panels and who sees them
 
@@ -39,7 +39,7 @@ Until you [arrange your dashboard](#arranging-your-dashboard) yourself, the pane
 
 A [custom role](users-and-permissions.md#roles) gets the arrangement that covers most of its panels, leaving out the panels it may not see. For example, a role that uploads photos and edits pages gets the administrators' order: welcome, your albums, your recent uploads and pages in one row. A role that may only open the admin area sees the welcome panel, which says what such an account can do. The trash only appears while it holds something, at the place shown above.
 
-![The dashboard of an uploader](../../assets/dashboard-uploader.png) <!-- TODO: screenshot of the dashboard as an uploader -->
+![The dashboard of an uploader](../../assets/dashboard-uploader.png)
 
 ## Only what you may see
 
@@ -67,7 +67,7 @@ The **Site health** panel checks the installation each time the dashboard opens.
 - **The activity log is off**: see [Activity log settings](settings.md#activity-log).
 - **Update available**: a newer version of OpenGallery is out. A super administrator can install it under [Updates](settings.md#updates).
 
-![The site health panel listing two problems](../../assets/dashboard-site-health.png) <!-- TODO: screenshot of the site health panel with a warning -->
+![The site health panel listing two problems](../../assets/dashboard-site-health.png)
 
 ## Arranging your dashboard
 
@@ -79,7 +79,7 @@ Click the **Customize dashboard** button (the sliders icon) at the top right of 
 
 Click **Save**. Only you see your arrangement; it does not change anyone else's dashboard and is not recorded in the activity log. **Reset to default** brings back all panels in their standard order and width.
 
-![Customize dashboard with the list of panels](../../assets/dashboard-customize.png) <!-- TODO: screenshot of the Customize dashboard panel -->
+![Customize dashboard with the list of panels](../../assets/dashboard-customize.png)
 
 Your permissions always decide which panels you get. If you lose a permission, its panel disappears from your dashboard even if you arranged it; if you gain one, or a plugin adds a panel, it appears next to the panel it follows by default. If you hide every panel, the dashboard tells you how to show them again.
 
