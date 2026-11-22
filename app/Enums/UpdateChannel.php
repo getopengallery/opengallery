@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasDescription;
 use Filament\Support\Contracts\HasLabel;
 
 /**
- * Which releases the update check reports (Admin → Settings → Updates, see
+ * Which releases the update check reports (Admin → System → Updates, see
  * App\Support\UpdateCheck).
  */
 enum UpdateChannel: string implements HasDescription, HasLabel

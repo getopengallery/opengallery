@@ -129,7 +129,7 @@ Filament passes values into closures **by parameter name**. Use the names Filame
 
 ## Navigation and labels
 
-- Every resource or page sets `$navigationGroup` to a case of `App\Filament\Navigation\NavigationGroup` (`Gallery`, `UsersAndAccess`, `AppearanceAndExtensions`, `System`, `Help`), and `$navigationSort` within it. The enum's labels are translated per request (`NavigationGroup::panelGroups()` gives the panel closures), because the panel is configured before the visitor's language is known. Plugins use the same enum.
+- Every resource or page sets `$navigationGroup` to a case of `App\Filament\Navigation\NavigationGroup` (`Gallery`, `UsersAndAccess`, `AppearanceAndExtensions`, `Settings`, `System`, `Help`), and `$navigationSort` within it. The enum's labels are translated per request (`NavigationGroup::panelGroups()` gives the panel closures), because the panel is configured before the visitor's language is known. Plugins use the same enum.
 - Static label properties cannot call `__()`. Override `getModelLabel()`, `getPluralModelLabel()`, `getNavigationLabel()`, `getTitle()` and `getSubheading()` instead (see [Languages and translations](../extending/translations.md)).
 - Pages and resources check access in `canAccess()` with a permission from `App\Enums\Permission`. Only albums and photos have policies.
 

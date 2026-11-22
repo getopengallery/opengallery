@@ -4,6 +4,10 @@ Notable changes to OpenGallery. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+### Changed
+
+- The admin menu now lists every settings page directly, in a **Settings** and a **System** group, instead of a separate menu inside Settings. The activity log's settings open with a **Log settings** button on the log.
+
 ## [0.2.0] - 2026-11-22
 
 First public release.

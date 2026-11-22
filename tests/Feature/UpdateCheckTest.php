@@ -285,7 +285,7 @@ describe('the notices in the admin', function () {
         Livewire::test(SiteHealth::class)
             ->assertSee('Update available')
             ->assertSee('OpenGallery 1.1.0 is available. This gallery runs 1.0.0.')
-            ->assertSee('Settings → Updates');
+            ->assertSee('System → Updates');
     });
 
     it('links to the update in the menu only for people who manage settings', function (Role $role, bool $visible) {

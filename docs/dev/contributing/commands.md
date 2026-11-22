@@ -45,7 +45,7 @@ Defined in `routes/console.php`; makes one pass of the background jobs (`App\Sup
 | --- | --- |
 | `php artisan key:generate` | Once per installation; `APP_KEY` also encrypts stored SMTP and plugin secrets and keys the guest visitor hash |
 | `php artisan model:prune` | Deletes activity log entries older than the retention period (`ActivityEvent` is mass-prunable) |
-| `php artisan schedule:run` | Runs `gallery:background-jobs`; called every minute by cron when Settings → Background jobs is "Cron" |
+| `php artisan schedule:run` | Runs `gallery:background-jobs`; called every minute by cron when System → Background jobs is "Cron" |
 | `php artisan schedule:list` | Shows the scheduled task |
 | `php artisan queue:work` | Optional with `GALLERY_QUEUE_CONVERSIONS=true`; the background jobs also work through the database queue |
 | `php artisan dev` | Development: PHP server, queue listener, log viewer and Vite together (`composer run dev`) |
@@ -77,7 +77,7 @@ The last pass is stored in the setting `jobs.last_run` (`lastRun()`: time and tr
 
 ### Triggers
 
-What starts a pass is chosen in Admin → Settings (`SiteSettings::backgroundJobs()`, enum `App\Enums\BackgroundJobMode`, setting `jobs.mode`, default `ajax`):
+What starts a pass is chosen in Admin → System → Background jobs (`SiteSettings::backgroundJobs()`, enum `App\Enums\BackgroundJobMode`, setting `jobs.mode`, default `ajax`):
 
 | Mode | Trigger |
 | --- | --- |

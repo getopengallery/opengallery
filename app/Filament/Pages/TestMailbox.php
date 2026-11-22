@@ -38,7 +38,7 @@ class TestMailbox extends Page implements HasTable
 
     protected static string|UnitEnum|null $navigationGroup = NavigationGroup::System;
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 100;
 
     protected static ?string $slug = 'test-mailbox';
 

@@ -16,7 +16,7 @@ After logging in you land on **My albums**, your own page on the site. Click you
 
 ## 2. Name your gallery and set up e-mail
 
-Open **System → Settings**:
+Open the **Settings** group in the admin menu:
 
 - On the **General** page, enter the **Site name** and, if you have one, upload a **Logo** and a **Favicon**.
 - On the **E-mail** page, choose how the gallery sends e-mail, fill in your provider's details and click **Send a test e-mail**. Without working e-mail, nobody can reset a forgotten password.

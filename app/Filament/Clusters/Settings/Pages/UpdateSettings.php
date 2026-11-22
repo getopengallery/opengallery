@@ -3,8 +3,8 @@
 namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Enums\UpdateChannel;
-use App\Filament\Clusters\Settings\SettingsGroup;
 use App\Filament\Clusters\Settings\SettingsPage;
+use App\Filament\Navigation\NavigationGroup;
 use App\Models\User;
 use App\Support\AppVersion;
 use App\Support\DateFormat;
@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Renderless;
 use UnitEnum;
 
-/** Settings → Updates: whether the gallery looks for new versions, and installing them. */
+/** System → Updates: whether the gallery looks for new versions, and installing them. */
 class UpdateSettings extends SettingsPage
 {
     protected const FIELDS = [
@@ -44,7 +44,7 @@ class UpdateSettings extends SettingsPage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpCircle;
 
-    protected static string|UnitEnum|null $navigationGroup = SettingsGroup::System;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::System;
 
     protected static ?int $navigationSort = 90;
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ActivityEvents;
 
 use App\Enums\ActivityType;
 use App\Enums\Permission;
+use App\Filament\Clusters\Settings\Pages\ActivityLogSettings;
 use App\Filament\Navigation\NavigationGroup;
 use App\Filament\Resources\ActivityEvents\Pages\ManageActivityEvents;
 use App\Filament\Tables\EmptyState;
@@ -31,7 +32,7 @@ class ActivityEventResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = NavigationGroup::System;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 70;
 
     protected static ?string $slug = 'activity';
 
@@ -48,6 +49,12 @@ class ActivityEventResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('Activity log');
+    }
+
+    /** @return array<int, string> The log's entry stays highlighted on its settings page. */
+    public static function getNavigationItemActiveRoutePattern(): array
+    {
+        return [static::getRouteBaseName().'.*', ActivityLogSettings::getRouteName()];
     }
 
     public static function canAccess(): bool
@@ -126,7 +133,7 @@ class ActivityEventResource extends Resource
             ->tap(fn (Table $table) => EmptyState::apply(
                 $table,
                 __('Nothing recorded yet'),
-                __('Logins, album views and changes appear here, as far as Settings → Activity log records them.'),
+                __('Logins, album views and changes appear here, as far as the log settings record them.'),
                 Heroicon::OutlinedClock,
             ));
     }

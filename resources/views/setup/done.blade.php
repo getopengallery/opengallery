@@ -26,7 +26,7 @@
                 <li>{{ __('Send a test e-mail under Settings → E-mail to check the e-mail settings.') }}</li>
             @endif
             @if ($jobMode !== \App\Enums\BackgroundJobMode::Ajax)
-                <li>{{ __('Set up the cron job or webcron address shown under Settings → Background jobs.') }}</li>
+                <li>{{ __('Set up the cron job or webcron address shown under System → Background jobs.') }}</li>
             @endif
             <li>{{ __('Choose a theme and add your logo under Themes and Settings.') }}</li>
             <li>{{ __('Back up the storage folder and the database regularly.') }}</li>

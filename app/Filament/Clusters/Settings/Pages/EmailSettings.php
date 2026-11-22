@@ -3,8 +3,8 @@
 namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Enums\MailDelivery;
-use App\Filament\Clusters\Settings\SettingsGroup;
 use App\Filament\Clusters\Settings\SettingsPage;
+use App\Filament\Navigation\NavigationGroup;
 use App\Models\Setting;
 use App\Support\MailQueue;
 use App\Support\SiteSettings;
@@ -57,7 +57,7 @@ class EmailSettings extends SettingsPage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
-    protected static string|UnitEnum|null $navigationGroup = SettingsGroup::System;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::Settings;
 
     protected static ?int $navigationSort = 60;
 

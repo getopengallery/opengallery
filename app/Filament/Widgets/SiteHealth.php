@@ -60,7 +60,7 @@ class SiteHealth extends DashboardWidget
     private static function explain(array $problem): array
     {
         $count = $problem['count'] ?? 0;
-        $settings = fn (string $section, string $page): array => ['url' => $page::getUrl(), 'link' => __('Settings → :section', ['section' => __($section)])];
+        $settings = fn (string $page): array => ['url' => $page::getUrl(), 'link' => $page::menuPath()];
         $docs = fn (string $doc, string $anchor): array => ['url' => Documentation::getUrl(['doc' => $doc]).'#'.$anchor, 'link' => __('How to fix it')];
         $installation = 'user/getting-started/installation';
 
@@ -74,10 +74,10 @@ class SiteHealth extends DashboardWidget
             'low-disk-space' => ['title' => __('Disk space is low'), 'text' => __(':size free on the server.', ['size' => Number::fileSize($count, precision: 1)]), ...$docs($installation, 'where-photos-are-stored')],
             'opcache-off' => ['title' => __('OPcache is off'), 'text' => __('PHP prepares the gallery anew for every page, which makes every page slower. Turn on OPcache in your hosting control panel.'), ...$docs($installation, 'speed')],
             'caches-not-saved' => ['title' => __('Speed-up files cannot be saved'), 'text' => __('The gallery could not save its prepared files in the bootstrap/cache folder, so every page is slower. Make that folder writable.'), ...$docs($installation, 'speed')],
-            'mail-not-sent' => ['title' => __('E-mails are not sent'), 'text' => __('Invitations, password resets and notices do not reach anyone.'), ...$settings('E-mail', EmailSettings::class)],
-            'background-jobs-idle' => ['title' => __('Background jobs do not run'), 'text' => __('Old activity log entries and unfinished uploads are not removed.'), ...$settings('Background jobs', BackgroundJobSettings::class)],
-            'activity-log-off' => ['title' => __('The activity log is off'), 'text' => __('Logins, visits and changes are not recorded.'), ...$settings('Activity log', ActivityLogSettings::class)],
-            'update-available' => ['title' => __('Update available'), 'text' => __('OpenGallery :version is available. This gallery runs :current.', ['version' => UpdateCheck::available()['version'] ?? '–', 'current' => AppVersion::current()]), ...$settings('Updates', UpdateSettings::class)],
+            'mail-not-sent' => ['title' => __('E-mails are not sent'), 'text' => __('Invitations, password resets and notices do not reach anyone.'), ...$settings(EmailSettings::class)],
+            'background-jobs-idle' => ['title' => __('Background jobs do not run'), 'text' => __('Old activity log entries and unfinished uploads are not removed.'), ...$settings(BackgroundJobSettings::class)],
+            'activity-log-off' => ['title' => __('The activity log is off'), 'text' => __('Logins, visits and changes are not recorded.'), ...$settings(ActivityLogSettings::class)],
+            'update-available' => ['title' => __('Update available'), 'text' => __('OpenGallery :version is available. This gallery runs :current.', ['version' => UpdateCheck::available()['version'] ?? '–', 'current' => AppVersion::current()]), ...$settings(UpdateSettings::class)],
             default => ['title' => $problem['key'], 'text' => '', 'url' => SettingsCluster::getUrl(), 'link' => __('Settings')],
         };
     }

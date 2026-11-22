@@ -3,8 +3,8 @@
 namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Enums\BackgroundJobMode;
-use App\Filament\Clusters\Settings\SettingsGroup;
 use App\Filament\Clusters\Settings\SettingsPage;
+use App\Filament\Navigation\NavigationGroup;
 use App\Support\ActivityLog;
 use App\Support\BackgroundJobs;
 use App\Support\DateFormat;
@@ -21,7 +21,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
-/** Settings → Background jobs: what starts the regular housekeeping. */
+/** System → Background jobs: what starts the regular housekeeping. */
 class BackgroundJobSettings extends SettingsPage
 {
     protected const FIELDS = [
@@ -30,7 +30,7 @@ class BackgroundJobSettings extends SettingsPage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowPath;
 
-    protected static string|UnitEnum|null $navigationGroup = SettingsGroup::System;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::System;
 
     protected static ?int $navigationSort = 80;
 

@@ -15,6 +15,7 @@ enum NavigationGroup implements HasLabel
     case Gallery;
     case UsersAndAccess;
     case AppearanceAndExtensions;
+    case Settings;
     case System;
     case Help;
 
@@ -38,6 +39,7 @@ enum NavigationGroup implements HasLabel
             self::Gallery => __('Gallery'),
             self::UsersAndAccess => __('Users & access'),
             self::AppearanceAndExtensions => __('Appearance & extensions'),
+            self::Settings => __('Settings'),
             self::System => __('System'),
             self::Help => __('Help'),
         };

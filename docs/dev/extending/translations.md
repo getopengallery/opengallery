@@ -23,7 +23,7 @@ English is the source language. Core keys are the English texts themselves, so E
 
 ## Choosing the language
 
-- **Site default**: Admin → Settings → Language (`App\Support\SiteSettings::LOCALE`). `SiteSettings::apply()` puts it in `config('gallery.default_locale')`; `APP_LOCALE` in `.env` is only the initial default.
+- **Site default**: Admin → Settings → General (`App\Support\SiteSettings::LOCALE`). `SiteSettings::apply()` puts it in `config('gallery.default_locale')`; `APP_LOCALE` in `.env` is only the initial default.
 - **Per user**: `users.locale`, chosen in the profile or by an administrator in the user form. Empty means "site default".
 - **Per request**: `App\Http\Middleware\SetLocale` (web group and admin panel) sets `App::setLocale()` and `Number::useLocale()` from `App\Support\Locales::for($user)`. Guests get the site default. Dates do not follow the language: they are always `DD.MM.YYYY HH:MM` (`App\Support\DateFormat`, see [Admin UI conventions](../internals/admin-ui.md#lists-and-filters)); only month and weekday names, such as the activity calendar's labels, are translated.
 - **E-mails**: `User` implements `HasLocalePreference`, so notifications and mails are sent in the recipient's language, also from queued jobs.
@@ -99,4 +99,4 @@ A theme cannot override core's framework groups (`validation.php` and so on) any
 3. Translate the shipped themes and plugins: `themes/*/lang/{locale}/` and `plugins/*/lang/{locale}/`, same file names as `en`.
 4. Run `php artisan test --filter=TranslationFiles`.
 
-The language then appears in Admin → Settings and in every profile. The admin panel's own texts come with Filament, which ships many languages.
+The language then appears in Admin → Settings → General and in every profile. The admin panel's own texts come with Filament, which ships many languages.

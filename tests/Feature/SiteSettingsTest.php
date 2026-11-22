@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Permission;
 use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Extensions\ThemeManager;
@@ -12,10 +13,14 @@ use App\Filament\Clusters\Settings\Pages\GeneralSettings;
 use App\Filament\Clusters\Settings\Pages\PhotoSettings;
 use App\Filament\Clusters\Settings\Pages\SearchEngineSettings;
 use App\Filament\Clusters\Settings\SettingsCluster;
+use App\Filament\Resources\ActivityEvents\Pages\ManageActivityEvents;
 use App\Models\Album;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\SiteSettings;
+use Filament\Facades\Filament;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -31,6 +36,19 @@ function configure(array $settings): void
 function admin(): User
 {
     return tap(User::factory()->create())->assignRole(Role::Admin->value);
+}
+
+/** @return array<string, list<string>> the entries of the admin menu, by group */
+function adminMenu(): array
+{
+    return collect(Filament::getNavigation())
+        ->mapWithKeys(fn (NavigationGroup $group): array => [
+            (string) $group->getLabel() => collect($group->getItems())
+                ->map(fn (NavigationItem $item): string => (string) $item->getLabel())
+                ->values()
+                ->all(),
+        ])
+        ->all();
 }
 
 it('saves settings from the admin page', function () {
@@ -69,6 +87,47 @@ it('keeps the guest start page when it is hidden in the form', function () {
 
 it('opens the first settings page from the settings entry', function () {
     $this->actingAs(admin())->get(SettingsCluster::getUrl())->assertRedirect(GeneralSettings::getUrl());
+});
+
+it('lists the settings topics directly in the main menu', function () {
+    $this->actingAs(admin());
+
+    $menu = adminMenu();
+
+    expect($menu['Settings'])->toBe(['General', 'App', 'Search engines', 'Access', 'Photos', 'E-mail'])
+        ->and($menu['System'])->toBe(['Activity log', 'Background jobs', 'Updates']);
+});
+
+it('shows a settings page without a menu of its own', function () {
+    $this->actingAs(admin())->get(GeneralSettings::getUrl())
+        ->assertOk()
+        ->assertDontSee('fi-page-has-sub-navigation');
+});
+
+it('offers the log settings on the activity log to people who may change settings', function () {
+    $this->actingAs(tap(User::factory()->create())->givePermissionTo(Permission::AccessAdmin->value, Permission::ViewActivity->value, Permission::ManageSettings->value));
+
+    Livewire::test(ManageActivityEvents::class)->assertActionVisible('logSettings');
+});
+
+it('hides the log settings button from people who may only read the activity log', function () {
+    $this->actingAs(tap(User::factory()->create())->givePermissionTo(Permission::AccessAdmin->value, Permission::ViewActivity->value));
+
+    Livewire::test(ManageActivityEvents::class)->assertActionHidden('logSettings');
+});
+
+it('keeps the activity log highlighted in the menu on the log settings page', function () {
+    $html = $this->actingAs(admin())->get(ActivityLogSettings::getUrl())->assertOk()->getContent();
+
+    preg_match('/<li[^>]*fi-sidebar-item[^>]*fi-active[^>]*>.*?<\/li>/s', $html, $activeItem);
+
+    expect($activeItem[0] ?? '')->toContain('Activity log');
+});
+
+it('lists the log settings in the menu for people who may change settings but not open the log', function () {
+    $this->actingAs(tap(User::factory()->create())->givePermissionTo(Permission::AccessAdmin->value, Permission::ManageSettings->value));
+
+    expect(adminMenu()['System'])->toBe(['Log settings', 'Background jobs', 'Updates']);
 });
 
 it('leaves the settings of other pages alone when a page is saved', function () {
