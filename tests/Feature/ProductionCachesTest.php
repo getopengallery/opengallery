@@ -3,6 +3,7 @@
 use App\Extensions\PluginManager;
 use App\Support\ProductionCaches;
 use BladeUI\Icons\IconsManifest;
+use Filament\Facades\Filament;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
@@ -76,6 +77,45 @@ describe('on a live site', function () {
         $this->get(route('home'))->assertOk();
 
         expect($commands->getArrayCopy())->toBe(['config:clear', 'event:clear', 'route:clear', 'config:cache', 'event:cache', 'route:cache']);
+    });
+
+    it('rebuilds from the current admin pages when Filament still has the list of an older version', function (bool $outdated) {
+        $folder = temporaryCacheFolder();
+        $list = $folder.'/filament/panels/admin.php';
+        Filament::getDefaultPanel()->cacheComponents();
+
+        if ($outdated) {
+            cachesBuilt(outdated: true);
+        }
+
+        $listPresentDuringBuild = new ArrayObject;
+        $this->mock(Kernel::class, fn (MockInterface $mock) => $mock->shouldReceive('call')
+            ->andReturnUsing(function (string $command) use ($list, $listPresentDuringBuild) {
+                $listPresentDuringBuild[$command] = is_file($list);
+
+                return 0;
+            }));
+
+        $this->get(route('home'))->assertOk();
+
+        expect($listPresentDuringBuild['route:cache'])->toBeFalse()
+            ->and($list)->not->toBeFile();
+    })->with([
+        'after a one-click update' => false,
+        'after files were replaced by hand' => true,
+    ]);
+
+    it('does not write the old list back from a request that loaded it before it was dropped', function () {
+        $folder = temporaryCacheFolder();
+        $list = $folder.'/filament/panels/admin.php';
+        Filament::getDefaultPanel()->cacheComponents();
+        unlink($list);
+        cachesBuilt();
+        recordCacheCommands();
+
+        $this->get(route('home'))->assertOk();
+
+        expect($list)->not->toBeFile();
     });
 
     it('leaves caches that match the code alone', function () {

@@ -77,13 +77,17 @@ class ProductionCaches
         $wanted = self::wanted();
         $plan = self::plan($built, $fresh, $wanted);
 
+        // Read before clear(), which resets it. A panel loaded from Filament's cache skipped
+        // discovery, so writing its list back would keep pages from an older version.
+        $adminFromCache = Filament::getDefaultPanel()->hasCachedComponents();
+
         if ($plan['clear']) {
             self::clear();
         }
 
         if ($plan['build']) {
-            app()->terminating(fn () => self::buildUnlessFailing());
-        } elseif ($wanted && ! self::adminCached()) {
+            app()->terminating(fn () => self::buildUnlessFailing(withAdmin: ! $adminFromCache));
+        } elseif ($wanted && ! $adminFromCache && ! self::adminCached()) {
             // Filament's cache is written from this request's admin panel (see outdated()).
             app()->terminating(fn () => self::cacheAdmin());
         }
@@ -165,6 +169,7 @@ class ProductionCaches
         try {
             foreach (Filament::getPanels() as $panel) {
                 $panel->cacheComponents();
+                self::forgetCompiledCopy($panel->getComponentCachePath());
             }
             app(IconsManifest::class)->write(app(IconsFactory::class)->all());
         } catch (Throwable $exception) {
@@ -178,10 +183,23 @@ class ProductionCaches
         try {
             foreach (Filament::getPanels() as $panel) {
                 $panel->clearCachedComponents();
+                self::forgetCompiledCopy($panel->getComponentCachePath());
             }
             app(IconsManifest::class)->delete();
         } catch (Throwable $exception) {
             report($exception);
+        }
+    }
+
+    /**
+     * OPcache can keep running the old contents of a PHP file for a few
+     * seconds after it changes, which would show the previous admin menu.
+     * Hosts may restrict this function; the copy then expires by itself.
+     */
+    private static function forgetCompiledCopy(string $path): void
+    {
+        if (function_exists('opcache_invalidate')) {
+            @opcache_invalidate($path, true);
         }
     }
 
@@ -224,11 +242,20 @@ class ProductionCaches
         return hash('xxh128', implode('|', array_map(fn (string $path) => $path.':'.@filemtime($path).':'.@filesize($path), $paths)));
     }
 
-    /** One build at a time and, while builds fail, at most one attempt per hour. */
+    /**
+     * One build at a time and, while builds fail, at most one attempt per
+     * hour. Without $withAdmin, Filament's list is dropped first: the route
+     * cache must come from the pages that exist now (an update only removes
+     * the files directly in bootstrap/cache), and the next request writes it.
+     */
     private static function buildUnlessFailing(bool $withAdmin = true): void
     {
         if (! Cache::add(self::ATTEMPT, now()->getTimestamp(), self::RETRY_SECONDS)) {
             return;
+        }
+
+        if (! $withAdmin) {
+            self::clearAdmin();
         }
 
         if (self::build($withAdmin)) {
