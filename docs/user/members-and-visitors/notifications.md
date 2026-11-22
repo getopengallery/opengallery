@@ -13,7 +13,7 @@ The gallery tells people about things that concern them: an album shared with th
 
 Both bells show the same notifications, so reading one on the site also marks it read in the admin. Notifications are shown in your own language (see [Your profile](profile.md#profile-information)) and are kept for 180 days.
 
-![The notifications list on the site](../../assets/site-notifications.png) <!-- TODO: screenshot of the notifications page on the site -->
+![The notifications list on the site](../../assets/site-notifications.png)
 
 ## What you are told about
 

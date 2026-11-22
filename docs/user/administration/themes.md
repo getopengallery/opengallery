@@ -25,7 +25,7 @@ Click **Upload theme** at the top of the list and choose the theme's zip file. T
 - Themes can contain code that runs on the server: only upload themes from sources you trust. Uploading needs the permission "Upload themes and plugins". The button is not there without it, or when uploads are turned off in the [server configuration](../getting-started/installation.md#the-server-configuration-file).
 - The zip may be at most 50 MB (less if your server limits uploads further) and must not hold more than 5,000 files. Zips with links or with files that would land outside the theme folder are refused.
 
-![The Upload theme dialog with the zip file field and the Replace switch](../../assets/themes-upload.png) <!-- TODO: screenshot of the Upload theme dialog -->
+![The Upload theme dialog with the zip file field and the Replace switch](../../assets/themes-upload.png)
 
 Instead of uploading, you (or your host) can also copy the theme folder into the `themes` folder of your installation.
 

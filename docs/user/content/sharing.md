@@ -73,7 +73,7 @@ No collaborator can change the owner or the list of collaborators, or move the a
 
 On a new album or an existing one, find the **Collaborators** card next to **Visibility & sharing**. It lists people and groups together. Click **Add people or groups**, search by name, choose a role and click **Add**. Each row has a list to change the role and a button to remove the person or group. On an existing album these changes apply right away, without **Save changes**. On a new album, the people and groups you choose are invited when you click **Create**.
 
-![The Collaborators card of an album](../../assets/sharing-collaborators.png) <!-- TODO: screenshot of the Collaborators card on the album edit page -->
+![The Collaborators card of an album](../../assets/sharing-collaborators.png)
 
 To invite, you need to own the album and have the permission "Invite collaborators", or have the permission "Edit every album". Owners without the permission see the list but cannot change it. System albums have no collaborators.
 

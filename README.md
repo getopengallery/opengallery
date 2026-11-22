@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
+  <img src=".github/assets/logo-light.svg" alt="OpenGallery logo" width="88" height="88">
+</picture>
+
 # OpenGallery
 
 A self-hosted, privacy-focused photo gallery for individuals, families, clubs and organisations. It runs on ordinary PHP web hosting: no Docker, no Redis, no Node.js and no background worker on the server.
@@ -7,6 +12,16 @@ A self-hosted, privacy-focused photo gallery for individuals, families, clubs an
 > OpenGallery is in early development (version 0.x). Back up your gallery before every upgrade.
 
 ![The home page of a gallery with albums](docs/assets/site-home.png)
+
+## Screenshots
+
+| Photo viewer | Admin dashboard |
+| --- | --- |
+| ![A photo opened large in the viewer](docs/assets/site-lightbox.png) | ![The admin dashboard with shortcuts, site health, members and library figures](docs/assets/dashboard-admin.png) |
+
+| Media library | Scrapbook theme |
+| --- | --- |
+| ![The media library as a photo grid with filters](docs/assets/photos-media-grid.png) | ![The gallery in the playful Scrapbook theme](docs/assets/themes-scrapbook.png) |
 
 ## Features
 
