@@ -91,7 +91,7 @@ class CreateAlbum extends CreateRecord
             abort_unless($parent !== null, 403);
 
             return [
-                ...Arr::only($data, ['title', 'description', 'photo_order']),
+                ...Arr::only($data, ['title', 'description', 'photo_order', 'tags_apply_to_sub_albums']),
                 'parent_id' => $parent->id,
                 'owner_id' => $parent->owner_id,
                 'visibility' => Visibility::Private,

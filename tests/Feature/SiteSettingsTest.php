@@ -94,7 +94,7 @@ it('lists the settings topics directly in the main menu', function () {
 
     $menu = adminMenu();
 
-    expect($menu['Settings'])->toBe(['General', 'App', 'Search engines', 'Access', 'Photos', 'E-mail'])
+    expect($menu['Settings'])->toBe(['General', 'App', 'Search engines', 'Access', 'Photos', 'Tags', 'E-mail'])
         ->and($menu['System'])->toBe(['Activity log', 'Background jobs', 'Updates']);
 });
 

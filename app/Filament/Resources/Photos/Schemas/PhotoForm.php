@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Photos\Schemas;
 
+use App\Filament\Forms\Components\TagPicker;
 use App\Filament\Resources\Photos\Tables\PhotosTable;
 use App\Models\Album;
 use App\Models\Photo;
@@ -42,6 +43,7 @@ class PhotoForm
                             ->required()
                             ->rule(fn (?Photo $record) => self::albumChangesAllowed($record))
                             ->helperText(__('The photo appears in every album listed here and can be seen by anyone who can see one of them.')),
+                        TagPicker::make('tag_names'),
                     ]),
                 Section::make()
                     ->columnSpan(1)

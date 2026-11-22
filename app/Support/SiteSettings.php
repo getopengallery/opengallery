@@ -122,6 +122,18 @@ class SiteSettings
     /** List of mime types (keys of PhotoUploads::TYPES). */
     public const UPLOAD_TYPES = 'uploads.accepted_types';
 
+    /** Albums and photos can be tagged and found by tag (App\Support\Tagging). On by default. */
+    public const TAGGING = 'tags.enabled';
+
+    /** People may create tags besides the predefined ones. On by default. */
+    public const TAGS_ALLOW_CUSTOM = 'tags.allow_custom';
+
+    /** Suggest every tag in use, not only the ones a person can reach. Off by default: tag names can be private. */
+    public const TAGS_GLOBAL_SUGGESTIONS = 'tags.global_suggestions';
+
+    /** List of tag names offered to everyone. */
+    public const TAGS_PREDEFINED = 'tags.predefined';
+
     /** Allowed range for the largest photo, in MB. */
     public const UPLOAD_MIN_MB = 1;
 
@@ -435,6 +447,27 @@ class SiteSettings
     public static function notifiesAboutRegistrations(): bool
     {
         return (bool) Setting::get(self::NOTIFY_REGISTRATIONS, false);
+    }
+
+    public static function taggingEnabled(): bool
+    {
+        return (bool) Setting::get(self::TAGGING, true);
+    }
+
+    public static function allowsCustomTags(): bool
+    {
+        return (bool) Setting::get(self::TAGS_ALLOW_CUSTOM, true);
+    }
+
+    public static function globalTagSuggestions(): bool
+    {
+        return (bool) Setting::get(self::TAGS_GLOBAL_SUGGESTIONS, false);
+    }
+
+    /** @return list<string> */
+    public static function predefinedTags(): array
+    {
+        return array_values((array) Setting::get(self::TAGS_PREDEFINED, []));
     }
 
     /** What guests see at "/" while public albums are off: "landing" or "login". */

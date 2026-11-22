@@ -32,6 +32,7 @@ Search the list by title, or filter it by **Visibility**, **Owner** (only shown 
 Click **New album** in the albums list or **New album** on your "My albums" page on the site. The page has the same cards as an album's edit page. Fill in:
 
 - **Title** and an optional **Description**, both shown on the site.
+- **Tags**: labels that help people find the album and its photos. With **Also apply these tags to sub-albums**, the albums inside it get them too. See [Tags](tags.md).
 - **Inside album**: choose a parent album, or leave it at "None (top level)". You can choose your own albums; with "Edit every album", any album.
 - **Owner**: the person the album belongs to. Only shown to people with "Edit every album", who can give an album to someone else; everyone else always creates albums as themselves.
 - **Visibility & sharing**: who may see the album. See [Sharing albums](sharing.md).

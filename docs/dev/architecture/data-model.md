@@ -11,6 +11,7 @@ The tables OpenGallery creates, what each column means and how the models relate
 - A **user** owns **albums**, belongs to **groups** and has **roles**.
 - An **album** has a parent album, many **photos** (through `album_photo`), is shared with users (`album_user`) and groups (`album_group`), and can have collaborators (`album_collaborators`, `album_group_collaborators`).
 - A **photo** has one original file and its conversions in the **media** table, and is in one or more albums.
+- **Tags** are linked to albums (`album_tag`) and photos (`photo_tag`).
 - **Pages**, **settings** and **activity events** stand on their own.
 
 ## Albums and photos
@@ -29,6 +30,7 @@ The tables OpenGallery creates, what each column means and how the models relate
 | `password` | Hashed album password, or null |
 | `access_expires_at` | End of sharing, or null |
 | `allow_downloads` | Whether the album's visitors may download the original files (`AlbumAccess::canDownload()`); false by default and for private albums |
+| `tags_apply_to_sub_albums` | Whether the albums below this one, at every level, and their photos get its tags; false by default. Worked out when read, never copied (see [Tags](#tags)). |
 | `cover_photo_id` | Chosen cover, or null (the first photo is shown). Set to null when that photo is deleted. |
 | `sort_order` | Position among its siblings |
 | `photo_order` | `App\Enums\PhotoOrder` value; applied in `Album::photos()`. New albums take `SiteSettings::defaultPhotoOrder()`. |
@@ -68,6 +70,23 @@ One row per original file, polymorphic to the photo (`model_type`, `model_id`). 
 | `preview` | fits in 1920 × 1920 |
 
 They are generated during the upload request unless `config('gallery.queue_conversions')` is true.
+
+### Tags
+
+`tags` (`App\Models\Tag`) holds one row per tag, shared by everyone:
+
+| Column | Meaning |
+| --- | --- |
+| `name` | The spelling shown |
+| `normalized` | Unique. Lower case with single spaces (`Tag::normalize()`), so "PET 1" and "pet  1" are one tag while "pet1" is another |
+| `search_key` | Letters and numbers only (`Tag::searchKey()`), used by the site search |
+| `created_by` | Who created it (`users.id`), nullable, `nullOnDelete` |
+
+`album_tag` (pivot `AlbumTag`) and `photo_tag` (pivot `PhotoTag`) link tags to albums and photos; all foreign keys cascade on delete. Tag changes appear in the activity log through these pivots.
+
+Tags from other albums are never copied into `photo_tag` or `album_tag`. A photo gets the tags of its albums, and an album with `tags_apply_to_sub_albums` passes its tags to every album below it and their photos. `App\Support\Tagging::inheritedNames()`, `Tagging::namesFromParents()` and `App\Support\AlbumSearch` work them out when read, counting only source albums the viewer may open, so a tag on a private or password-protected album never reveals anything through a photo or sub-album the viewer can see.
+
+`Tagging` holds the rules: `suggestionsFor()`, `problemWith()` and `sync()`. Always save tags through `sync()`, which enforces the settings and removes tags nothing uses any more. Predefined tags are a list in the `tags.predefined` setting and get a row only once they are used. The form field is `App\Filament\Forms\Components\TagPicker`, an input with a scrollable dropdown; its matching compares the same way as `Tag::searchKey()`.
 
 ## People
 
@@ -160,4 +179,4 @@ With `SESSION_DRIVER=database`, sessions are written by `App\Support\PrivateData
 
 ## Pivots and the activity log
 
-Every pivot that should appear in the activity log uses a pivot model with the `App\Models\Pivots\RecordsPivotActivity` trait, set with `->using()` on **both** sides of the relation: `AlbumPhoto`, `AlbumUser`, `AlbumGroup`, `AlbumCollaborator`, `AlbumGroupCollaborator`, `GroupUser`, `UserRole`, `RolePermission`. A new many-to-many relation that should be logged needs the same.
+Every pivot that should appear in the activity log uses a pivot model with the `App\Models\Pivots\RecordsPivotActivity` trait, set with `->using()` on **both** sides of the relation: `AlbumPhoto`, `AlbumUser`, `AlbumGroup`, `AlbumCollaborator`, `AlbumGroupCollaborator`, `AlbumTag`, `PhotoTag`, `GroupUser`, `UserRole`, `RolePermission`. A new many-to-many relation that should be logged needs the same.

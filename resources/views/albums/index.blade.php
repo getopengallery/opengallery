@@ -38,5 +38,11 @@
 
             <div class="mt-14">{{ $albums->links() }}</div>
         @endif
+
+        @if (($photos ?? null)?->isNotEmpty())
+            <div @class(['mt-14' => $albums->isNotEmpty()])>
+                <x-block name="search-photos" :photos="$photos" :query="$search" />
+            </div>
+        @endif
     </div>
 </x-app-layout>

@@ -50,7 +50,7 @@ In the trash, the choices are **Restore** and **Delete permanently**.
 
 Opening a photo shows a large preview and its details:
 
-- **Where it is**: its albums, and which albums use it as the cover.
+- **Where it is**: its albums, which albums use it as the cover, and its [tags](tags.md), including those from its albums.
 - **History**: who uploaded it, when, when it was taken and when it was last changed.
 - **File**: name, type, size and dimensions.
 - **Camera**: the camera data stored in the file, if any.
@@ -59,7 +59,7 @@ From here you can **Open in album** (on the site), **Download original** (only i
 
 ![A single photo with its preview, albums and history](../../assets/photos-view.png)
 
-When editing, you can change the **Title**, **Description**, the **Taken** date (useful when the camera clock was wrong) and the **Albums** the photo is in. Every photo must stay in at least one album. The photo can be seen by anyone who can see one of its albums.
+When editing, you can change the **Title**, **Description**, the **Taken** date (useful when the camera clock was wrong), the **Albums** the photo is in and its [**Tags**](tags.md). Every photo must stay in at least one album. The photo can be seen by anyone who can see one of its albums.
 
 ## Who may change a photo
 

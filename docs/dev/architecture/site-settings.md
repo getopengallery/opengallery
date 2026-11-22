@@ -40,6 +40,10 @@ The site settings (pages of the cluster `App\Filament\Clusters\Settings\Settings
 | `UPLOAD_MAX_MB` | `uploads.max_mb` | `config('gallery.max_upload_kb')` and `config('media-library.max_file_size')` |
 | `UPLOAD_TYPES` | `uploads.accepted_types` | `config('gallery.accepted_mime_types')`, `SiteSettings::uploadTypes()` |
 | `REMOVE_PHOTO_LOCATION` | `photos.remove_location` | `SiteSettings::removesPhotoLocation()` (on by default) |
+| `TAGGING` | `tags.enabled` | `SiteSettings::taggingEnabled()` (on by default) |
+| `TAGS_ALLOW_CUSTOM` | `tags.allow_custom` | `SiteSettings::allowsCustomTags()` (on by default) |
+| `TAGS_GLOBAL_SUGGESTIONS` | `tags.global_suggestions` | `SiteSettings::globalTagSuggestions()` (off by default, because tag names can be private) |
+| `TAGS_PREDEFINED` | `tags.predefined` | `SiteSettings::predefinedTags()` (list of names, see [Tags](data-model.md#tags)) |
 | `MAIL_DELIVERY` | `mail.delivery` | `config('mail.default')` through `App\Enums\MailDelivery` (`server`, `smtp`, `sendmail`, `mailbox` for the test mailbox) |
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_SCHEME`, `MAIL_USERNAME`, `MAIL_PASSWORD` | `mail.host`, `mail.port`, `mail.scheme`, `mail.username`, `mail.password` | `config('mail.mailers.smtp.*')` |
 | `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | `mail.from_address`, `mail.from_name` | `config('mail.from.*')` |
