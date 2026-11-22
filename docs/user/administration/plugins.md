@@ -66,6 +66,7 @@ Which information from the provider is used: how people are recognised (`sub` is
 ### Groups
 
 - **Update group membership on every sign-in**: keeps people's [groups](users-and-permissions.md#groups) in step with the provider, either with a mapping table or by matching group names.
-- **Create groups that do not exist yet**
+- **Create groups that do not exist yet**: only when matching by group names.
+- **Also remove people from groups the provider does not list**: only when matching by group names. At each sign-in, the person leaves every group the provider does not list, including groups you assigned by hand. If the provider sends no group list at all, nothing is removed.
 
 People who already have an account can link a provider on their [profile](../members-and-visitors/profile.md#linked-accounts).

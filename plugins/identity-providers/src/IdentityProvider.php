@@ -136,6 +136,11 @@ final readonly class IdentityProvider
         return (bool) ($this->config['create_missing_groups'] ?? false);
     }
 
+    public function removesUnlistedGroups(): bool
+    {
+        return (bool) ($this->config['remove_unlisted_groups'] ?? false);
+    }
+
     /** @return array{issuer: ?string, authorize: ?string, token: ?string, userinfo: ?string} */
     public function configuredEndpoints(): array
     {

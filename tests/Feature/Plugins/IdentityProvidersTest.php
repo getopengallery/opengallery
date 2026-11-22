@@ -197,6 +197,58 @@ describe('group sync', function () {
         expect(User::sole()->groups()->pluck('name')->sort()->values()->all())->toBe(['Family', 'Scouts'])
             ->and(Group::count())->toBe(2);
     });
+
+    it('keeps unlisted groups in by-name mode when removal is off', function () {
+        [$family, $club] = Group::factory()->count(2)->sequence(['name' => 'Family'], ['name' => 'Club'])->create();
+        idp(['sync_groups' => true, 'group_mode' => 'by_name']);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna(['groups' => ['Family']]));
+
+        signIn();
+
+        expect($user->groups()->pluck('name')->sort()->values()->all())->toBe(['Club', 'Family']);
+    });
+
+    it('removes unlisted groups in by-name mode when removal is on', function () {
+        [$family, $club] = Group::factory()->count(2)->sequence(['name' => 'Family'], ['name' => 'Club'])->create();
+        idp(['sync_groups' => true, 'group_mode' => 'by_name', 'remove_unlisted_groups' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna(['groups' => ['Family']]));
+
+        signIn();
+
+        expect($user->groups()->pluck('name')->all())->toBe(['Family']);
+    });
+
+    it('removes every group when the provider sends an empty list and removal is on', function () {
+        $club = Group::factory()->create(['name' => 'Club']);
+        idp(['sync_groups' => true, 'group_mode' => 'by_name', 'remove_unlisted_groups' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna(['groups' => []]));
+
+        signIn();
+
+        expect($user->groups()->count())->toBe(0);
+    });
+
+    it('keeps all groups when the provider sends no groups claim and removal is on', function () {
+        $club = Group::factory()->create(['name' => 'Club']);
+        idp(['sync_groups' => true, 'group_mode' => 'by_name', 'remove_unlisted_groups' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna());
+
+        signIn();
+
+        expect($user->groups()->pluck('name')->all())->toBe(['Club']);
+    });
 });
 
 describe('linking from the profile', function () {

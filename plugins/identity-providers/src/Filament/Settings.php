@@ -227,6 +227,10 @@ class Settings extends PluginSettingsPage
                                 Toggle::make('create_missing_groups')
                                     ->label(__('identity-providers::settings.create_groups_that_do_not'))
                                     ->visible(fn (Get $get) => $get('sync_groups') && $get('group_mode') === IdentityProvider::MODE_BY_NAME),
+                                Toggle::make('remove_unlisted_groups')
+                                    ->label(__('identity-providers::settings.remove_groups_provider_no_longer_lists'))
+                                    ->helperText(__('identity-providers::settings.remove_groups_applies_to_all'))
+                                    ->visible(fn (Get $get) => $get('sync_groups') && $get('group_mode') === IdentityProvider::MODE_BY_NAME),
                             ]),
                     ]),
             ]);
