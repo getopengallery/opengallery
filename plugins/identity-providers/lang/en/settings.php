@@ -51,6 +51,8 @@ return [
     'accounts' => 'Accounts',
     'create_account_when_someone_signs' => 'Create an account when someone signs in for the first time',
     'independent_site_s_allow_people' => 'Independent of the site\'s "Allow people to create accounts" setting. New accounts get the default role.',
+    'approve_new_accounts_automatically' => 'Approve new accounts automatically',
+    'new_accounts_skip_site_approval' => 'New accounts from this provider skip the site\'s administrator approval. Turn on only for providers you control: anyone who can sign in there gets into the gallery.',
     'connect_existing_account_with_same' => 'Connect to an existing account with the same e-mail address',
     'only_when_provider_confirms_address' => 'Only when the provider confirms the address is verified. Turn on only for providers you control: anyone who controls a matching, verified address there gets into that account.',
     'update_group_membership_on_every' => 'Update group membership on every sign-in',

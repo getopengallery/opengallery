@@ -4,9 +4,13 @@ use App\Enums\Role;
 use App\Extensions\PluginSettings;
 use App\Filament\Pages\Plugins;
 use App\Models\Group;
+use App\Models\Setting;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Notifications\AccountCreated;
+use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Plugins\IdentityProviders\Filament\Settings;
@@ -167,6 +171,48 @@ describe('signing in', function () {
         signIn();
 
         expect(User::sole()->only('name', 'email'))->toBe(['name' => 'octo', 'email' => 'octo@example.com']);
+    });
+});
+
+describe('account approval', function () {
+    beforeEach(function () {
+        Setting::put(SiteSettings::REQUIRE_APPROVAL, true);
+        Notification::fake();
+    });
+
+    it('holds new accounts for approval unless the provider approves them', function () {
+        $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
+        idp();
+        fakeIdp(anna());
+
+        signIn();
+
+        expect(User::firstWhere('email', 'anna@example.com')->awaiting_approval)->toBeTrue();
+        $this->get(route('dashboard'))->assertRedirect(route('approval.notice'));
+        Notification::assertSentTo($admin, AccountCreated::class);
+    });
+
+    it('lets new accounts in without an approval notice when the provider approves them', function () {
+        $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
+        idp(['approve_new_accounts' => true]);
+        fakeIdp(anna());
+
+        signIn();
+
+        expect(User::firstWhere('email', 'anna@example.com')->awaiting_approval)->toBeFalse();
+        $this->get(route('dashboard'))->assertOk();
+        Notification::assertNotSentTo($admin, AccountCreated::class);
+    });
+
+    it('keeps an existing account on hold when the provider approves new accounts', function () {
+        idp(['approve_new_accounts' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com', 'awaiting_approval' => true]);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        fakeIdp(anna());
+
+        signIn();
+
+        expect($user->fresh()->awaiting_approval)->toBeTrue();
     });
 });
 

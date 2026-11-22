@@ -51,6 +51,8 @@ return [
     'accounts' => 'Konten',
     'create_account_when_someone_signs' => 'Konto anlegen, wenn sich jemand zum ersten Mal anmeldet',
     'independent_site_s_allow_people' => 'Unabhängig von der Einstellung „Erstellen von Konten erlauben“ der Website. Neue Konten erhalten die Standardrolle.',
+    'approve_new_accounts_automatically' => 'Neue Konten automatisch freigeben',
+    'new_accounts_skip_site_approval' => 'Neue Konten dieses Anbieters müssen nicht von der Administration freigegeben werden. Nur für Anbieter einschalten, die Sie kontrollieren: Wer sich dort anmelden kann, gelangt in die Galerie.',
     'connect_existing_account_with_same' => 'Mit einem vorhandenen Konto mit derselben E-Mail-Adresse verbinden',
     'only_when_provider_confirms_address' => 'Nur wenn der Anbieter bestätigt, dass die Adresse verifiziert ist. Nur für Anbieter einschalten, die Sie kontrollieren: Wer dort eine passende, verifizierte Adresse besitzt, gelangt in dieses Konto.',
     'update_group_membership_on_every' => 'Gruppenmitgliedschaft bei jeder Anmeldung aktualisieren',

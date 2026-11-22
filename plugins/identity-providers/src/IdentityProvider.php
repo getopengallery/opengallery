@@ -106,6 +106,11 @@ final readonly class IdentityProvider
         return (bool) ($this->config['create_users'] ?? false);
     }
 
+    public function approvesNewAccounts(): bool
+    {
+        return (bool) ($this->config['approve_new_accounts'] ?? false);
+    }
+
     public function linksByEmail(): bool
     {
         return (bool) ($this->config['link_by_email'] ?? false);

@@ -94,7 +94,7 @@ The symbols use the colours of the active theme. Messengers keep previews for a 
 ### Accounts
 
 - **Allow people to create accounts**: when this is on, anyone can register on the site. New accounts get the role "user". When it is off, only administrators can add users. This also applies to sign-up through other login providers, unless a provider is set up to create accounts itself (see [Plugins and sign-in](plugins.md)).
-- **New accounts need an administrator's approval**: only shown while sign-up is on. People who sign up can log in, but only see a "waiting for approval" page until someone who manages users approves them (see [Approving accounts](users-and-permissions.md#users)). Those people are always told about new accounts while this is on.
+- **New accounts need an administrator's approval**: only shown while sign-up is on. People who sign up can log in, but only see a "waiting for approval" page until someone who manages users approves them (see [Approving accounts](users-and-permissions.md#users)). Those people are always told about new accounts while this is on. Accounts from a sign-in provider set to [approve new accounts automatically](plugins.md#accounts) skip this.
 - **Tell people who manage users when someone creates an account**: only shown while sign-up is on. Everyone with the permission "Manage users" (and super administrators) gets a [notification](../members-and-visitors/notifications.md) in the admin and, while e-mail works, a short e-mail, both with a link to the new account, so new members do not wait unnoticed.
 
 ### Visitors

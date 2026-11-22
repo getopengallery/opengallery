@@ -5,6 +5,7 @@ namespace Plugins\IdentityProviders;
 use App\Models\Group;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Support\AccountApproval;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -91,6 +92,10 @@ class AccountResolver
 
             return $user;
         });
+
+        if ($this->provider->approvesNewAccounts()) {
+            AccountApproval::trust($user);
+        }
 
         event(new Registered($user));
 

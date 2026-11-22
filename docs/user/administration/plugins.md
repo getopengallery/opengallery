@@ -61,6 +61,7 @@ Which information from the provider is used: how people are recognised (`sub` is
 ### Accounts
 
 - **Create an account when someone signs in for the first time**: works even if registration is closed in the site settings. New accounts get the default role.
+- **Approve new accounts automatically**: shown while the option above is on. Accounts created through this provider skip the site's [administrator approval](settings.md#access). Accounts that are already waiting still need approval, and people whose e-mail address the provider does not confirm may still have to confirm it themselves. Turn this on only for providers you control: anyone who can sign in there gets into the gallery.
 - **Connect to an existing account with the same e-mail address**: only when the provider confirms the address is verified. Turn this on only for providers you control: anyone who controls a matching, verified address there gets into that account.
 
 ### Groups

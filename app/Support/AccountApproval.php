@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\User;
 use App\Notifications\AccountApproved;
 use App\Notifications\AccountCreated;
+use WeakMap;
 
 /**
  * "New accounts need approval" (Admin → Settings → Access): people who sign
@@ -13,10 +14,23 @@ use App\Notifications\AccountCreated;
  */
 class AccountApproval
 {
+    /** @var WeakMap<User, true>|null new accounts from a source set to skip approval */
+    private static ?WeakMap $trusted = null;
+
+    /**
+     * Lets this new account skip the hold. Call it before firing Registered,
+     * on the same instance, and only behind an explicit setting.
+     */
+    public static function trust(User $user): void
+    {
+        self::$trusted ??= new WeakMap;
+        self::$trusted[$user] = true;
+    }
+
     /** Called for every sign-up (local or through an identity provider). */
     public static function holdIfRequired(User $user): void
     {
-        if (SiteSettings::requiresApproval()) {
+        if (SiteSettings::requiresApproval() && ! isset(self::$trusted[$user])) {
             // Not a change anyone made: kept out of the activity log.
             $user->forceFill(['awaiting_approval' => true])->saveQuietly();
         }
