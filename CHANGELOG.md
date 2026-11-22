@@ -4,6 +4,10 @@ Notable changes to OpenGallery. The format follows [Keep a Changelog](https://ke
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-22
+
+First public release.
+
 ### Added
 
 - The installed version is shown at the bottom of the admin menu for people who manage settings.
@@ -21,3 +25,6 @@ Notable changes to OpenGallery. The format follows [Keep a Changelog](https://ke
 ### Fixed
 
 - Release archives now run on PHP 8.3 as documented. Earlier archives needed PHP 8.4.1 or newer.
+
+[Unreleased]: https://github.com/getopengallery/opengallery/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/getopengallery/opengallery/releases/tag/v0.2.0
