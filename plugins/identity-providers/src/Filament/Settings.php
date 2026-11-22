@@ -191,7 +191,12 @@ class Settings extends PluginSettingsPage
                             ->schema([
                                 Toggle::make('create_users')
                                     ->label(__('identity-providers::settings.create_account_when_someone_signs'))
-                                    ->helperText(__('identity-providers::settings.independent_site_s_allow_people')),
+                                    ->helperText(__('identity-providers::settings.independent_site_s_allow_people'))
+                                    ->live(),
+                                Toggle::make('approve_new_accounts')
+                                    ->label(__('identity-providers::settings.approve_new_accounts_automatically'))
+                                    ->helperText(__('identity-providers::settings.new_accounts_skip_site_approval'))
+                                    ->visible(fn (Get $get) => $get('create_users')),
                                 Toggle::make('link_by_email')
                                     ->label(__('identity-providers::settings.connect_existing_account_with_same'))
                                     ->helperText(__('identity-providers::settings.only_when_provider_confirms_address')),
@@ -226,6 +231,10 @@ class Settings extends PluginSettingsPage
                                     ->visible(fn (Get $get) => $get('sync_groups') && $get('group_mode') !== IdentityProvider::MODE_BY_NAME),
                                 Toggle::make('create_missing_groups')
                                     ->label(__('identity-providers::settings.create_groups_that_do_not'))
+                                    ->visible(fn (Get $get) => $get('sync_groups') && $get('group_mode') === IdentityProvider::MODE_BY_NAME),
+                                Toggle::make('remove_unlisted_groups')
+                                    ->label(__('identity-providers::settings.remove_groups_provider_no_longer_lists'))
+                                    ->helperText(__('identity-providers::settings.remove_groups_applies_to_all'))
                                     ->visible(fn (Get $get) => $get('sync_groups') && $get('group_mode') === IdentityProvider::MODE_BY_NAME),
                             ]),
                     ]),

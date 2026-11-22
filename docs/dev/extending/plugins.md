@@ -212,7 +212,7 @@ Rules core enforces or relies on:
 - `/login?local=1` always shows the password form, even with a default option, so staff can log in when the provider is down.
 - Core keeps the `social_accounts` table and the unlink route (`linked-accounts.destroy`); creating and linking accounts is the plugin's job.
 - A plugin must never sign someone into an existing account by matching the e-mail address, unless that provider is explicitly configured to and confirms the address is verified.
-- New accounts created by a plugin should fire Laravel's `Registered` event, so core gives them the `user` role, and respect `config('gallery.registration_enabled')` unless the plugin is configured otherwise.
+- New accounts created by a plugin should fire Laravel's `Registered` event, so core gives them the `user` role, and respect `config('gallery.registration_enabled')` unless the plugin is configured otherwise. To let a new account skip the site's approval, call `App\Support\AccountApproval::trust($user)` on the same `User` instance before firing the event, and only behind an explicit setting.
 
 ## Translations
 

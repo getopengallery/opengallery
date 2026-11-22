@@ -61,11 +61,13 @@ Which information from the provider is used: how people are recognised (`sub` is
 ### Accounts
 
 - **Create an account when someone signs in for the first time**: works even if registration is closed in the site settings. New accounts get the default role.
+- **Approve new accounts automatically**: shown while the option above is on. Accounts created through this provider skip the site's [administrator approval](settings.md#access). Accounts that are already waiting still need approval, and people whose e-mail address the provider does not confirm may still have to confirm it themselves. Turn this on only for providers you control: anyone who can sign in there gets into the gallery.
 - **Connect to an existing account with the same e-mail address**: only when the provider confirms the address is verified. Turn this on only for providers you control: anyone who controls a matching, verified address there gets into that account.
 
 ### Groups
 
 - **Update group membership on every sign-in**: keeps people's [groups](users-and-permissions.md#groups) in step with the provider, either with a mapping table or by matching group names.
-- **Create groups that do not exist yet**
+- **Create groups that do not exist yet**: only when matching by group names.
+- **Also remove people from groups the provider does not list**: only when matching by group names. At each sign-in, the person leaves every group the provider does not list, including groups you assigned by hand. If the provider sends no group list at all, nothing is removed.
 
 People who already have an account can link a provider on their [profile](../members-and-visitors/profile.md#linked-accounts).

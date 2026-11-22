@@ -106,6 +106,11 @@ final readonly class IdentityProvider
         return (bool) ($this->config['create_users'] ?? false);
     }
 
+    public function approvesNewAccounts(): bool
+    {
+        return (bool) ($this->config['approve_new_accounts'] ?? false);
+    }
+
     public function linksByEmail(): bool
     {
         return (bool) ($this->config['link_by_email'] ?? false);
@@ -134,6 +139,11 @@ final readonly class IdentityProvider
     public function createsMissingGroups(): bool
     {
         return (bool) ($this->config['create_missing_groups'] ?? false);
+    }
+
+    public function removesUnlistedGroups(): bool
+    {
+        return (bool) ($this->config['remove_unlisted_groups'] ?? false);
     }
 
     /** @return array{issuer: ?string, authorize: ?string, token: ?string, userinfo: ?string} */

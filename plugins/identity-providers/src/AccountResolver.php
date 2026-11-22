@@ -5,6 +5,7 @@ namespace Plugins\IdentityProviders;
 use App\Models\Group;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Support\AccountApproval;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -92,6 +93,10 @@ class AccountResolver
             return $user;
         });
 
+        if ($this->provider->approvesNewAccounts()) {
+            AccountApproval::trust($user);
+        }
+
         event(new Registered($user));
 
         return $user;
@@ -111,7 +116,8 @@ class AccountResolver
     /**
      * Mapped mode: membership of every mapped group follows the claim
      * (added and removed). By-name mode: groups whose name matches a claim
-     * value are added (optionally created); nothing is removed.
+     * value are added (optionally created). Other groups are removed only
+     * when the provider is set to do so and actually sent a groups claim.
      *
      * @param  array<string, mixed>  $claims
      */
@@ -139,7 +145,15 @@ class AccountResolver
             return $group ?? ($this->provider->createsMissingGroups() ? Group::create(['name' => $name]) : null);
         })->filter();
 
-        $user->groups()->syncWithoutDetaching($groups->pluck('id')->unique()->values()->all());
+        $groupIds = $groups->pluck('id')->unique()->values()->all();
+
+        if ($this->provider->removesUnlistedGroups() && data_get($claims, $this->provider->claim('groups')) !== null) {
+            $user->groups()->sync($groupIds);
+
+            return;
+        }
+
+        $user->groups()->syncWithoutDetaching($groupIds);
     }
 
     /** @return list<string> lower-cased group values from the claim */

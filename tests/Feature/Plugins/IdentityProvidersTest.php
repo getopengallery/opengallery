@@ -4,9 +4,13 @@ use App\Enums\Role;
 use App\Extensions\PluginSettings;
 use App\Filament\Pages\Plugins;
 use App\Models\Group;
+use App\Models\Setting;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Notifications\AccountCreated;
+use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Plugins\IdentityProviders\Filament\Settings;
@@ -170,6 +174,48 @@ describe('signing in', function () {
     });
 });
 
+describe('account approval', function () {
+    beforeEach(function () {
+        Setting::put(SiteSettings::REQUIRE_APPROVAL, true);
+        Notification::fake();
+    });
+
+    it('holds new accounts for approval unless the provider approves them', function () {
+        $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
+        idp();
+        fakeIdp(anna());
+
+        signIn();
+
+        expect(User::firstWhere('email', 'anna@example.com')->awaiting_approval)->toBeTrue();
+        $this->get(route('dashboard'))->assertRedirect(route('approval.notice'));
+        Notification::assertSentTo($admin, AccountCreated::class);
+    });
+
+    it('lets new accounts in without an approval notice when the provider approves them', function () {
+        $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
+        idp(['approve_new_accounts' => true]);
+        fakeIdp(anna());
+
+        signIn();
+
+        expect(User::firstWhere('email', 'anna@example.com')->awaiting_approval)->toBeFalse();
+        $this->get(route('dashboard'))->assertOk();
+        Notification::assertNotSentTo($admin, AccountCreated::class);
+    });
+
+    it('keeps an existing account on hold when the provider approves new accounts', function () {
+        idp(['approve_new_accounts' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com', 'awaiting_approval' => true]);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        fakeIdp(anna());
+
+        signIn();
+
+        expect($user->fresh()->awaiting_approval)->toBeTrue();
+    });
+});
+
 describe('group sync', function () {
     it('makes mapped groups follow the provider and leaves other groups alone', function () {
         [$family, $leaders, $club] = Group::factory()->count(3)->sequence(['name' => 'Family'], ['name' => 'Leaders'], ['name' => 'Club'])->create();
@@ -196,6 +242,58 @@ describe('group sync', function () {
 
         expect(User::sole()->groups()->pluck('name')->sort()->values()->all())->toBe(['Family', 'Scouts'])
             ->and(Group::count())->toBe(2);
+    });
+
+    it('keeps unlisted groups in by-name mode when removal is off', function () {
+        [$family, $club] = Group::factory()->count(2)->sequence(['name' => 'Family'], ['name' => 'Club'])->create();
+        idp(['sync_groups' => true, 'group_mode' => 'by_name']);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna(['groups' => ['Family']]));
+
+        signIn();
+
+        expect($user->groups()->pluck('name')->sort()->values()->all())->toBe(['Club', 'Family']);
+    });
+
+    it('removes unlisted groups in by-name mode when removal is on', function () {
+        [$family, $club] = Group::factory()->count(2)->sequence(['name' => 'Family'], ['name' => 'Club'])->create();
+        idp(['sync_groups' => true, 'group_mode' => 'by_name', 'remove_unlisted_groups' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna(['groups' => ['Family']]));
+
+        signIn();
+
+        expect($user->groups()->pluck('name')->all())->toBe(['Family']);
+    });
+
+    it('removes every group when the provider sends an empty list and removal is on', function () {
+        $club = Group::factory()->create(['name' => 'Club']);
+        idp(['sync_groups' => true, 'group_mode' => 'by_name', 'remove_unlisted_groups' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna(['groups' => []]));
+
+        signIn();
+
+        expect($user->groups()->count())->toBe(0);
+    });
+
+    it('keeps all groups when the provider sends no groups claim and removal is on', function () {
+        $club = Group::factory()->create(['name' => 'Club']);
+        idp(['sync_groups' => true, 'group_mode' => 'by_name', 'remove_unlisted_groups' => true]);
+        $user = User::factory()->create(['email' => 'anna@example.com']);
+        $user->socialAccounts()->create(['provider' => 'family', 'provider_user_id' => 'uuid-anna']);
+        $user->groups()->attach($club);
+        fakeIdp(anna());
+
+        signIn();
+
+        expect($user->groups()->pluck('name')->all())->toBe(['Club']);
     });
 });
 
