@@ -1,10 +1,15 @@
 version: 2
 
+# Major versions can change how the app is built or run, so they are upgraded
+# on purpose rather than through an automatic pull request.
 updates:
   - package-ecosystem: composer
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       php-dependencies:
         patterns:
@@ -14,6 +19,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       frontend-dependencies:
         patterns:
@@ -23,6 +31,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       github-actions:
         patterns:
