@@ -48,7 +48,7 @@ composer run dev              # PHP server, queue, logs and Vite together
 
 - Site: http://localhost:8000, admin: http://localhost:8000/admin
 - Tests: `php artisan test`; code style: `vendor/bin/pint`
-- Release zip: see [Shipping a release](docs/dev/contributing/frontend-build.md#shipping-a-release)
+- Releases: see [Releases and versions](docs/dev/contributing/releases.md)
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 

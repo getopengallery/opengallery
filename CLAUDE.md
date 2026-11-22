@@ -128,6 +128,14 @@ Self-hosted photo gallery (Laravel 13, Filament 5, Spatie Permission + Media Lib
 - Docs (`/docs`, shown in Admin → Help → Documentation): `docs/user/` and `docs/dev/` hold topic sub-folders. Nothing about their order is hard-coded: every page except `docs/README.md` starts with front matter `---\norder: 20\n---` (steps of 10), a folder takes its place from its `README.md`'s `order` and its label from that README's `#` heading (`App\Support\Documentation`). `DocumentationTest` checks orders, links, anchors and images. Developer reference: `docs/dev/contributing/documentation.md`.
 - Image processing uses GD by default (Imagick optional); conversions run synchronously unless `GALLERY_QUEUE_CONVERSIONS=true`.
 
+## Releases
+
+- `main` is protected: every change goes through a branch and a pull request with the five CI checks. Merging never creates a release; tag one only when the maintainer asks.
+- Next version: bug or security fix = patch (`0.2.1`). New feature, database change, updater change or, during 0.x, a breaking theme/plugin change = at least the next minor (`0.3.0`). `1.0.0` only when the project is promised as stable. The highest kind of change in a release decides.
+- Publish a test version (`-rc.N` or `-dev.N`) first for everything except plain fixes that touch neither the database nor the updater. Updater changes need a real update test, because the installed version's runner performs the update.
+- Never create a GitHub release by hand, change a published release or reuse a tag. Stable releases are signed only on the maintainer's machine; the stable secret key never goes into GitHub.
+- Steps and full rules: `docs/dev/contributing/releases.md`.
+
 === foundation rules ===
 
 # Laravel Boost Guidelines
