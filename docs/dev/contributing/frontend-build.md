@@ -53,6 +53,8 @@ Fonts are self-hosted: Hanken Grotesk comes from the `@fontsource-variable/hanke
 
 ## Shipping a release
 
+When to make a release and the steps to publish it are in [Releases and versions](releases.md). This section covers how the zip is built.
+
 `public/build` and Filament's published assets (`public/css/filament`, `public/js/filament`, `public/fonts/filament`) are in `.gitignore`, so the repository does not contain them. Release archives are built with:
 
 ```bash

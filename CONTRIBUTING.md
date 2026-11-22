@@ -35,6 +35,8 @@ composer run dev
 
 5. Add a line to the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md) for notable changes.
 
+Merging does not create a release. Maintainers follow [Releases and versions](docs/dev/contributing/releases.md).
+
 ## Licence
 
 By contributing, you confirm that you may submit the work and agree that it is licensed under the project's licence, the [GNU Affero General Public License v3.0 or later](LICENSE).

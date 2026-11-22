@@ -11,3 +11,4 @@ Tools and conventions for working on OpenGallery itself.
 - [Commands and schedule](commands.md): the installer, upload clean-up, background jobs, Composer scripts and seeders.
 - [Demo data](demo-data.md): the demo seeder, its accounts, albums, pages and activity.
 - [Writing documentation](documentation.md): where docs live, how they are ordered, Markdown rules and screenshots.
+- [Releases and versions](releases.md): pull requests, choosing the next version, test versions and publishing a release.
