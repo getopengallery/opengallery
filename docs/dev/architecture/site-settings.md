@@ -4,7 +4,7 @@ order: 40
 
 # Site settings internals
 
-Admin → Settings (the cluster `App\Filament\Clusters\Settings\SettingsCluster`, see [Settings pages](#settings-pages)) stores its values in the `settings` table through `App\Models\Setting`. `App\Support\SiteSettings` defines the keys, applies the stored values to Laravel's config at boot and offers typed accessors. Code reads the config keys or the accessors, never `env()`.
+The site settings (pages of the cluster `App\Filament\Clusters\Settings\SettingsCluster`, see [Settings pages](#settings-pages)) store their values in the `settings` table through `App\Models\Setting`. `App\Support\SiteSettings` defines the keys, applies the stored values to Laravel's config at boot and offers typed accessors. Code reads the config keys or the accessors, never `env()`.
 
 ## How a setting flows
 
@@ -78,7 +78,7 @@ The `local` disk keeps Laravel's `serve` option on (`config/filesystems.php`): t
 
 ## Settings pages
 
-Each topic is a class in `app/Filament/Clusters/Settings/Pages` that extends `SettingsPage`. Filament discovers it and adds it to the menu inside Settings, under the heading from `$navigationGroup` (`SettingsGroup`), ordered by `$navigationSort`.
+Each topic is a class in `app/Filament/Clusters/Settings/Pages` that extends `SettingsPage`. Filament discovers it. `SettingsPage::registerNavigationItems()` lists it directly in the main admin menu, in the group from `$navigationGroup` (`App\Filament\Navigation\NavigationGroup::Settings` or `System`), ordered by `$navigationSort`. The cluster keeps the shared `/admin/settings/...` addresses and access check, but has no menu entry or sub-navigation of its own.
 
 A page declares:
 
@@ -87,7 +87,9 @@ A page declares:
 - `formValues()` and `formSections()`: the stored values and the form.
 - Optional hooks: `prepareValue()`, `fileReplaced()`, `afterFieldsStored()` and `afterSettingsApplied()`.
 
-`save()` only touches the page's own fields. `/admin/settings` redirects to the first page. Every page warns before leaving with unsaved changes. Link to a topic with its class, for example `EmailSettings::getUrl()`.
+`save()` only touches the page's own fields. `/admin/settings` redirects to the first page. Every page warns before leaving with unsaved changes. Link to a topic with its class, for example `EmailSettings::getUrl()`; `SettingsPage::menuPath()` gives its translated menu path, such as "System → Updates".
+
+`ActivityLogSettings` is the exception in the menu: it opens from the **Log settings** header action of `ManageActivityEvents`, and only people who cannot open the log get a menu entry for it (`shouldRegisterNavigation()`).
 
 ## Adding a site setting
 

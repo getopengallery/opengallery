@@ -3,8 +3,8 @@
 namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Enums\ImagePreview;
-use App\Filament\Clusters\Settings\SettingsGroup;
 use App\Filament\Clusters\Settings\SettingsPage;
+use App\Filament\Navigation\NavigationGroup;
 use App\Support\SiteSettings;
 use App\Support\WebApp;
 use BackedEnum;
@@ -26,7 +26,7 @@ class AppSettings extends SettingsPage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDevicePhoneMobile;
 
-    protected static string|UnitEnum|null $navigationGroup = SettingsGroup::Site;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::Settings;
 
     protected static ?int $navigationSort = 20;
 

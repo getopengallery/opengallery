@@ -3,24 +3,19 @@
 namespace App\Filament\Clusters\Settings;
 
 use App\Enums\Permission;
-use App\Filament\Navigation\NavigationGroup;
-use BackedEnum;
 use Filament\Clusters\Cluster;
-use Filament\Support\Icons\Heroicon;
-use UnitEnum;
 
 /**
- * Admin → Settings: one entry in the main navigation that opens an area with
- * its own menu. Each topic is a page in Pages/ extending SettingsPage, so a
- * new topic is a new class and nothing else has to change.
+ * The settings pages' shared address (/admin/settings/...) and access check.
+ * Each topic is a page in Pages/ extending SettingsPage and is listed directly
+ * in the main navigation (groups Settings and System), so the cluster has no
+ * menu of its own and a new topic is a new class.
  */
 class SettingsCluster extends Cluster
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
+    protected static bool $shouldRegisterNavigation = false;
 
-    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::System;
-
-    protected static ?int $navigationSort = 1;
+    protected static bool $shouldRegisterSubNavigation = false;
 
     protected static ?string $slug = 'settings';
 

@@ -4,14 +4,10 @@ order: 10
 
 # Site settings
 
-Site-wide settings are under **System → Settings** in the admin. You need the permission "Change site settings". Every change is recorded in the activity log.
+Site-wide settings are in the admin menu, with one page per topic. You need the permission "Change site settings". Every change is recorded in the activity log.
 
-Settings has its own menu, with one page per topic. On a phone, the menu opens from a button at the top of the page.
-
-- **Site**: [General](#general), [App](#app) and [Search engines](#search-engines).
-- **People**: [Access](#access).
-- **Content**: [Photos](#photos).
-- **System**: [E-mail](#e-mail), [Activity log](#activity-log), [Background jobs](#background-jobs) and [Updates](#updates).
+- **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos) and [E-mail](#e-mail).
+- **System**: [Background jobs](#background-jobs) and [Updates](#updates). The [log settings](#activity-log) open with the **Log settings** button on the activity log.
 
 Each page has its own **Save settings** button and saves only that page. If you try to leave a page with changes you have not saved, the browser asks first. To find a setting, type its name in the search field at the top of the admin, for example "favicon".
 
@@ -155,6 +151,8 @@ Older versions offered "Do not send (write to the log file)" here. Sites that us
 ## Activity log
 
 What the dashboard and the activity log record, and for how long. The activity log stores no IP addresses (see [Dashboard and activity log](activity.md)).
+
+To open these settings, go to **System → Activity log** and click **Log settings**. If you may change settings but not read the log, **Log settings** is listed directly under **System**.
 
 - **Record**: how much is recorded. Each level includes the ones before it.
   - **Off**: nothing new is recorded. Existing entries stay until they expire.

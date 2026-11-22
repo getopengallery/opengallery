@@ -5,11 +5,13 @@ namespace App\Filament\Clusters\Settings;
 use App\Enums\ImagePreview;
 use App\Enums\Permission;
 use App\Filament\Forms\Components\ImageUpload;
+use App\Filament\Navigation\NavigationGroup;
 use App\Models\Setting;
 use App\Support\ActivityLog;
 use App\Support\SiteSettings;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\HasUnsavedDataChangesAlert;
 use Filament\Pages\Page;
@@ -65,9 +67,36 @@ abstract class SettingsPage extends Page
         return auth()->user()?->can(Permission::ManageSettings->value) ?? false;
     }
 
+    /** Lists the page in the main navigation; Filament leaves clustered pages out of it. */
+    public static function registerNavigationItems(): void
+    {
+        if (! static::shouldRegisterNavigation() || ! static::canAccess()) {
+            return;
+        }
+
+        Filament::getCurrentOrDefaultPanel()->navigationItems(static::getNavigationItems());
+    }
+
     public function getTitle(): string
     {
         return (string) static::getNavigationLabel();
+    }
+
+    /** @return array<string, string> */
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
+
+    /** Where the page is in the admin menu, for links such as "System → Updates". */
+    public static function menuPath(): string
+    {
+        $group = static::getNavigationGroup();
+
+        return __(':menu → :page', [
+            'menu' => $group instanceof NavigationGroup ? $group->getLabel() : (string) $group,
+            'page' => static::getNavigationLabel(),
+        ]);
     }
 
     /** The words the admin search looks through: the page's name and its fields. */

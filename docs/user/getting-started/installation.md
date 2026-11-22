@@ -64,7 +64,7 @@ If you prefer a console (SSH, or your host's console or cron feature):
    ```
 
    The installer sets up the database, creates the built-in roles and asks for the name, e-mail address and password (at least 12 characters) of the first super administrator. It also closes the setup in the browser.
-4. Log in at `/login` and set up the gallery under **System → Settings**, in particular **E-mail** (see [Site settings](../administration/settings.md#e-mail)).
+4. Log in at `/login` and set up the gallery under **Settings** in the admin menu, in particular **E-mail** (see [Site settings](../administration/settings.md#e-mail)).
 
 If you can only run commands through a cron job or a console that cannot answer questions, give the administrator's details as options:
 
@@ -103,7 +103,7 @@ A few other `GALLERY_` values exist (for example for registration or public albu
 
 ## Background jobs
 
-Some housekeeping runs regularly in the background: deleting activity log entries that are older than the retention period, removing uploads that were interrupted and never finished, making the small thumbnails phones use for photos uploaded before they existed, and (only with [thumbnails in the background](#thumbnails-in-the-background-optional)) making waiting thumbnails. Under **System → Settings → Background jobs** you choose what starts it (see [Site settings](../administration/settings.md#background-jobs)):
+Some housekeeping runs regularly in the background: deleting activity log entries that are older than the retention period, removing uploads that were interrupted and never finished, making the small thumbnails phones use for photos uploaded before they existed, and (only with [thumbnails in the background](#thumbnails-in-the-background-optional)) making waiting thumbnails. Under **System → Background jobs** you choose what starts it (see [Site settings](../administration/settings.md#background-jobs)):
 
 - **AJAX** (the default): runs when someone opens a page. Nothing to set up, but nothing happens while nobody visits the site.
 - **Webcron**: an outside service, for example your host's or cron-job.org, opens a secret address every few minutes. The settings page shows the address.
@@ -191,13 +191,13 @@ People who manage settings see the installed version at the bottom of the admin 
 
 ### Installing an update from the admin
 
-Super administrators can install a new version under **Settings → Updates**:
+Super administrators can install a new version under **System → Updates**:
 
 1. Make your own backup of the database and the `storage` folder. The update makes a database backup too, but only for the time it runs.
 2. Click **Install update** and enter your password.
 3. Keep the page open. The release is downloaded, checked and unpacked while the gallery stays online.
 4. Visitors then see a "Back in a moment" page for a few minutes while the database is backed up, the files are replaced and the database is updated.
-5. You return to **Settings → Updates**, which shows the result.
+5. You return to **System → Updates**, which shows the result.
 
 If any step fails, the previous files and database are put back automatically and the page says what went wrong. Your photos, your server configuration file, your own themes and plugins, and files you added to `public` are never replaced. If you close the page during the update, the gallery restores itself after about 20 minutes, when the next visitor opens it.
 

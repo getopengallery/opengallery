@@ -17,7 +17,7 @@ Site-wide capabilities are Spatie permissions. Every permission is a case of `Ap
 | `ManageUsers` | `manage users` | The user resource |
 | `ManageGroups` | `manage groups` | The group resource |
 | `ManageRoles` | `manage roles` | The role resource |
-| `ManageSettings` | `manage settings` | Admin → Settings |
+| `ManageSettings` | `manage settings` | The pages under Admin → Settings, plus Background jobs, Updates and Log settings under System |
 | `ManagePages` | `manage pages` | The page resource |
 | `ManageThemes` | `manage themes` | Themes and theme settings |
 | `ManagePlugins` | `manage plugins` | Plugins and plugin settings pages |

@@ -4,7 +4,7 @@ order: 60
 
 # Dashboard and activity log
 
-The dashboard and the activity log show what is happening in your gallery. The dashboard's activity panels (library figures, activity calendar, trends, recent activity, most viewed albums) and the activity log need the permission "See the dashboard and activity log". The other panels of the dashboard depend on other permissions (see [The dashboard](dashboard.md)). What is recorded, and for how long, is set in the [site settings](settings.md#activity-log).
+The dashboard and the activity log show what is happening in your gallery. The dashboard's activity panels (library figures, activity calendar, trends, recent activity, most viewed albums) and the activity log need the permission "See the dashboard and activity log". The other panels of the dashboard depend on other permissions (see [The dashboard](dashboard.md)). What is recorded, and for how long, is set in the [log settings](settings.md#activity-log), opened with the **Log settings** button on the activity log.
 
 The gallery never stores IP addresses or browser details. Visitors who are not logged in are only counted anonymously per day.
 

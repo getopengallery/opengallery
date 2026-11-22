@@ -3,7 +3,6 @@
 use App\Enums\Permission;
 use App\Enums\Role;
 use App\Filament\Clusters\Settings\Pages\GeneralSettings;
-use App\Filament\Clusters\Settings\SettingsCluster;
 use App\Filament\GlobalSearch\AdminSearchProvider;
 use App\Filament\Pages\Documentation as DocumentationPage;
 use App\Filament\Resources\Albums\AlbumResource;
@@ -83,7 +82,7 @@ it('searches more than the title', function () {
 it('finds admin pages, "new" shortcuts and documentation', function () {
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::SuperAdmin->value));
 
-    expect(collect(adminSearch('settings')[AdminSearchProvider::PAGES_CATEGORY])->pluck('url'))->toContain(SettingsCluster::getUrl())
+    expect(collect(adminSearch('settings')[AdminSearchProvider::PAGES_CATEGORY])->pluck('url'))->toContain(GeneralSettings::getUrl())
         ->and(collect(adminSearch('favicon')[AdminSearchProvider::PAGES_CATEGORY])->pluck('url'))->toContain(GeneralSettings::getUrl())
         ->and(collect(adminSearch('new album')[AdminSearchProvider::PAGES_CATEGORY])->pluck('url'))->toContain(AlbumResource::getUrl('create'))
         ->and(collect(adminSearch('zebras')[AdminSearchProvider::DOCS_CATEGORY])->pluck('url'))->toContain(DocumentationPage::getUrl(['doc' => 'user/zebra']));
@@ -99,7 +98,7 @@ it('only shows what the user may open', function () {
     User::factory()->create(['name' => 'Quokka person']);
 
     expect(searchUrls('quokka'))->toBe([AlbumResource::getUrl('edit', ['record' => $own])])
-        ->and(searchUrls('settings'))->not->toContain(SettingsCluster::getUrl())
+        ->and(searchUrls('settings'))->not->toContain(GeneralSettings::getUrl())
         ->and(searchUrls('favicon'))->not->toContain(GeneralSettings::getUrl())
         ->and(searchUrls('new page'))->not->toContain(PageResource::getUrl('create'));
 });

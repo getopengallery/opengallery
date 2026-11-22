@@ -303,7 +303,7 @@ describe('members, pages and site health', function () {
         $this->actingAs(dashboardUser(Role::Admin));
         Livewire::test(SiteHealth::class)
             ->assertSee('Background jobs do not run')
-            ->assertSee('Settings → Background jobs');
+            ->assertSee('System → Background jobs');
     });
 
     it('links settings problems to the page that fixes them', function (string $problem, string $page) {

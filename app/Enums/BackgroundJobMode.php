@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasDescription;
 use Filament\Support\Contracts\HasLabel;
 
 /**
- * What starts the background jobs (Admin → Settings → Background jobs, see
+ * What starts the background jobs (Admin → System → Background jobs, see
  * App\Support\BackgroundJobs). The server's cron job always works, whatever
  * is chosen; the mode decides which of the two web triggers is accepted.
  */

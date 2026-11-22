@@ -16,7 +16,7 @@ Database sessions keep the same promise: `App\Support\PrivateDatabaseSessionHand
 
 ## Levels
 
-`App\Enums\ActivityLevel` (Admin → Settings, read with `SiteSettings::activityLevel()`) decides what is written:
+`App\Enums\ActivityLevel` (Admin → System → Activity log → Log settings, read with `SiteSettings::activityLevel()`) decides what is written:
 
 | Level | Value | `logsChanges()` | `logsSecurity()` | `logsLogins()` | `logsVisits()` |
 | --- | --- | --- | --- | --- | --- |
@@ -72,7 +72,7 @@ Chunked uploads finish one photo per request. Each drop in the photo picker has 
 
 ## Retention
 
-`ActivityEvent` is `MassPrunable`: `prunable()` selects entries older than `config('gallery.activity_retention_days')` (Admin → Settings, 1 to 3650 days, default 365). The scheduled `model:prune` (daily, `routes/console.php`) deletes them, so retention needs the cron job.
+`ActivityEvent` is `MassPrunable`: `prunable()` selects entries older than `config('gallery.activity_retention_days')` (the same Log settings page, 1 to 3650 days, default 365). The scheduled `model:prune` (daily, `routes/console.php`) deletes them, so retention needs the cron job.
 
 ## Dashboard
 

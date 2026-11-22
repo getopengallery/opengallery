@@ -118,7 +118,7 @@ Runtime state that is not a model lives in the `settings` table, read with `App\
 
 ## Background work
 
-Nothing requires a queue worker. Image conversions run during the upload request unless `GALLERY_QUEUE_CONVERSIONS=true`. Periodic housekeeping (activity log retention, unfinished chunked uploads, the `small` size of older photos, waiting e-mails and, with queued conversions on the database queue, the queue itself) runs in `App\Support\BackgroundJobs`, started by page views (AJAX), a webcron address or cron, as chosen in Admin → Settings. See [Background jobs](../contributing/commands.md#background-jobs).
+Nothing requires a queue worker. Image conversions run during the upload request unless `GALLERY_QUEUE_CONVERSIONS=true`. Periodic housekeeping (activity log retention, unfinished chunked uploads, the `small` size of older photos, waiting e-mails and, with queued conversions on the database queue, the queue itself) runs in `App\Support\BackgroundJobs`, started by page views (AJAX), a webcron address or cron, as chosen in Admin → System → Background jobs. See [Background jobs](../contributing/commands.md#background-jobs).
 
 ## Extending
 

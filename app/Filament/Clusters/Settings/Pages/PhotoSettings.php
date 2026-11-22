@@ -3,8 +3,8 @@
 namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Enums\PhotoOrder;
-use App\Filament\Clusters\Settings\SettingsGroup;
 use App\Filament\Clusters\Settings\SettingsPage;
+use App\Filament\Navigation\NavigationGroup;
 use App\Support\PhotoUploads;
 use App\Support\SiteSettings;
 use BackedEnum;
@@ -30,7 +30,7 @@ class PhotoSettings extends SettingsPage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
 
-    protected static string|UnitEnum|null $navigationGroup = SettingsGroup::Content;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::Settings;
 
     protected static ?int $navigationSort = 50;
 

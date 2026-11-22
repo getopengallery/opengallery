@@ -2,8 +2,8 @@
 
 namespace App\Filament\Clusters\Settings\Pages;
 
-use App\Filament\Clusters\Settings\SettingsGroup;
 use App\Filament\Clusters\Settings\SettingsPage;
+use App\Filament\Navigation\NavigationGroup;
 use App\Support\SiteSettings;
 use BackedEnum;
 use Filament\Forms\Components\Radio;
@@ -26,7 +26,7 @@ class AccessSettings extends SettingsPage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static string|UnitEnum|null $navigationGroup = SettingsGroup::People;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::Settings;
 
     protected static ?int $navigationSort = 40;
 

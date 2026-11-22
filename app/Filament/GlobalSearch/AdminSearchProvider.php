@@ -100,7 +100,7 @@ class AdminSearchProvider extends DefaultGlobalSearchProvider
                 $results[$page::getUrl()] ??= new GlobalSearchResult(
                     title: $this->text($page::getNavigationLabel()),
                     url: $page::getUrl(),
-                    details: [__('Settings')],
+                    details: [$this->text($page::getNavigationGroup())],
                 );
             }
         }

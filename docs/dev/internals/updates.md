@@ -4,7 +4,7 @@ order: 100
 
 # One-click updates
 
-A super administrator can install a new version from **Settings → Updates** on plain shared hosting, without a console. The code lives in `App\Support\Updates` and `resources/updater/runner.php`. Finding new versions is separate: see [Update checks](../contributing/frontend-build.md#update-checks).
+A super administrator can install a new version from **System → Updates** on plain shared hosting, without a console. The code lives in `App\Support\Updates` and `resources/updater/runner.php`. Finding new versions is separate: see [Update checks](../contributing/frontend-build.md#update-checks).
 
 ## How an update runs
 

@@ -90,7 +90,7 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn () => view('filament.partials.global-search-fix'))
             // Complete rows in every photo grid (see the partial).
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn () => view('filament.partials.media-grid-script'))
-            // Background jobs while Settings → Background jobs is "AJAX".
+            // Background jobs while System → Background jobs is "AJAX".
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn () => view('partials.background-jobs'))
             // The installed version, for people who manage the site.
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.partials.app-version'))

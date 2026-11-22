@@ -3,8 +3,9 @@
 namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Enums\ActivityLevel;
-use App\Filament\Clusters\Settings\SettingsGroup;
 use App\Filament\Clusters\Settings\SettingsPage;
+use App\Filament\Navigation\NavigationGroup;
+use App\Filament\Resources\ActivityEvents\ActivityEventResource;
 use App\Support\SiteSettings;
 use BackedEnum;
 use Filament\Forms\Components\Radio;
@@ -13,7 +14,10 @@ use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
-/** Settings → Activity log: what is recorded and for how long. */
+/**
+ * Log settings: what is recorded and for how long. Opened with the button on
+ * the activity log; listed in the menu only for people who cannot open the log.
+ */
 class ActivityLogSettings extends SettingsPage
 {
     protected const FIELDS = [
@@ -25,7 +29,7 @@ class ActivityLogSettings extends SettingsPage
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
 
-    protected static string|UnitEnum|null $navigationGroup = SettingsGroup::System;
+    protected static string|UnitEnum|null $navigationGroup = NavigationGroup::System;
 
     protected static ?int $navigationSort = 70;
 
@@ -33,7 +37,20 @@ class ActivityLogSettings extends SettingsPage
 
     public static function getNavigationLabel(): string
     {
-        return __('Activity log');
+        return __('Log settings');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return ! ActivityEventResource::canAccess();
+    }
+
+    /** @return array<string, string> */
+    public function getBreadcrumbs(): array
+    {
+        return ActivityEventResource::canAccess()
+            ? [ActivityEventResource::getUrl() => ActivityEventResource::getNavigationLabel(), $this->getTitle()]
+            : [];
     }
 
     protected function formValues(): array
