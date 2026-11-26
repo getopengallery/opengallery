@@ -6,7 +6,6 @@ use App\Models\Album;
 use App\Models\Group;
 use App\Models\Photo;
 use App\Models\User;
-use Database\Seeders\RolesAndPermissionsSeeder;
 use Filament\Support\Colors\Color;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -27,7 +26,6 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->beforeEach(fn () => $this->seed(RolesAndPermissionsSeeder::class))
     ->in('Feature');
 
 /** The oklch() string AdminTheme pins as shade 600 for $hex. */
