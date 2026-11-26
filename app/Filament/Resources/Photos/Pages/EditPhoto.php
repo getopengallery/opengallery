@@ -2,33 +2,43 @@
 
 namespace App\Filament\Resources\Photos\Pages;
 
+use App\Filament\Resources\Photos\Pages\Concerns\PhotoPageActions;
 use App\Filament\Resources\Photos\PhotoResource;
-use App\Filament\Trash\TrashActions;
-use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Contracts\Support\Htmlable;
 
+/**
+ * The photo page for people who may edit the photo. A photo in the trash is
+ * restored first, so it opens read-only on ViewPhoto.
+ */
 class EditPhoto extends EditRecord
 {
+    use PhotoPageActions;
+
     protected static string $resource = PhotoResource::class;
+
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        if ($this->getRecord()->trashed()) {
+            $this->redirect(PhotoResource::getUrl('view', ['record' => $this->getRecord()]));
+        }
+    }
+
+    public function getTitle(): string|Htmlable
+    {
+        return $this->getRecord()->title ?: __('Untitled photo');
+    }
 
     protected function getHeaderActions(): array
     {
-        return [
-            ViewAction::make(),
-            TrashActions::moveToTrash()->modalDescription(self::trashDescription()),
-            TrashActions::restore(),
-            TrashActions::deletePermanently(),
-        ];
+        return $this->photoPageActions();
     }
 
-    /** What "Move to trash" does to a photo (ViewPhoto says the same). */
-    public static function trashDescription(): string
+    /** Stay on the photo after saving. */
+    protected function getRedirectUrl(): ?string
     {
-        return __('It is removed from every album it is in. You can restore it from the trash.');
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('view', ['record' => $this->getRecord()]);
+        return null;
     }
 }

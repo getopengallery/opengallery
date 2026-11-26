@@ -90,16 +90,12 @@ abstract class UsersRelationManager extends RelationManager
             ->recordActions([
                 DetachAction::make()
                     ->label(__('Remove'))
-                    ->icon(Heroicon::OutlinedMinusCircle)
-                    ->color('gray')
                     ->iconButton()
                     ->modalHeading($this->removeHeading()),
             ])
             ->toolbarActions([
                 DetachBulkAction::make()
-                    ->label($this->removeHeading())
-                    ->icon(Heroicon::OutlinedMinusCircle)
-                    ->color('gray'),
+                    ->label($this->removeHeading()),
             ])
             ->tap(fn (Table $table) => EmptyState::apply(
                 $table,

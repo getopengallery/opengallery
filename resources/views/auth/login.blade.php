@@ -32,7 +32,7 @@
         </div>
 
         <label for="remember_me" class="flex items-center gap-2 text-sm text-muted">
-            <input id="remember_me" type="checkbox" class="rounded-[4px] border-line bg-canvas text-ink focus:ring-0 focus:ring-offset-0" name="remember">
+            <input id="remember_me" type="checkbox" class="og-checkbox" name="remember">
             {{ __('Keep me logged in') }}
         </label>
 

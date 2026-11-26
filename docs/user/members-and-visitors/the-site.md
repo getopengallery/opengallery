@@ -17,7 +17,7 @@ The header shows the site name or logo, which leads back to the home page, and t
 - After logging in, a bell that opens your [notifications](notifications.md), with the number of new ones.
 - A light/dark switch, if the theme settings turn it on.
 
-On small screens the links are collected behind a menu button.
+On small screens the links are collected behind a menu button. The header's icon buttons (bell, light/dark switch and menu) are large enough to tap comfortably on a phone.
 
 ## The home page
 
@@ -46,12 +46,14 @@ Click a photo to view it large, on a dark background with its title and its posi
 - the cross, or the Escape key, closes it;
 - the download button saves the original file, if downloads are turned on for the site and the album lets visitors download photos (see [Sharing albums](../content/sharing.md#letting-visitors-download-photos));
 - the heart, for people who are logged in, adds the photo to your private **Favorites** or takes it out again (see [Favorites](#favorites));
-- the **i** button shows or hides a panel with the photo's title, description, the date it was taken and the camera details saved in the file: camera make and model, lens, focal length, aperture, exposure time and ISO. It never shows the location, and the button is missing for photos that have none of these details;
+- the **i** button shows or hides a panel (on a phone a sheet that slides up from the bottom, with its own close button) with the photo's title, description, the date it was taken and the camera details saved in the file: camera make and model, lens, focal length, aperture, exposure time and ISO. It never shows the location, and the button is missing for photos that have none of these details;
 - the play button starts a slideshow that moves on by itself after the number of seconds set by an administrator. Using the arrows or swiping starts the timer again, the space bar plays and pauses, and closing the view stops it.
 
 Administrators can turn the heart, the **i** button and the slideshow off in the photo settings, under [Favorites](../administration/settings.md#favorites), [Photo information](../administration/settings.md#photo-information) and [Slideshow](../administration/settings.md#slideshow).
 
 While a photo is open, the address in the browser points to that photo. Copy it to send someone a link that opens the album at this photo; reloading the page keeps it open too.
+
+The buttons are large enough to tap on a phone, and the photo view keeps clear of the notch and the home bar. Full-screen cover layouts of the start and login pages fit the visible screen, so they do not run under the browser's address bar.
 
 ![A photo opened large on the site](../../assets/site-lightbox.png)
 

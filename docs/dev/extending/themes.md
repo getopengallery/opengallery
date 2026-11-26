@@ -108,7 +108,7 @@ Set all five together, because a coloured background usually needs light text. T
 
 Set them in `variables` only to use the same header in light and dark mode, or in `variables_dark` too to change it there. Menus that open from the header (the account menu, the mobile menu) use the header colours as well.
 
-In views, use these tokens and the `og-*` component classes (`og-container`, `og-btn-primary`, `og-btn-secondary`, `og-btn-danger`, `og-input`, `og-link`, `og-prose`, `og-avatar`). Never use raw Tailwind colours such as `gray-*` or `red-*`, and never hard-code hex colours.
+In views, use these tokens and the `og-*` component classes (`og-container`, `og-btn-primary`, `og-btn-secondary`, `og-btn-danger`, `og-input`, `og-link`, `og-prose`, `og-avatar`, `og-icon-btn`, `og-checkbox`, `og-safe-area`). `og-icon-btn` is a square icon-only button (44px on phones, 36px from `sm` up; colours come from the classes you add). `og-checkbox` styles a checkbox. `og-safe-area` pads a full-screen overlay by the device's safe-area insets, so it stays clear of the notch and the home bar; core's layouts set `viewport-fit=cover` for this, so a theme that replaces a layout keeps that in its viewport meta tag. Use `100dvh` rather than `100vh` for full-screen covers, so they do not overflow under a mobile browser's address bar. Never use raw Tailwind colours such as `gray-*` or `red-*`, and never hard-code hex colours.
 
 Values must be hex colours or plain CSS values (letters, digits, spaces, commas, quotes, `%`, `.`, `/`, `(`, `)`, `-`). Anything else is dropped.
 
@@ -316,4 +316,6 @@ Recent changes that affect existing themes:
 - The album list (`albums/index.blade.php`) now also receives `$search` (the current search, or an empty string) and shows the `album-search` block. A theme that replaces this view should render the block and the search result line; see core's view.
 - The lightbox items carry more keys (`id`, `description`, `taken`, `download`, `favorite`, `info`, `position`, `total`, `page`, `previousPage`, `nextPage`, `previousItems`, `nextItems`). Layouts that pass `$items->pluck('lightbox')` to `ogLightbox()` get them without changes.
 - Text props of `<x-block>` are no longer escaped twice. A block that printed one with `{!! !!}` to undo the double escaping must use `{{ }}` now.
+- The `album-grid` block now prints its slot (extra leading `<li>` items) before the albums, and the new `favorites-tile` block is the Favorites entry on "My albums". A theme that overrides `album-grid` should print `{{ $slot ?? '' }}` at the start of its list; the Default theme's `large` variant and the Scrapbook theme already do.
+- New classes `og-icon-btn`, `og-checkbox` and `og-safe-area`; core's layouts now set `viewport-fit=cover`. A theme with its own layout should do the same, and header or lightbox icon buttons should be at least 44px on phones (`og-icon-btn`).
 - Core ships `errors/403.blade.php` and `albums/forbidden.blade.php`; themes can replace both.

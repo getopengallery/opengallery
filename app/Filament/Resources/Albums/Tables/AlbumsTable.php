@@ -22,7 +22,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Support\Icons\Heroicon;
@@ -52,7 +51,7 @@ class AlbumsTable
             ->reorderRecordsTriggerAction(fn (Action $action, bool $isReordering) => $action
                 ->button()
                 ->label($isReordering ? __('Done') : __('Change order'))
-                ->icon($isReordering ? Heroicon::Check : Heroicon::ArrowsUpDown))
+                ->icon($isReordering ? Heroicon::OutlinedCheck : Heroicon::OutlinedArrowsUpDown))
             ->modifyQueryUsing(fn ($query) => $query->with('parent')->withCount(['photos', 'children']))
             ->columns([
                 TextColumn::make('title')
@@ -118,7 +117,6 @@ class AlbumsTable
                 OpenOnSiteAction::make()
                     ->url(fn (Album $record) => route('albums.show', $record))
                     ->iconButton(),
-                EditAction::make()->iconButton(),
                 ActionGroup::make([
                     self::addInside(),
                     self::moveToTrash(TrashActions::moveToTrash()),

@@ -16,7 +16,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -128,7 +127,6 @@ class GroupResource extends Resource
                     ->searchable(),
             ])
             ->recordActions([
-                EditAction::make()->iconButton(),
                 DeleteAction::make()->iconButton(),
             ])
             ->toolbarActions([

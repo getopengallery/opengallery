@@ -1,7 +1,7 @@
 {{-- Block: landing, layout "Text and image": text left, photo right (stacked on phones). --}}
 @php($image = \App\Support\Theme::image('landing_image'))
 
-<section class="og-container grid min-h-[calc(100vh-14rem)] items-center gap-10 py-12 lg:grid-cols-2 lg:gap-16">
+<section class="og-container grid min-h-[calc(100dvh-14rem)] items-center gap-10 py-12 lg:grid-cols-2 lg:gap-16">
     <div class="max-w-xl">
         @include('blocks.partials.landing-copy')
     </div>

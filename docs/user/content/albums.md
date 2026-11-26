@@ -16,10 +16,9 @@ The list shows albums as a tree: albums inside another album appear indented bel
 
 ![The albums list](../../assets/albums-list.png)
 
-Each row has buttons to:
+Click a row to open the album and edit it. Each row also has:
 
 - **Open on the site**: view the album as visitors see it.
-- **Edit** the album.
 - **Add album inside**: create a new album inside this one (in the row's menu).
 - **Move to trash** (in the row's menu).
 

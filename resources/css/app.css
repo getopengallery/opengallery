@@ -112,6 +112,20 @@
         @apply og-btn bg-danger text-on-danger hover:bg-danger/85;
     }
 
+    /* Square icon-only button: 44px touch target on phones, 36px from sm up. Colours come from where it is used. */
+    .og-icon-btn {
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-og transition-colors sm:h-9 sm:w-9;
+    }
+
+    .og-checkbox {
+        @apply rounded-[4px] border-line bg-canvas text-ink focus:ring-0 focus:ring-offset-0;
+    }
+
+    /* Keeps full-screen overlays (lightbox) clear of the notch and the home bar (needs viewport-fit=cover). */
+    .og-safe-area {
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
     .og-input {
         @apply block rounded-og border-line bg-canvas text-ink placeholder:text-muted focus:border-ink focus:ring-0;
     }

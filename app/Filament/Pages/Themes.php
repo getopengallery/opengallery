@@ -126,7 +126,7 @@ class Themes extends Page implements HasTable
                     ->label(__('Active'))
                     ->badge()
                     ->color('primary')
-                    ->icon(Heroicon::CheckCircle)
+                    ->icon(Heroicon::OutlinedCheckCircle)
                     ->disabled()
                     ->tooltip(__('One theme is always active. Activate another theme to switch.'))
                     ->extraAttributes(['class' => 'fi-force-enabled'])

@@ -1,7 +1,7 @@
 {{-- Block: landing, layout "Full-screen image": text on the photo, darkened for legibility. Alone on the page it runs into the footer; above the album list ($onHome) it does not. --}}
 @php($image = \App\Support\Theme::image('landing_image'))
 
-<section @class(['relative isolate flex min-h-[calc(100vh-4rem)] items-end overflow-hidden bg-[#1A1A1A] text-white', '-mb-24' => ! ($onHome ?? false)])>
+<section @class(['relative isolate flex min-h-[calc(100dvh-4rem)] items-end overflow-hidden bg-black text-white', '-mb-24' => ! ($onHome ?? false)])>
     @if ($image)
         <img src="{{ $image }}" alt="" class="absolute inset-0 -z-10 h-full w-full object-cover">
     @endif

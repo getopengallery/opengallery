@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Filament\Actions\ActionIcons;
 use App\Filament\Resources\Groups\GroupResource;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\Schemas\UserDeletionForm;
@@ -16,7 +17,6 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -96,14 +96,14 @@ class UsersTable
             ->recordActions([
                 // Approving is why people open the list while someone waits, so it is a labelled button.
                 self::approveAction(),
-                EditAction::make()->iconButton(),
                 UserDeletionForm::deleteAction()->iconButton(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     BulkAction::make('approve')
                         ->label(__('Approve'))
-                        ->icon(Heroicon::OutlinedCheckBadge)
+                        ->icon(ActionIcons::APPROVE)
+                        ->color('success')
                         ->authorizeIndividualRecords('update')
                         ->action(fn (Collection $records) => $records->each(fn (User $record) => AccountApproval::approve($record)))
                         ->deselectRecordsAfterCompletion(),
@@ -122,7 +122,7 @@ class UsersTable
     {
         return Action::make('approve')
             ->label(__('Approve'))
-            ->icon(Heroicon::OutlinedCheckBadge)
+            ->icon(ActionIcons::APPROVE)
             ->color('success')
             ->visible(fn (User $record): bool => $record->awaiting_approval && (auth()->user()?->can('update', $record) ?? false))
             ->requiresConfirmation()

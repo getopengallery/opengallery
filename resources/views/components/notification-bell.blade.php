@@ -9,7 +9,7 @@
        aria-label="{{ $unread ? __('Notifications, :count unread', ['count' => $unread]) : __('Notifications') }}"
        title="{{ __('Notifications') }}"
        @if (request()->routeIs('notifications.index')) aria-current="page" @endif
-       {{ $attributes->merge(['class' => 'relative inline-flex h-9 w-9 items-center justify-center rounded-og text-muted hover:bg-surface hover:text-ink']) }}>
+       {{ $attributes->merge(['class' => 'og-icon-btn relative text-muted hover:bg-surface hover:text-ink']) }}>
         <svg viewBox="0 0 20 20" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M5 8a5 5 0 0 1 10 0c0 4 1.5 5.5 2 6H3c.5-.5 2-2 2-6z"/>
             <path d="M8.25 16.5a1.9 1.9 0 0 0 3.5 0"/>

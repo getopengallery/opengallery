@@ -76,6 +76,12 @@ class PhotoResource extends Resource
         ]);
     }
 
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        /** @var Photo $record */
+        return self::detailUrl($record);
+    }
+
     public static function canCreate(): bool
     {
         return false;
@@ -120,6 +126,21 @@ class PhotoResource extends Resource
     public static function modifyTrashQuery(Builder $query): void
     {
         $query->trashableBy(auth()->user());
+    }
+
+    /**
+     * Whether the photo page opens editable: for people who may edit the
+     * photo, unless it is in the trash (restored first, then changed).
+     */
+    public static function opensForEditing(Photo $photo): bool
+    {
+        return ! $photo->trashed() && (auth()->user()?->can('update', $photo) ?? false);
+    }
+
+    /** The photo page: EditPhoto for editors, otherwise the read-only ViewPhoto. */
+    public static function detailUrl(Photo $photo): string
+    {
+        return static::getUrl(self::opensForEditing($photo) ? 'edit' : 'view', ['record' => $photo]);
     }
 
     public static function getPages(): array

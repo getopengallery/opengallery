@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Albums\RelationManagers;
 
 use App\Enums\Permission;
 use App\Enums\PhotoOrder;
+use App\Filament\Actions\ActionIcons;
 use App\Filament\Actions\PickMediaAction;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Photos\Tables\PhotosTable;
@@ -176,10 +177,8 @@ class PhotosRelationManager extends RelationManager
                         Notification::make()->title(__('Cover changed'))->success()->send();
                     })
                     ->deselectRecordsAfterCompletion(),
-                BulkAction::make('removeFromAlbum')
+                ActionIcons::remove(BulkAction::make('removeFromAlbum'))
                     ->label(__('Remove from album'))
-                    ->icon(Heroicon::OutlinedMinusCircle)
-                    ->color('gray')
                     ->visible(fn () => auth()->user()->can('update', $album) || auth()->user()->can('removePhotos', $album))
                     ->requiresConfirmation()
                     ->modalDescription(fn () => AlbumCollaboration::worksThroughRole($album, auth()->user())

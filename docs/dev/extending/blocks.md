@@ -29,10 +29,11 @@ Every attribute is passed to the block's view as a camel-cased variable (`on-hom
 | `page-header` | slot | Title area of a page |
 | `landing` | `onHome` (optional) | Home page for guests while public albums are off; with `onHome` above the album list (buttons lead to `#albums`) |
 | `auth-shell` | slot | Frame around login, registration and password pages |
-| `album-grid` | `albums` | Album lists |
+| `album-grid` | `albums`, slot | Album lists. The slot holds extra leading `<li>` items, rendered before the albums ("My albums" uses it for `favorites-tile`); print it with `{{ $slot ?? '' }}` |
 | `album-search` | `query` | Search form above the album list (`GET /?q=`) |
 | `search-photos` | `photos`, `query` | Photos found by tag on the search page; a theme that replaces `albums/index.blade.php` should render it when `$photos` has results |
 | `album-tile` | `album` | One album in a grid |
+| `favorites-tile` | `favorites` (paginator of the person's favourite photos) | The Favorites entry on "My albums", styled like `album-tile` |
 | `photo-grid` | `photos` | Photos of an album (use `App\Support\PhotoGridItems::from($photos)`) |
 | `lightbox` | none | Full-screen photo viewer, inside an `ogLightbox` Alpine scope |
 | `empty-state` | `message`, slot | Empty lists |

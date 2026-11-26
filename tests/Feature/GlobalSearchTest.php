@@ -74,7 +74,7 @@ it('searches more than the title', function () {
 
     expect(searchUrls('lighthouse'))->toContain(
         AlbumResource::getUrl('edit', ['record' => $album]),
-        PhotoResource::getUrl('view', ['record' => $photo]),
+        PhotoResource::detailUrl($photo),
         UserResource::getUrl('edit', ['record' => $user]),
     );
 });

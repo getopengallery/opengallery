@@ -10,7 +10,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -55,7 +54,6 @@ class PagesTable
                     ->url(fn (Page $record) => route('pages.show', $record))
                     ->visible(fn (Page $record) => $record->is_published)
                     ->iconButton(),
-                EditAction::make()->iconButton(),
                 DeleteAction::make()->iconButton(),
             ])
             ->toolbarActions([
