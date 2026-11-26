@@ -466,10 +466,13 @@
     /* ---- Group members as overlapping pictures ----------------------------- */
     .og-member-stack { display: flex; align-items: center; }
     .og-member-empty { font-size: 0.875rem; color: rgb(var(--og-muted, 107 107 107)); }
-    .og-member-stack > img, .og-member-more { width: 1.875rem; height: 1.875rem; border-radius: 9999px; box-shadow: 0 0 0 2px var(--color-white, #fff); }
-    .dark .og-member-stack > img, .dark .og-member-more { box-shadow: 0 0 0 2px var(--gray-900, #18181b); }
+    .og-member-stack img, .og-member-more { width: 1.875rem; height: 1.875rem; border-radius: 9999px; box-shadow: 0 0 0 2px var(--color-white, #fff); }
+    .dark .og-member-stack img, .dark .og-member-more { box-shadow: 0 0 0 2px var(--gray-900, #18181b); }
     .og-member-stack > * + * { margin-inline-start: -0.25rem; }
-    .og-member-stack > img { object-fit: cover; }
+    .og-member-stack img { object-fit: cover; }
+    .og-member-stack > a { display: inline-flex; border-radius: 9999px; position: relative; transition: transform 0.1s; }
+    .og-member-stack > a:hover, .og-member-stack > a:focus-visible { transform: translateY(-2px); z-index: 1; }
+    .og-member-stack > a:focus-visible { outline: 2px solid rgb(var(--og-primary, 37 99 235)); outline-offset: 2px; }
     .og-member-more { display: inline-grid; place-items: center; min-width: 1.875rem; width: auto; padding-inline: 0.375rem; font-size: 0.6875rem; font-weight: 600; background: rgb(var(--og-surface, 243 243 243)); color: rgb(var(--og-ink, 26 26 26)); }
 
     /* ---- Role form: permission groups in balanced columns ---------------- */

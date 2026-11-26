@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ActivityType;
+use App\Enums\Permission;
 use App\Enums\Role;
 use App\Extensions\PluginManager;
 use App\Extensions\ThemeManager;
@@ -8,12 +10,19 @@ use App\Filament\Pages\Themes;
 use App\Filament\Pages\ThemeSettings;
 use App\Filament\Resources\ActivityEvents\Pages\ManageActivityEvents;
 use App\Filament\Resources\Albums\Pages\ListAlbums;
+use App\Filament\Resources\Groups\GroupResource;
+use App\Filament\Resources\Groups\Pages\EditGroup;
 use App\Filament\Resources\Groups\Pages\ListGroups;
+use App\Filament\Resources\Groups\RelationManagers\MembersRelationManager;
 use App\Filament\Resources\Pages\Pages\ListPages;
 use App\Filament\Resources\Photos\Pages\ListPhotos;
 use App\Filament\Resources\Roles\Pages\ListRoles;
+use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\UserResource;
 use App\Livewire\MediaPicker;
+use App\Models\ActivityEvent;
+use App\Models\Album;
 use App\Models\Group;
 use App\Models\Page;
 use App\Models\Role as RoleModel;
@@ -178,3 +187,62 @@ it('shows the label of every icon-only button as its tooltip', function () {
         ->and(Action::make('edit')->label('Edit')->getTooltip())->toBeNull()
         ->and(Action::make('edit')->label('Edit')->tooltip('Change it')->iconButton()->getTooltip())->toBe('Change it');
 });
+
+it('links the people, roles and groups named in admin lists to their pages', function () {
+    $owner = User::factory()->create();
+    $album = Album::factory()->create(['owner_id' => $owner->id]);
+    $group = Group::factory()->create();
+    $role = RoleModel::findByName(Role::Uploader->value);
+    $owner->assignRole($role);
+    $group->users()->attach($owner);
+    $login = ActivityEvent::factory()->create(['user_id' => $owner->id]);
+    $ownerUrl = UserResource::getUrl('edit', ['record' => $owner]);
+
+    Livewire::test(ListAlbums::class)->assertCanSeeTableRecords([$album])->assertSeeHtml($ownerUrl);
+    Livewire::test(ListUsers::class)
+        ->assertSeeHtml(RoleResource::getUrl('edit', ['record' => $role]))
+        ->assertSeeHtml(GroupResource::getUrl('edit', ['record' => $group]));
+    Livewire::test(ListGroups::class)->assertSeeHtml($ownerUrl);
+    Livewire::test(ListRoles::class)->assertSeeHtml($ownerUrl);
+    Livewire::test(MembersRelationManager::class, ['ownerRecord' => $group, 'pageClass' => EditGroup::class])->assertSeeHtml($ownerUrl);
+    Livewire::test(ManageActivityEvents::class)->assertCanSeeTableRecords([$login])->assertSeeHtml($ownerUrl);
+});
+
+it('names people, roles and groups as plain text to those who may not open them', function () {
+    $member = tap(User::factory()->create())->assignRole(Role::Uploader->value);
+    $group = Group::factory()->create();
+    $group->users()->attach($member);
+    $this->actingAs(tap(User::factory()->create())->givePermissionTo(Permission::AccessAdmin->value, Permission::ManageUsers->value));
+
+    Livewire::test(ListUsers::class)
+        ->assertSee($group->name)
+        ->assertDontSeeHtml(RoleResource::getUrl('edit', ['record' => RoleModel::findByName(Role::Uploader->value)]))
+        ->assertDontSeeHtml(GroupResource::getUrl('edit', ['record' => $group]));
+});
+
+it('keeps the account behind a failed login unlinked in the activity log', function () {
+    $target = User::factory()->create();
+    $failed = ActivityEvent::factory()->create(['type' => ActivityType::LoginFailed, 'user_id' => $target->id]);
+
+    Livewire::test(ManageActivityEvents::class)
+        // Only the failed login: creating the account is logged too, and links it as the subject.
+        ->filterTable('type', [ActivityType::LoginFailed->value])
+        ->assertCanSeeTableRecords([$failed])
+        ->assertDontSeeHtml(UserResource::getUrl('edit', ['record' => $target]));
+});
+
+it('shows badges only for cells that can hold several entries, plus album visibility', function (string $component, array $badged, array $plain) {
+    $columns = Livewire::test($component)->instance()->getTable()->getColumns();
+
+    foreach ($badged as $name) {
+        expect($columns[$name]->isBadge())->toBeTrue("{$name} should be a badge");
+    }
+
+    foreach ($plain as $name) {
+        expect($columns[$name]->isBadge())->toBeFalse("{$name} should be plain text");
+    }
+})->with([
+    'albums' => [ListAlbums::class, ['visibility'], ['title', 'owner.name', 'collaborator_role']],
+    'users' => [ListUsers::class, ['roles.name', 'groups.name'], ['name', 'email']],
+    'activity log' => [ManageActivityEvents::class, [], ['user.name', 'what', 'details']],
+]);

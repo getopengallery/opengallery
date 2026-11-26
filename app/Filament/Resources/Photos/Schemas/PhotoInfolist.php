@@ -124,9 +124,7 @@ class PhotoInfolist
         return TextEntry::make('uploader.name')
             ->label(__('Uploaded by'))
             ->placeholder(__('Unknown'))
-            ->url(fn (Photo $record): ?string => $record->uploader && UserResource::canEdit($record->uploader)
-                ? UserResource::getUrl('edit', ['record' => $record->uploader])
-                : null);
+            ->url(fn (Photo $record): ?string => UserResource::editUrlFor($record->uploader));
     }
 
     public static function uploadedEntry(): TextEntry

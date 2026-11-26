@@ -7,6 +7,7 @@ use App\Enums\Visibility;
 use App\Filament\Actions\OpenOnSiteAction;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Albums\Schemas\AlbumDeletionForm;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\EmptyState;
 use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Filament\Trash\ListTrashedRecords;
@@ -78,12 +79,11 @@ class AlbumsTable
                 TextColumn::make('owner.name')
                     ->label(__('Owner'))
                     ->placeholder(__('No owner'))
+                    ->url(fn (Album $record): ?string => UserResource::editUrlFor($record->owner))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('collaborator_role')
                     ->label(__('Your role'))
-                    ->badge()
-                    ->color('gray')
                     ->state(fn (Album $record) => $record->collaboratorRole(auth()->user()))
                     ->visible(fn (): bool => ! $trash && AlbumCollaboration::albumIdsFor(auth()->user()) !== []),
                 TextColumn::make('updated_at')

@@ -2,10 +2,14 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Filament\Resources\Groups\GroupResource;
+use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\Schemas\UserDeletionForm;
 use App\Filament\Tables\Columns\UserAvatarColumn;
 use App\Filament\Tables\EmptyState;
 use App\Filament\Tables\Filters\DateRangeFilter;
+use App\Models\Group;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\AccountApproval;
 use Filament\Actions\Action;
@@ -38,10 +42,16 @@ class UsersTable
                     ->searchable()
                     ->description(fn (User $record): ?string => $record->awaiting_approval ? __('Waiting for approval') : null),
                 TextColumn::make('roles.name')
-                    ->badge(),
+                    ->badge()
+                    ->url(fn (?Role $relatedRecord): ?string => $relatedRecord !== null && RoleResource::canAccess()
+                        ? RoleResource::getUrl('edit', ['record' => $relatedRecord])
+                        : null),
                 TextColumn::make('groups.name')
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->url(fn (?Group $relatedRecord): ?string => $relatedRecord !== null && GroupResource::canAccess()
+                        ? GroupResource::getUrl('edit', ['record' => $relatedRecord])
+                        : null),
                 TextColumn::make('email_verified_at')
                     ->label(__('Verified'))
                     ->dateTime()
