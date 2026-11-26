@@ -53,12 +53,12 @@
     </button>
 
     @if ($openable && auth()->user()?->can('view', $record))
-        <a href="{{ \App\Filament\Resources\Photos\PhotoResource::getUrl('view', ['record' => $record]) }}"
+        <a href="{{ \App\Filament\Resources\Photos\PhotoResource::detailUrl($record) }}"
            class="og-pick-open"
            x-on:click.stop
            title="{{ __('Open details') }}"
            aria-label="{{ __('Open details of :title', ['title' => $title]) }}">
-            <x-filament::icon icon="heroicon-m-arrow-top-right-on-square" />
+            <x-filament::icon icon="heroicon-o-eye" />
         </a>
     @endif
 </div>

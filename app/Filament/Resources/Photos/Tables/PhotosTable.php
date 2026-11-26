@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Photos\Tables;
 
 use App\Enums\Permission;
+use App\Filament\Actions\ActionIcons;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Photos\Pages\Concerns\HasMediaLayout;
 use App\Filament\Resources\Photos\PhotoResource;
@@ -20,7 +21,6 @@ use App\Support\SiteSettings;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -57,7 +57,7 @@ class PhotosTable
         return $table
             ->defaultSort('created_at', 'desc')
             // In the grid, clicking a photo selects it; each tile has its own "Open" button.
-            ->recordUrl($grid ? null : fn (Photo $record) => auth()->user()->can('view', $record) ? route('filament.admin.resources.media.view', $record) : null)
+            ->recordUrl($grid ? null : fn (Photo $record) => auth()->user()->can('view', $record) ? PhotoResource::detailUrl($record) : null)
             ->when(
                 $grid,
                 fn (Table $table) => MediaGrid::configure($table),
@@ -80,9 +80,8 @@ class PhotosTable
                     TrashActions::restore(),
                     TrashActions::deletePermanently(),
                 ],
+                // The row opens the photo page (editable for editors), so no separate View / Edit buttons.
                 default => [
-                    ViewAction::make()->iconButton(),
-                    EditAction::make()->iconButton(),
                     TrashActions::moveToTrash()->iconButton(),
                 ],
             })
@@ -158,9 +157,8 @@ class PhotosTable
                         ->maxLength(255),
                 ])
                 ->action(fn (Collection $records, array $data, Component $livewire) => self::newAlbum($records, $data['title'], $livewire)),
-            BulkAction::make('removeFromAlbum')
+            ActionIcons::remove(BulkAction::make('removeFromAlbum'))
                 ->label(__('Remove from album'))
-                ->icon(Heroicon::OutlinedMinusCircle)
                 ->schema([self::albumSelect(__('Remove from'), 'update')])
                 ->action(fn (Collection $records, array $data) => self::removeFromAlbum($records, (int) $data['album_id']))
                 ->deselectRecordsAfterCompletion(),

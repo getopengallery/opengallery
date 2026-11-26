@@ -69,7 +69,7 @@ Every list in the admin (albums, media, pages, users, groups, roles and the acti
 - The **funnel icon** opens the filters. A filter applies as soon as you change it; the number on the icon shows how many filters are on. **Reset** turns them all off.
 - Active filters are listed above the list. Click the cross next to one to remove it.
 - Date filters take a range: fill in **From**, **To** or both.
-- Lists with a trash (albums and media) show only what is not in the trash. While the trash holds something, a trash can button (**Trash**) with the number of items appears at the top; it opens the trash, which offers only **Restore** and **Delete permanently**.
+- Lists with a trash (albums and media) show only what is not in the trash. While the trash holds something, a trash can button (**Trash**) with the number of items appears at the top; it opens the trash, which offers **Restore** and **Delete permanently** (and **View** for photos).
 - **Move to trash** can be undone from the trash. **Delete** (for pages, users, groups and roles, which have no trash) and **Delete permanently** cannot; their confirmation says so.
 
 ![The albums list with its filters opened from the funnel icon](../../assets/admin-list-filters.png)
@@ -78,9 +78,9 @@ The icon next to the funnel, where a list has one, shows or hides columns.
 
 Each row has the same kinds of buttons, in the same order:
 
-- Small icons for **Open on the site**, **View** and **Edit**. Hover over an icon to see what it does.
-- Then the row's own action, such as **Move to trash**, **Delete** or **Remove**. When a row has several, they are in its **…** menu. Red buttons delete or move to the trash; gray ones only unlink, for example **Remove** takes someone out of a group.
-- A few actions are written out because they are the reason to open the list: **Approve** for accounts waiting for approval, and **Restore** and **Delete permanently** in the trash.
+- Click a row to open the record. There is no separate **Edit** icon in the lists. Small icons are for other actions, where the list has them: **Open on the site**, **View** (the eye, for example in the trash) and **Approve**. Hover over an icon to see what it does.
+- Then the row's own action, such as **Move to trash**, **Delete** or **Remove**. When a row has several, they are in its **…** menu. The same action has the same icon everywhere, also in menus, for several selected rows and at the top of a record's page: a red trash can deletes or moves to the trash (the confirmation says which), a gray minus sign only unlinks, for example **Remove** takes someone out of a group, and a gray arrow pointing back restores.
+- A few actions are written out because they are the reason to open the list: **Approve** (green check mark) for accounts waiting for approval, and **Restore** and **Delete permanently** in the trash.
 
 A cell that can hold several entries, such as a photo's albums or a person's roles and groups, shows each entry as a badge. Single values are plain text; the album's visibility is the one exception, shown as a badge so it is easy to spot. Security events in the activity log are shown in a warning colour with a shield icon.
 
@@ -92,7 +92,7 @@ Names in a list that belong to something else open it when you click them:
 - **Groups** and **Roles**: a picture in the members or users column opens that person's page; so does a name in a group's **Members** or a role's **Users** section.
 - **Activity log**: the name under **Who** opens that person's page. Failed logins and lock-outs show "Someone" and are never linked.
 
-Names are plain text when you may not open what they point to: a person's page needs "Manage users" and the right to manage that account, a role needs "Manage roles", a group "Manage groups", and for an album you need to own it or have "Edit any album". Click anywhere else in a row to open the row itself.
+Names are plain text when you may not open what they point to: a person's page needs "Manage users" and the right to manage that account, a role needs "Manage roles", a group "Manage groups", and for an album you need to own it or have "Edit any album". Click anywhere else in a row to open the row itself. For users, albums, pages, groups and roles that is their edit page; a photo opens its own page, editable if you may edit it (see [A single photo](../content/photos.md#a-single-photo)).
 
 An empty list says what it is for and offers its first step, for example **New album**. If the search or a filter hides every row, it says "Nothing matches" instead; change the search or the filters.
 

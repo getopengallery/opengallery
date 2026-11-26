@@ -10,7 +10,7 @@
         :aria-label="$store.appearance.isDark ? @js(__('Switch to light mode')) : @js(__('Switch to dark mode'))"
         :title="$store.appearance.isDark ? @js(__('Switch to light mode')) : @js(__('Switch to dark mode'))"
         aria-label="{{ __('Switch between light and dark mode') }}"
-        {{ $attributes->merge(['class' => 'inline-flex h-9 w-9 items-center justify-center rounded-og text-muted hover:bg-surface hover:text-ink']) }}>
+        {{ $attributes->merge(['class' => 'og-icon-btn text-muted hover:bg-surface hover:text-ink']) }}>
     {{-- Shown in light mode: sun. In dark mode: moon. Pure CSS, so it is right before Alpine loads. --}}
     <svg viewBox="0 0 20 20" class="h-[18px] w-[18px] dark:hidden" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
         <circle cx="10" cy="10" r="3.5"/>

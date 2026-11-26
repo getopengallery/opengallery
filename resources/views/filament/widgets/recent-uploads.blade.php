@@ -7,7 +7,7 @@
                 @foreach ($photos as $photo)
                     @php($label = $photo->title ?: ($photo->original()?->file_name ?? __('Untitled photo')))
                     <li>
-                        <a href="{{ \App\Filament\Resources\Photos\PhotoResource::getUrl('view', ['record' => $photo]) }}" title="{{ $label }}">
+                        <a href="{{ \App\Filament\Resources\Photos\PhotoResource::detailUrl($photo) }}" title="{{ $label }}">
                             @if ($thumb = $photo->mediaUrl('thumb'))
                                 <img src="{{ $thumb }}" alt="{{ $label }}" loading="lazy" class="og-thumb">
                             @else

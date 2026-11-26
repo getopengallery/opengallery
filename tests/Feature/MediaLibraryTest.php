@@ -9,6 +9,7 @@ use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Photos\Pages\EditPhoto;
 use App\Filament\Resources\Photos\Pages\ListPhotos;
 use App\Filament\Resources\Photos\Pages\ListTrashedPhotos;
+use App\Filament\Resources\Photos\Pages\ViewPhoto;
 use App\Filament\Resources\Photos\PhotoResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\MediaGrid;
@@ -100,7 +101,7 @@ it('shows where a photo is, who uploaded it and its camera data', function () {
     $photo->update(['exif' => ['Model' => 'X100V', 'FNumber' => '28/10', 'ExposureTime' => '1/250']]);
 
     $this->actingAs($admin)
-        ->get(PhotoResource::getUrl('view', ['record' => $photo]))
+        ->get(PhotoResource::getUrl('edit', ['record' => $photo]))
         ->assertOk()
         ->assertSee('Summer camp › Day 3')
         ->assertSee('Ada Admin')
@@ -150,7 +151,7 @@ describe('photos in several albums', function () {
         $this->get($thumb)->assertOk();
 
         $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value))
-            ->get(PhotoResource::getUrl('view', ['record' => $photo]))
+            ->get(PhotoResource::getUrl('edit', ['record' => $photo]))
             ->assertSee('Family only')
             ->assertSee('Best of');
     });
@@ -301,7 +302,7 @@ it('does not let staff delete photos they may not manage', function () {
 
     $this->actingAs($helper);
 
-    Livewire::test(ListPhotos::class)->call('setLayout', ListPhotos::LIST)->assertActionHidden(TestAction::make('edit')->table($photo));
+    Livewire::test(ListPhotos::class)->call('setLayout', ListPhotos::LIST)->assertActionHidden(TestAction::make('delete')->table($photo));
     Livewire::test(EditPhoto::class, ['record' => $photo->id])->assertForbidden();
 });
 
@@ -411,7 +412,7 @@ it('offers the original for download only to people who may download it', functi
         ->assertOk()
         ->assertDontSee($download);
     $this->actingAs($owner)
-        ->get(PhotoResource::getUrl('view', ['record' => $photo]))
+        ->get(PhotoResource::getUrl('edit', ['record' => $photo]))
         ->assertOk()
         ->assertSee($download);
 });
@@ -456,7 +457,7 @@ it('links the albums, cover albums and uploader on the photo page for people who
     $album->update(['cover_photo_id' => $photo->id]);
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
-    $this->get(PhotoResource::getUrl('view', ['record' => $photo]))
+    $this->get(PhotoResource::getUrl('edit', ['record' => $photo]))
         ->assertOk()
         ->assertSee(AlbumResource::getUrl('edit', ['record' => $album]), false)
         ->assertSee(UserResource::getUrl('edit', ['record' => $uploader]), false);
@@ -468,7 +469,7 @@ it('shows the albums and uploader on the photo page as plain text to people who 
     $photo = photoIn($album, $uploader, name: 'Plain.jpg');
     $this->actingAs($uploader);
 
-    $this->get(PhotoResource::getUrl('view', ['record' => $photo]))
+    $this->get(PhotoResource::getUrl('edit', ['record' => $photo]))
         ->assertOk()
         ->assertSee('Summer trip')
         ->assertDontSee(AlbumResource::getUrl('edit', ['record' => $album]), false)
@@ -492,4 +493,121 @@ it('shows the edit page like the photo page, with the taken date, albums and tag
         ->assertHasNoErrors();
 
     expect($photo->fresh()->taken_at->format('Y-m-d H:i'))->toBe('2024-05-17 14:30');
+});
+
+describe('the photo page for editors and everyone else', function () {
+    it('sends an editor who opens the view URL to the edit page', function () {
+        $photo = photoIn(Album::factory()->create());
+        $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
+
+        $this->actingAs($admin)
+            ->get(PhotoResource::getUrl('view', ['record' => $photo]))
+            ->assertRedirect(PhotoResource::getUrl('edit', ['record' => $photo]));
+    });
+
+    it('keeps a person who may view but not edit the photo on the read-only page', function () {
+        RoleModel::findOrCreate('viewer-staff')->syncPermissions([Permission::AccessAdmin->value, Permission::ViewAnyAlbum->value]);
+        $photo = photoIn(Album::factory()->create(['title' => 'Family only']));
+
+        $this->actingAs(tap(User::factory()->create())->assignRole('viewer-staff'))
+            ->get(PhotoResource::getUrl('view', ['record' => $photo]))
+            ->assertOk()
+            ->assertSee('Family only');
+    });
+
+    it('sends everyone who opens the edit URL of a trashed photo to the view page', function () {
+        $photo = photoIn(Album::factory()->create());
+        $photo->delete();
+
+        $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value))
+            ->get(PhotoResource::getUrl('edit', ['record' => $photo]))
+            ->assertRedirect(PhotoResource::getUrl('view', ['record' => $photo]));
+    });
+
+    it('opens editable only for people who may edit a photo that is not in the trash', function () {
+        $photo = photoIn(Album::factory()->create());
+        $viewer = tap(User::factory()->create())->assignRole(RoleModel::findOrCreate('viewer-staff')->syncPermissions([Permission::AccessAdmin->value, Permission::ViewAnyAlbum->value]));
+
+        $this->actingAs($viewer);
+        expect(PhotoResource::opensForEditing($photo))->toBeFalse()
+            ->and(PhotoResource::detailUrl($photo))->toBe(PhotoResource::getUrl('view', ['record' => $photo]));
+
+        $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+        expect(PhotoResource::opensForEditing($photo))->toBeTrue()
+            ->and(PhotoResource::detailUrl($photo))->toBe(PhotoResource::getUrl('edit', ['record' => $photo]));
+
+        $photo->delete();
+        expect(PhotoResource::opensForEditing($photo))->toBeFalse()
+            ->and(PhotoResource::detailUrl($photo))->toBe(PhotoResource::getUrl('view', ['record' => $photo]));
+    });
+
+    it('links each list row to the photo page that fits the person and has only Move to trash as a record action', function () {
+        $owner = tap(User::factory()->create())->assignRole(Role::Uploader->value);
+        $mine = photoIn(Album::factory()->for($owner, 'owner')->create(), $owner);
+        $this->actingAs($owner);
+
+        $list = Livewire::test(ListPhotos::class)->call('setLayout', ListPhotos::LIST);
+
+        expect($list->instance()->getTable()->getRecordUrl($mine))->toBe(PhotoResource::getUrl('edit', ['record' => $mine]));
+        $list->assertActionExists(TestAction::make('delete')->table($mine))
+            ->assertActionDoesNotExist(TestAction::make('view')->table($mine))
+            ->assertActionDoesNotExist(TestAction::make('edit')->table($mine));
+    });
+
+    it('links a list row to the read-only page for people who may not edit the photo', function () {
+        RoleModel::findOrCreate('viewer-staff')->syncPermissions([Permission::AccessAdmin->value, Permission::ViewAnyAlbum->value]);
+        $photo = photoIn(Album::factory()->create());
+        $this->actingAs(tap(User::factory()->create())->assignRole('viewer-staff'));
+
+        $list = Livewire::test(ListPhotos::class)->call('setLayout', ListPhotos::LIST);
+
+        expect($list->instance()->getTable()->getRecordUrl($photo))->toBe(PhotoResource::getUrl('view', ['record' => $photo]));
+    });
+
+    it('keeps view, restore and delete permanently as the record actions of the trash list', function () {
+        $photo = photoIn(Album::factory()->create());
+        $photo->delete();
+        $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+
+        Livewire::test(ListTrashedPhotos::class)
+            ->call('setLayout', ListPhotos::LIST)
+            ->assertActionExists(TestAction::make('view')->table($photo))
+            ->assertActionExists(TestAction::make('restore')->table($photo))
+            ->assertActionExists(TestAction::make('forceDelete')->table($photo));
+    });
+
+    it('saves a photo and stays on the edit page', function () {
+        $photo = photoIn(Album::factory()->create());
+        $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+
+        Livewire::test(EditPhoto::class, ['record' => $photo->id])
+            ->set('data.title', 'Sunrise')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertNoRedirect();
+
+        expect($photo->fresh()->title)->toBe('Sunrise');
+    });
+
+    it('restores a photo from the read-only page and sends an editor on to the edit page', function () {
+        $photo = photoIn(Album::factory()->create());
+        $photo->delete();
+        $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+
+        Livewire::test(ViewPhoto::class, ['record' => $photo->id])
+            ->assertOk()
+            ->callAction('restore')
+            ->assertRedirect(PhotoResource::getUrl('edit', ['record' => $photo]));
+
+        expect($photo->fresh()->trashed())->toBeFalse();
+    });
+
+    it('uses the photo page that fits the person for the activity link of a photo', function () {
+        $photo = photoIn(Album::factory()->create());
+        $event = ActivityEvent::factory()->make();
+        $event->setRelation('subject', $photo);
+        $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+
+        expect($event->subjectUrl())->toBe(PhotoResource::getUrl('edit', ['record' => $photo]));
+    });
 });

@@ -204,6 +204,17 @@ describe('My albums', function () {
         $this->get(route('dashboard'))->assertOk()->assertSee(route('favorites.index'))->assertSee('1 photo');
     });
 
+    it('links the Favorites tile to the favorites page and counts the photos', function () {
+        $user = User::factory()->create();
+        $user->favoritePhotos()->attach([favoritesPublicPhoto()->id, favoritesPublicPhoto()->id]);
+
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('href="'.route('favorites.index').'"', false)
+            ->assertSee('Favorites')
+            ->assertSee('2 photos');
+    });
+
     it('shows no tile when the only favourite is in the trash', function () {
         $user = User::factory()->create();
         $photo = favoritesPublicPhoto();

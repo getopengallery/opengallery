@@ -20,7 +20,7 @@
 
 <div class="mt-9 flex flex-wrap gap-3">
     @if ($inverse)
-        <a href="{{ $primary['href'] }}" class="og-btn bg-white px-5 py-2.5 text-[#1A1A1A] hover:bg-white/90">{{ $primary['label'] }}</a>
+        <a href="{{ $primary['href'] }}" class="og-btn bg-white px-5 py-2.5 text-black hover:bg-white/90">{{ $primary['label'] }}</a>
         @if ($register)
             <a href="{{ route('register') }}" class="og-btn bg-white/15 px-5 py-2.5 text-white ring-1 ring-white/40 backdrop-blur hover:bg-white/25">{{ __('Create account') }}</a>
         @endif

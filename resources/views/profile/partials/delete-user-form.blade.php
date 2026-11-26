@@ -48,7 +48,7 @@
                     </p>
 
                     <label for="delete_albums" class="mt-3 inline-flex items-center gap-2">
-                        <input id="delete_albums" type="checkbox" class="rounded-[4px] border-line bg-canvas text-ink focus:ring-0 focus:ring-offset-0" name="delete_albums" value="1">
+                        <input id="delete_albums" type="checkbox" class="og-checkbox" name="delete_albums" value="1">
                         {{ __('Delete my albums and photos with my account') }}
                     </label>
 

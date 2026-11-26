@@ -193,7 +193,7 @@ class ActivityEvent extends Model
             $subject instanceof User && UserResource::canAccess() => UserResource::getUrl('edit', ['record' => $subject]),
             $subject instanceof Group && GroupResource::canAccess() => GroupResource::getUrl('edit', ['record' => $subject]),
             $subject instanceof Role && RoleResource::canAccess() => RoleResource::getUrl('edit', ['record' => $subject]),
-            $subject instanceof Photo => PhotoResource::getUrl('view', ['record' => $subject]),
+            $subject instanceof Photo => PhotoResource::detailUrl($subject),
             $subject instanceof Page && $subject->is_published => route('pages.show', $subject),
             default => null,
         };

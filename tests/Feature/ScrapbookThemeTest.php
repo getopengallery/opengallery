@@ -118,3 +118,15 @@ it('changes core wording and the not-found page', function () {
         ->assertNotFound()
         ->assertSee('This page wandered off');
 });
+
+it('keeps the Favorites tile among the albums on My albums', function () {
+    useScrapbookTheme();
+    $user = User::factory()->create();
+    $album = scrapbookAlbumWithPhoto();
+    $user->favoritePhotos()->attach($album->photos()->first());
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('href="'.route('favorites.index').'"', false)
+        ->assertSee('1 photo');
+});

@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\File;
 
 /** Activates the "contact-sheet" fixture theme (child of "plain") and wires it up. */
 function bootContactSheetTheme(): ThemeManager
@@ -93,4 +94,19 @@ it('lets a child theme extend, change and drop its parent\'s settings', function
     // The child's own layout, picked by the merged default and reading the child's own option.
     expect($themes->blockView('auth-shell'))->toBe('blocks.auth-shell.polaroid');
     $this->get(route('login'))->assertOk()->assertSee('polaroid tilted');
+});
+
+it('keeps raw hex colours out of the core blocks and the default theme', function () {
+    $files = collect(File::allFiles(resource_path('views/blocks')))
+        ->merge(File::allFiles(base_path('themes/default/views')))
+        ->filter(fn ($file) => str_ends_with($file->getFilename(), '.blade.php'));
+
+    $offenders = $files
+        ->filter(fn ($file) => preg_match('/-\[#[0-9A-Fa-f]{3,6}\]/', $file->getContents()) === 1)
+        ->map(fn ($file) => $file->getRelativePathname())
+        ->values()
+        ->all();
+
+    expect($files)->not->toBeEmpty()
+        ->and($offenders)->toBe([]);
 });

@@ -8,6 +8,7 @@ use App\Extensions\LoginOptions;
 use App\Extensions\PluginManager;
 use App\Extensions\ThemeManager;
 use App\Extensions\TranslationLoader;
+use App\Filament\Actions\ActionIcons;
 use App\Filament\Trash\TrashActions;
 use App\Models\Album;
 use App\Models\Group;
@@ -270,6 +271,9 @@ class AppServiceProvider extends ServiceProvider
         Action::configureUsing(fn (Action $action) => $action->tooltip(
             fn (Action $action): string|Htmlable|null => $action->isIconButton() ? $action->getLabel() : null,
         ));
+
+        // One outlined icon and colour per kind of action (Edit, View, Delete, Restore, Remove).
+        ActionIcons::register();
 
         // "Delete" always means for good: things that can come back are moved to the trash
         // instead (App\Filament\Trash\TrashActions, which words its own confirmations).

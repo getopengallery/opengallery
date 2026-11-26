@@ -14,7 +14,6 @@ use App\Filament\Tables\EmptyState;
 use App\Models\Role;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -112,7 +111,6 @@ class RoleResource extends Resource
                     ->searchable(),
             ])
             ->recordActions([
-                EditAction::make()->iconButton(),
                 DeleteAction::make()
                     ->iconButton()
                     ->hidden(fn (Role $record) => self::isBuiltIn($record)),

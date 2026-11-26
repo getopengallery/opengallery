@@ -2,6 +2,7 @@
 
 namespace App\Filament\Trash;
 
+use App\Filament\Actions\ActionIcons;
 use App\Support\RequestMemo;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -100,7 +101,7 @@ class TrashActions
     {
         return DeleteAction::make()
             ->label(__('Move to trash'))
-            ->icon(Heroicon::OutlinedTrash)
+            ->icon(ActionIcons::DELETE)
             ->modalHeading(fn (DeleteAction $action): string => filled($title = $action->getRecordTitle())
                 ? __('Move ":title" to the trash?', ['title' => $title])
                 : __('Move to the trash?'))
@@ -113,7 +114,7 @@ class TrashActions
     {
         return DeleteBulkAction::make()
             ->label(__('Move to trash'))
-            ->icon(Heroicon::OutlinedTrash)
+            ->icon(ActionIcons::DELETE)
             ->modalHeading(fn (DeleteBulkAction $action): string => __('Move the selected :items to the trash?', ['items' => $action->getPluralModelLabel()]))
             ->modalDescription(__('You can restore them from the trash.'))
             ->modalSubmitActionLabel(__('Move to trash'))
@@ -122,18 +123,19 @@ class TrashActions
 
     public static function restore(): RestoreAction
     {
-        return RestoreAction::make();
+        return RestoreAction::make()->icon(ActionIcons::RESTORE)->color('gray');
     }
 
     public static function restoreBulk(): RestoreBulkAction
     {
-        return RestoreBulkAction::make();
+        return RestoreBulkAction::make()->icon(ActionIcons::RESTORE)->color('gray');
     }
 
     public static function deletePermanently(): ForceDeleteAction
     {
         return ForceDeleteAction::make()
             ->label(__('Delete permanently'))
+            ->icon(ActionIcons::DELETE)
             ->modalHeading(fn (ForceDeleteAction $action): string => filled($title = $action->getRecordTitle())
                 ? __('Delete ":title" permanently?', ['title' => $title])
                 : __('Delete permanently?'))
@@ -146,6 +148,7 @@ class TrashActions
     {
         return ForceDeleteBulkAction::make()
             ->label(__('Delete permanently'))
+            ->icon(ActionIcons::DELETE)
             ->modalHeading(fn (ForceDeleteBulkAction $action): string => __('Delete the selected :items permanently?', ['items' => $action->getPluralModelLabel()]))
             ->modalDescription(__('This cannot be undone.'))
             ->modalSubmitActionLabel(__('Delete permanently'))

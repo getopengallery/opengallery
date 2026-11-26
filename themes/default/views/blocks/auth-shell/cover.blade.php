@@ -4,7 +4,7 @@
     $caption = \App\Support\Theme::option('auth_caption');
 @endphp
 
-<div class="relative isolate flex min-h-screen flex-col bg-[#1A1A1A]">
+<div class="relative isolate flex min-h-dvh flex-col bg-black">
     @if ($image)
         <img src="{{ $image }}" alt="" class="absolute inset-0 -z-10 h-full w-full object-cover">
     @endif

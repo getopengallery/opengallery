@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Albums\Pages\Concerns;
 
 use App\Enums\CollaboratorRole;
+use App\Filament\Actions\ActionIcons;
 use App\Filament\Forms\Components\PeopleAndGroupsSelect;
 use App\Filament\Notifications\EmailResults;
 use App\Filament\Resources\Albums\AlbumResource;
@@ -91,10 +92,8 @@ trait ManagesCollaborators
 
     public function removeCollaboratorAction(): Action
     {
-        return Action::make('removeCollaborator')
+        return ActionIcons::remove(Action::make('removeCollaborator'))
             ->label(__('Remove'))
-            ->icon(Heroicon::OutlinedMinusCircle)
-            ->color('gray')
             ->iconButton()
             ->visible(fn (): bool => $this->canManageCollaborators())
             ->requiresConfirmation()
