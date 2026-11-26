@@ -35,7 +35,7 @@ return [
             'root' => storage_path('app/private'),
             // Needed: Filament's file upload fields preview existing branding, avatar and
             // theme images through short-lived signed links (temporaryUrl). Unsigned
-            // requests are refused (tests/Feature/PrivateDiskTest.php). Visitors get
+            // requests are refused (tests/Feature/Frontend/MediaTest.php). Visitors get
             // these files only through BrandingController, AvatarController and
             // ThemeAssetController.
             'serve' => true,

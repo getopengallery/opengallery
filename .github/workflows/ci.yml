@@ -117,7 +117,7 @@ jobs:
           BACKUP_TEST_DATABASE: backup_test
           BACKUP_TEST_USERNAME: root
           BACKUP_TEST_PASSWORD: root
-        run: php artisan test tests/Feature/DatabaseBackupTest.php
+        run: php artisan test tests/Feature/System/DatabaseBackupTest.php
 
   style:
     name: Code style
