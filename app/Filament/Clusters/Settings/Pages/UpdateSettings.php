@@ -28,6 +28,7 @@ use Filament\Schemas\Components\View;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Renderless;
 use UnitEnum;
 
@@ -80,7 +81,7 @@ class UpdateSettings extends SettingsPage
                 ]),
             Section::make()
                 ->schema([
-                    Text::make(fn () => __('Installed version: :version', ['version' => AppVersion::current()])),
+                    Text::make(fn () => self::installedVersionText()),
                     Text::make(fn () => self::lastCheckText())
                         ->color('gray')
                         ->visible(fn () => SiteSettings::updateChecksEnabled()),
@@ -110,6 +111,21 @@ class UpdateSettings extends SettingsPage
                     ])->visible(fn () => SiteSettings::updateChecksEnabled() && UpdateInstaller::preparing() === null),
                 ]),
         ];
+    }
+
+    /** "Installed version: 1.0.0", the number linking to its release on GitHub when it has one. */
+    private static function installedVersionText(): HtmlString|string
+    {
+        $version = AppVersion::current();
+        $url = AppVersion::releaseUrl($version);
+
+        if ($url === null) {
+            return __('Installed version: :version', ['version' => $version]);
+        }
+
+        $link = '<a href="'.e($url).'" target="_blank" rel="noopener noreferrer" class="og-link">'.e($version).'</a>';
+
+        return new HtmlString(str_replace('@@version@@', $link, e(__('Installed version: :version', ['version' => '@@version@@']))));
     }
 
     private function installAction(): Action

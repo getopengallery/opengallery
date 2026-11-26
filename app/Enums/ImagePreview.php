@@ -17,8 +17,8 @@ enum ImagePreview: string
     /** Fills a wide frame, for background images. */
     case Wide = 'wide';
 
-    /** Cropped to a circle, for profile pictures. */
-    case Round = 'round';
+    /** A square box with the picture cropped to a circle and some space around it, for profile pictures. */
+    case Square = 'square';
 
     /** CSS classes of the preview area (filament.partials.theme-styles). */
     public function stageClasses(): string
@@ -28,7 +28,7 @@ enum ImagePreview: string
             self::DarkLogo => 'is-contain is-on-dark og-iu-check',
             self::Icon => 'is-icon is-on-theme og-iu-check',
             self::Wide => 'is-wide',
-            self::Round => 'is-round',
+            self::Square => 'is-square',
         };
     }
 }

@@ -39,7 +39,6 @@ class ListPhotos extends ListRecords
     {
         return [
             TrashActions::open(PhotoResource::class),
-            ...$this->mediaLayoutActions(),
             Action::make('uploadPhotos')
                 ->label(__('Upload photos'))
                 ->icon(Heroicon::OutlinedArrowUpTray)

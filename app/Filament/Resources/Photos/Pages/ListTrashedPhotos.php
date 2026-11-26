@@ -22,12 +22,4 @@ class ListTrashedPhotos extends ListTrashedRecords
     {
         return __('Photos you move to the trash appear here until you restore or delete them.');
     }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            ...parent::getHeaderActions(),
-            ...$this->mediaLayoutActions(),
-        ];
-    }
 }

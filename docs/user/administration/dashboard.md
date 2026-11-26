@@ -71,7 +71,7 @@ The **Site health** panel checks the installation each time the dashboard opens.
 
 ## Arranging your dashboard
 
-Click the **Customize dashboard** button (the sliders icon) at the top right of the dashboard. A panel opens with every panel you may see:
+Click the **Edit** button (with the sliders icon) at the top right of the dashboard. A panel opens with every panel you may see:
 
 - Drag a panel by its handle, or use the up and down arrows, to change the order. The arrows also work with the keyboard and on phones.
 - Switch **Show** off to hide a panel.

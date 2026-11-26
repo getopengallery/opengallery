@@ -6,6 +6,7 @@ use App\Enums\Permission;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Photos\Pages\Concerns\HasMediaLayout;
 use App\Filament\Resources\Photos\PhotoResource;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\EmptyState;
 use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Filament\Tables\MediaGrid;
@@ -33,6 +34,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Number;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 /**
@@ -43,6 +45,9 @@ use Livewire\Component;
  */
 class PhotosTable
 {
+    /** Longest title, album or uploader name shown in the list before it is cut (full text in a tooltip). */
+    private const TEXT_LIMIT = 40;
+
     public static function configure(Table $table): Table
     {
         $livewire = $table->getLivewire();
@@ -61,6 +66,8 @@ class PhotosTable
                     ->paginated([10, 25, 50, 100])
                     ->defaultPaginationPageOption(25),
             )
+            // List / Grid switch, in the table toolbar like "Change order" in the albums list.
+            ->headerActions(in_array(HasMediaLayout::class, class_uses_recursive($livewire), true) ? $livewire->mediaLayoutActions() : [])
             ->filters([
                 self::albumFilter(),
                 self::uploaderFilter(),
@@ -175,13 +182,19 @@ class PhotosTable
                 ->searchable()
                 ->sortable()
                 ->placeholder(__('Untitled'))
-                ->description(fn (Photo $record) => $record->original()?->file_name),
+                ->limit(self::TEXT_LIMIT)
+                ->tooltip(fn (Photo $record): ?string => self::tooltipIfCut($record->title))
+                ->description(fn (Photo $record): ?string => ($name = $record->original()?->file_name) !== null ? Str::limit($name, self::TEXT_LIMIT) : null),
             TextColumn::make('albums')
                 ->label(__('Albums'))
+                // Album ids: each line is worded and linked on its own (formatStateUsing / url).
+                ->state(fn (Photo $record) => $record->albums->modelKeys() ?: null)
                 // Albums in the trash are marked: a photo only in such albums is hidden on the site.
-                ->state(fn (Photo $record) => $record->albums
-                    ->map(fn (Album $album) => $album->trashed() ? __(':album (in the trash)', ['album' => $album->path()]) : $album->path())
-                    ->all() ?: null)
+                ->formatStateUsing(fn (Photo $record, mixed $state): string => Str::limit(self::albumLabel($record->albums->find($state)), self::TEXT_LIMIT))
+                ->tooltip(fn (Photo $record, mixed $state): ?string => self::tooltipIfCut(self::albumLabel($record->albums->find($state))))
+                ->url(fn (Photo $record, mixed $state): ?string => ($album = $record->albums->find($state)) && AlbumResource::canEdit($album)
+                    ? AlbumResource::getUrl('edit', ['record' => $album])
+                    : null)
                 ->listWithLineBreaks()
                 ->limitList(3)
                 ->expandableLimitedList()
@@ -190,6 +203,11 @@ class PhotosTable
             TextColumn::make('uploader.name')
                 ->label(__('Uploaded by'))
                 ->placeholder(__('Unknown'))
+                ->limit(self::TEXT_LIMIT)
+                ->tooltip(fn (Photo $record): ?string => self::tooltipIfCut($record->uploader?->name))
+                ->url(fn (Photo $record): ?string => $record->uploader && UserResource::canEdit($record->uploader)
+                    ? UserResource::getUrl('edit', ['record' => $record->uploader])
+                    : null)
                 ->sortable(),
             TextColumn::make('created_at')
                 ->label(__('Uploaded'))
@@ -212,6 +230,22 @@ class PhotosTable
                 ->sortable()
                 ->visible($trash),
         ];
+    }
+
+    /** Full text for a tooltip, only when the column shows it cut short. */
+    private static function tooltipIfCut(?string $text): ?string
+    {
+        return $text !== null && mb_strlen($text) > self::TEXT_LIMIT ? $text : null;
+    }
+
+    /** Album path, marked when the album is in the trash. */
+    private static function albumLabel(?Album $album): string
+    {
+        return match (true) {
+            $album === null => '',
+            $album->trashed() => __(':album (in the trash)', ['album' => $album->path()]),
+            default => $album->path(),
+        };
     }
 
     private static function thumbnail(): ImageColumn

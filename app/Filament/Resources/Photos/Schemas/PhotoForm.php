@@ -12,12 +12,17 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\ImageEntry;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class PhotoForm
 {
+    /**
+     * Same layout as the photo page (PhotoInfolist): preview with where it is
+     * and the history, then file and camera. Here title, description, albums,
+     * tags and the taken date can be changed; the rest is shown as there.
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -25,34 +30,53 @@ class PhotoForm
             ->components([
                 Section::make()
                     ->columnSpan(2)
+                    ->extraAttributes(['class' => 'og-fill'])
                     ->schema([
+                        PhotoInfolist::previewImage(),
                         TextInput::make('title')
                             ->maxLength(255),
                         Textarea::make('description')
                             ->rows(4),
-                        DateTimePicker::make('taken_at')
-                            ->label(__('Taken'))
-                            ->helperText(__('From the camera when available; correct it here if the camera clock was wrong.')),
-                        Select::make('albums')
-                            ->label(__('Albums'))
-                            ->multiple()
-                            ->relationship('albums', 'title')
-                            ->options(fn (?Photo $record) => self::albumOptions($record))
-                            ->getOptionLabelFromRecordUsing(fn (Album $album) => $album->path())
-                            ->searchable()
-                            ->required()
-                            ->rule(fn (?Photo $record) => self::albumChangesAllowed($record))
-                            ->helperText(__('The photo appears in every album listed here and can be seen by anyone who can see one of them.')),
-                        TagPicker::make('tag_names'),
                     ]),
-                Section::make()
+
+                Grid::make(1)
                     ->columnSpan(1)
+                    ->extraAttributes(['class' => 'og-fill'])
                     ->schema([
-                        ImageEntry::make('preview')
-                            ->hiddenLabel()
-                            ->state(fn (?Photo $record) => $record?->mediaUrl('thumb'))
-                            ->imageHeight('auto')
-                            ->extraImgAttributes(['class' => 'og-preview-image']),
+                        Section::make(__('Where it is'))
+                            ->extraAttributes(['class' => 'og-fill'])
+                            ->schema([
+                                Select::make('albums')
+                                    ->label(__('Albums'))
+                                    ->multiple()
+                                    ->relationship('albums', 'title')
+                                    ->options(fn (?Photo $record) => self::albumOptions($record))
+                                    ->getOptionLabelFromRecordUsing(fn (Album $album) => $album->path())
+                                    ->searchable()
+                                    ->required()
+                                    ->rule(fn (?Photo $record) => self::albumChangesAllowed($record))
+                                    ->helperText(__('The photo appears in every album listed here and can be seen by anyone who can see one of them.')),
+                                PhotoInfolist::coverOfEntry(),
+                                TagPicker::make('tag_names'),
+                            ]),
+
+                        Section::make(__('History'))
+                            ->extraAttributes(['class' => 'og-fill'])
+                            ->schema([
+                                PhotoInfolist::uploaderEntry(),
+                                PhotoInfolist::uploadedEntry(),
+                                DateTimePicker::make('taken_at')
+                                    ->label(__('Taken'))
+                                    ->helperText(__('From the camera when available; correct it here if the camera clock was wrong.')),
+                                PhotoInfolist::changedEntry(),
+                            ]),
+                    ]),
+
+                Grid::make(2)
+                    ->columnSpanFull()
+                    ->schema([
+                        PhotoInfolist::fileSection(),
+                        PhotoInfolist::cameraSection(),
                     ]),
             ]);
     }

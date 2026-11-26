@@ -33,6 +33,23 @@ final class AppVersion
         return preg_match('/^\d+\.\d+\.\d+(-(dev|alpha|beta|rc)(\.\d+)?)?$/', $version) === 1;
     }
 
+    /**
+     * The GitHub page of $version's release, when it has one: a numbered
+     * release (`1.2.0`, `1.3.0-dev.4`) of the configured repository. The
+     * development marker in the repository (`0.2.0-dev`) and `dev` have none.
+     */
+    public static function releaseUrl(?string $version = null): ?string
+    {
+        $version ??= self::current();
+        $repository = trim((string) config('gallery.update_repository'));
+
+        if ($repository === '' || ! self::isRelease($version) || preg_match('/-(dev|alpha|beta|rc)$/', $version) === 1) {
+            return null;
+        }
+
+        return "https://github.com/{$repository}/releases/tag/v{$version}";
+    }
+
     /** The version a release tag stands for: `v1.2.0` is version `1.2.0`. */
     public static function fromTag(string $tag): string
     {

@@ -197,6 +197,8 @@ The gallery can tell you when a new version of OpenGallery is out, and a super a
   - **Stable**: finished versions for everyday use. This is the recommended choice.
   - **Development**: also tells you about test versions. They can contain errors, so use them only on a gallery you can restore.
 
-The page shows the installed version and when the last check ran. **Check now** asks right away. When a newer version is available, the page offers **Install update** and links to its release, the bottom of the admin menu shows **Update to** with the version, and [Site health](dashboard.md#site-health) shows a note.
+The page shows the installed version and when the last check ran. The version number links to that release on GitHub and opens in a new tab. A development copy of the code that has no release of its own shows the version as plain text. **Check now** asks right away. When a newer version is available, the page offers **Install update** and links to its release, the bottom of the admin menu shows **Update to** with the version below the installed version, and [Site health](dashboard.md#site-health) shows a note.
+
+While update checks are on, the installed version at the bottom of the admin menu links to this page. With checks off the page is not available and the version is plain text.
 
 If you move a gallery from Development back to Stable, it stays on its version until a newer finished version is out.

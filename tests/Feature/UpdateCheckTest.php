@@ -241,12 +241,21 @@ describe('the settings page', function () {
         UpdateCheck::run();
 
         Livewire::test(UpdateSettings::class)
-            ->assertSee('Installed version: 1.0.0')
+            ->assertSeeHtmlInOrder(['Installed version:', 'href="https://github.com/getopengallery/opengallery/releases/tag/v1.0.0"', '1.0.0</a>'])
             ->assertSee('Version 1.1.0 is available')
             ->assertSee('https://github.com/getopengallery/opengallery/releases/tag/v1.1.0')
             ->assertDontSee('evil.example')
             ->assertDontSee('alert(1)');
     });
+
+    it('shows the installed version as plain text when it has no release page', function (string $version) {
+        $this->actingAs(updateAdmin());
+        File::put($this->versionFile, $version);
+
+        Livewire::test(UpdateSettings::class)
+            ->assertSee("Installed version: {$version}")
+            ->assertDontSeeHtml('/releases/tag/');
+    })->with(['0.2.0-dev', 'dev']);
 
     it('reports the result of a manual check', function (array $response, int $status, string $title) {
         $this->actingAs(updateAdmin());
@@ -298,6 +307,19 @@ describe('the notices in the admin', function () {
         'administrator' => [Role::Admin, true],
         'uploader' => [Role::Uploader, false],
     ]);
+
+    it('links the version in the menu to the updates page while update checks are on', function () {
+        $this->actingAs(updateAdmin());
+
+        $this->get('/admin')->assertOk()->assertSeeHtml('href="'.UpdateSettings::getUrl().'" class="og-link">Version 1.0.0</a>');
+    });
+
+    it('shows the version in the menu as plain text when update checks are off', function () {
+        Setting::put(SiteSettings::UPDATE_CHECKS, false);
+        $this->actingAs(updateAdmin());
+
+        $this->get('/admin')->assertOk()->assertSee('Version 1.0.0')->assertDontSeeHtml('class="og-link">Version 1.0.0</a>');
+    });
 
     it('goes away once the new version is installed', function () {
         File::put($this->versionFile, '1.1.0');
