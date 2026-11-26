@@ -31,6 +31,15 @@ The content security policy does not limit scripts or styles: Alpine and Filamen
 
 `AuthenticateSession` runs in the `web` group and the admin panel, so a session or "remember me" cookie from before a password change stops working. `PasswordController` also replaces the remember token and calls `logoutOtherDevices()`, which keeps the current device signed in.
 
+### Where people are signed in
+
+Profile (`SessionController`, routes `profile.sessions.destroy` and `profile.sessions.destroy-others`) and the admin's user page (`App\Filament\Resources\Users\RelationManagers\SessionsRelationManager`) list and end sessions through `App\Support\UserSessions`. Deleting the `sessions` row signs that browser out on its next request. Everything is hidden unless `UserSessions::available()` (the `database` driver).
+
+- `signOut()` ends one session. It does not touch the remember token, so a remembered browser can sign itself back in.
+- `signOutAll()` ends every session except an optional current one and replaces `remember_token`; the profile action then calls `logoutOtherDevices()` (without events) so this browser gets a fresh cookie. The route has `throttle:password-check` and asks for the current password.
+- The admin's relation manager is only visible to people who pass `UserResource::canEdit()` (`ManageUsers` plus the role hierarchy; super admins always).
+- Both write `ActivityType::SessionsSignedOut` through `ActivityLog::sessionsSignedOut()`. When someone else signs a person out, `SecurityNotices::sessionsSignedOut()` sends `App\Notifications\SessionsSignedOut` in the gallery and by e-mail.
+
 The `files` route group uses `App\Http\Middleware\IgnoreOutdatedFileSession` instead: an outdated session counts as a guest there rather than being redirected, because an image cannot follow a redirect and public photos should still load.
 
 Changing the e-mail address on the profile needs the current password (`ProfileUpdateRequest`).
@@ -53,7 +62,7 @@ Named limiters are defined in `AppServiceProvider::configureRateLimiting()`. Use
 | `password-email` | `POST /forgot-password` | 5 per minute and 30 per hour per IP |
 | `password-reset` | `POST /reset-password` | 10 per minute per IP |
 | `register` | `POST /register` | 5 per minute and 20 per hour per IP |
-| `password-check` | confirm password, change password, update and delete profile | 6 per minute per account, only for requests that send a password |
+| `password-check` | confirm password, change password, update and delete profile, sign out all other devices | 6 per minute per account, only for requests that send a password |
 
 ## Location data
 

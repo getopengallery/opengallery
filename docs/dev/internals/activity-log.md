@@ -12,7 +12,7 @@ The activity log records visits (logins, album views), changes made in the admin
 - Guests are identified by `ActivityLog::visitor()`: an HMAC (keyed with `APP_KEY`) of IP, user agent and the current date. It changes every day, so it counts unique visitors per day but cannot link one person's visits across days.
 - E-mail addresses typed into the login form are never stored; a failed login is only linked to an account if one matches.
 
-Database sessions keep the same promise: `App\Support\PrivateDatabaseSessionHandler` leaves `sessions.ip_address` and `sessions.user_agent` empty; see [Data model](../architecture/data-model.md#laravels-own-tables).
+Database sessions keep nearly the same promise: `App\Support\PrivateDatabaseSessionHandler` leaves `sessions.ip_address` empty and stores only the short `App\Support\UserAgentLabel` ("Firefox on macOS") in `sessions.user_agent`, never the raw user agent; see [Data model](../architecture/data-model.md#laravels-own-tables).
 
 ## Levels
 
@@ -29,7 +29,7 @@ Database sessions keep the same promise: `App\Support\PrivateDatabaseSessionHand
 
 ## Event types
 
-`App\Enums\ActivityType` lists every type with `label()` for display. `isSecurity()` marks `LoginFailed`, `LockedOut`, `PasswordReset`, `AlbumPasswordFailed`, `AccountLinked` and `AccountUnlinked`; `isVisit()` marks `Login` and `AlbumView`. These two groups are the "Kind" filter of the activity log; everything else counts as a change.
+`App\Enums\ActivityType` lists every type with `label()` for display. `isSecurity()` marks `LoginFailed`, `LockedOut`, `PasswordReset`, `AlbumPasswordFailed`, `AccountLinked`, `AccountUnlinked` and `SessionsSignedOut`; `isVisit()` marks `Login` and `AlbumView`. These two groups are the "Kind" filter of the activity log; everything else counts as a change.
 
 ## Where entries come from
 
@@ -41,6 +41,7 @@ Database sessions keep the same promise: `App\Support\PrivateDatabaseSessionHand
 | `AlbumController` | `AlbumView` (once per album, visitor and day, remembered in the session), `AlbumPasswordFailed` |
 | Explicit calls in the admin | `photosUploaded()`, `photosAdded()`, `photosRemoved()`, `photosReordered()`, `albumsReordered()`, `settingsChanged()`, `extensionChanged()` (theme activated, plugin on or off, theme or plugin uploaded) |
 | `App\Models\SocialAccount` events (`created`, `deleted`) | `AccountLinked`, `AccountUnlinked` |
+| `App\Support\UserSessions` | `SessionsSignedOut` through `ActivityLog::sessionsSignedOut($user, $count, $by)`: the subject is the signed-out account, the actor the person who did it (the account itself when `$by` is null), `properties` holds `count`. Written at every level except `Off`, like all security types. |
 
 ## How changes are recorded
 

@@ -361,6 +361,12 @@ class ActivityLog
         );
     }
 
+    /** $count sessions of $user were signed out, by $by (the person themself when null). */
+    public static function sessionsSignedOut(User $user, int $count, ?User $by = null): void
+    {
+        self::writeSecurity(ActivityType::SessionsSignedOut, $user, request(), ['count' => $count], actor: $by ?? $user);
+    }
+
     /** @param array<string, mixed> $properties */
     private static function writeSecurity(ActivityType $type, ?Model $subject, Request $request, array $properties = [], ?User $actor = null): void
     {

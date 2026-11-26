@@ -132,6 +132,9 @@ class ActivityEvent extends Model
             ActivityType::AlbumPasswordFailed => __('entered a wrong password for'),
             ActivityType::AccountLinked => $this->isOwnAccount() ? __('linked a :provider account to their account', $provider) : __('linked a :provider account to', $provider),
             ActivityType::AccountUnlinked => $this->isOwnAccount() ? __('unlinked a :provider account from their account', $provider) : __('unlinked a :provider account from', $provider),
+            ActivityType::SessionsSignedOut => $this->isOwnAccount()
+                ? trans_choice('signed out one of their sessions|signed out :count of their sessions', $count)
+                : trans_choice('signed out :count session of|signed out :count sessions of', $count),
             default => __('did something'),
         };
     }
@@ -295,7 +298,7 @@ class ActivityEvent extends Model
     {
         return ! $this->isSignUp() && ! $this->isBatch()
             && ! in_array($this->type, [ActivityType::Login, ActivityType::PasswordReset], true)
-            && ! (in_array($this->type, [ActivityType::AccountLinked, ActivityType::AccountUnlinked], true) && $this->isOwnAccount())
+            && ! (in_array($this->type, [ActivityType::AccountLinked, ActivityType::AccountUnlinked, ActivityType::SessionsSignedOut], true) && $this->isOwnAccount())
             && ! ($this->type === ActivityType::LoginFailed && ! ($this->properties['known'] ?? false));
     }
 

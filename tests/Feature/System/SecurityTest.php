@@ -31,14 +31,13 @@ describe('sessions', function () {
         $this->get('/profile')->assertOk();
     });
 
-    it('stores database sessions without IP address or user agent', function () {
-        config(['session.driver' => 'database']);
-        app('session')->forgetDrivers();
+    it('stores database sessions with a short browser label instead of IP address and user agent', function () {
+        useDatabaseSessions();
         $user = User::factory()->create();
 
         $this->actingAs($user)
             ->withServerVariables(['REMOTE_ADDR' => '203.0.113.7'])
-            ->withHeader('User-Agent', 'TestBrowser/1.0')
+            ->withHeader('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0')
             ->get(route('profile.edit'))
             ->assertOk();
 
@@ -46,7 +45,7 @@ describe('sessions', function () {
 
         expect($session->user_id)->toBe($user->id)
             ->and($session->ip_address)->toBeNull()
-            ->and($session->user_agent)->toBeNull();
+            ->and($session->user_agent)->toBe('Firefox on macOS');
     });
 });
 

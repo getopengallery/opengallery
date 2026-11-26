@@ -7,6 +7,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoUploadController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SessionController;
 use App\Http\Controllers\WebAppController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
         ->name('profile.photos.download');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+    Route::delete('/profile/sessions', [SessionController::class, 'destroyOthers'])
+        ->middleware('throttle:password-check')
+        ->name('profile.sessions.destroy-others');
+    Route::delete('/profile/sessions/{session}', [SessionController::class, 'destroy'])->name('profile.sessions.destroy');
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 

@@ -35,6 +35,8 @@ People who register on the site themselves get the role "user". If you want to h
 
 **Send password link** at the top of a user's page e-mails them a new link to choose a password, for example when an invitation expired or someone is locked out. Earlier links stop working; their current password keeps working until they choose a new one.
 
+**Sessions**: the tab **Sessions** on a user's page lists the browsers where that person is logged in, with a short name such as "Firefox on macOS" and when each was last active. **Sign out** in a row logs that browser out; **Sign out everywhere** at the top logs out all of them, including browsers where the person chose "Remember me". You only see the tab for people you may edit (see above), and only while the gallery keeps its sessions in the database, which is the default. The person is told in the gallery and by e-mail that you signed them out, and the action appears in the [activity log](activity.md). People can do the same for themselves in their [profile](../members-and-visitors/profile.md#where-youre-signed-in).
+
 **Deleting a user** (the red icon in their row, or **Delete** at the top of their page) never deletes their albums. If the person owns albums, the confirmation lists them and asks for a **New owner of the albums**:
 
 - By default that is you. Search for anyone else by name or e-mail address; the people being deleted cannot be chosen.

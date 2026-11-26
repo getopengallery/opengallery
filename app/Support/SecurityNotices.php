@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\EmailAddressChanged;
 use App\Notifications\LoginBlocked;
 use App\Notifications\PasswordChanged;
+use App\Notifications\SessionsSignedOut;
 use App\Notifications\SignUpAttempted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
@@ -27,6 +28,12 @@ class SecurityNotices
     public static function passwordChanged(User $user, ?User $changedBy = null): void
     {
         Mailing::send(fn () => $user->notify(new PasswordChanged(self::otherPerson($user, $changedBy))));
+    }
+
+    /** Someone who manages users signed $user out on one or more devices. */
+    public static function sessionsSignedOut(User $user, User $signedOutBy): void
+    {
+        Mailing::send(fn () => $user->notify(new SessionsSignedOut($signedOutBy->name)));
     }
 
     /**

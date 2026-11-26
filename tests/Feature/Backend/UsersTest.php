@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ActivityType;
 use App\Enums\Role as BuiltInRole;
 use App\Filament\Actions\ActionIcons;
 use App\Filament\AvatarProviders\InitialsAvatarProvider;
@@ -8,6 +9,7 @@ use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\RelationManagers\SessionsRelationManager;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\ActivityEvent;
 use App\Models\Album;
@@ -15,9 +17,11 @@ use App\Models\Group;
 use App\Models\Photo;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserSession;
 use App\Notifications\AccountApproved;
 use App\Notifications\GroupAlbumsShared;
 use App\Notifications\PasswordChanged;
+use App\Notifications\SessionsSignedOut;
 use App\Notifications\UserInvited;
 use App\Support\Avatars;
 use Filament\Actions\DeleteAction;
@@ -441,5 +445,96 @@ describe('pictures', function () {
         expect($url)->toStartWith('data:image/svg+xml;base64,')
             ->and(base64_decode(substr($url, strlen('data:image/svg+xml;base64,'))))->toContain('>AL</text>')
             ->and(filament()->getUserAvatarUrl($user))->toBe($url);
+    });
+});
+
+describe('the sessions of a user', function () {
+    beforeEach(function () {
+        useDatabaseSessions();
+        mailWorks();
+        $this->member = User::factory()->create(['remember_token' => 'known-token']);
+        sessionRow($this->member, 'laptop', 'Firefox on macOS');
+        sessionRow($this->member, 'phone', 'Safari on iOS');
+        sessionRow($this->member, 'old-session', 'Opera on Linux', now()->subYear()->getTimestamp());
+        sessionRow(User::factory()->create(), 'strangers-session', 'Chrome on Windows');
+    });
+
+    it('lists the active sessions of the person on their edit page', function () {
+        $admin = actingAsRole(BuiltInRole::Admin);
+
+        Livewire::test(EditUser::class, ['record' => $this->member->id])
+            ->assertSeeLivewire(SessionsRelationManager::class);
+
+        Livewire::test(SessionsRelationManager::class, ['ownerRecord' => $this->member, 'pageClass' => EditUser::class])
+            ->assertCanSeeTableRecords(UserSession::whereIn('id', ['laptop', 'phone'])->get())
+            ->assertCanNotSeeTableRecords(UserSession::whereIn('id', ['old-session', 'strangers-session'])->get())
+            ->assertSee('Firefox on macOS')
+            ->assertSee('Safari on iOS');
+
+        expect($admin->can('update', $this->member))->toBeTrue();
+    });
+
+    it('signs out one session and tells the person', function () {
+        $admin = actingAsRole(BuiltInRole::Admin);
+        $before = (int) ActivityEvent::max('id');
+
+        Livewire::test(SessionsRelationManager::class, ['ownerRecord' => $this->member, 'pageClass' => EditUser::class])
+            ->callAction(TestAction::make('signOut')->table(UserSession::find('laptop')))
+            ->assertNotified();
+
+        expect(sessionIds($this->member))->toBe(['old-session', 'phone'])
+            ->and(sessionIds())->toContain('strangers-session')
+            ->and($this->member->fresh()->remember_token)->toBe('known-token');
+        Notification::assertSentTo($this->member, SessionsSignedOut::class, fn (SessionsSignedOut $notice) => $notice->signedOutBy === $admin->name);
+
+        $entry = ActivityEvent::where('id', '>', $before)->where('type', ActivityType::SessionsSignedOut)->sole();
+        expect($entry->user_id)->toBe($admin->id)
+            ->and($entry->subject_id)->toBe($this->member->id)
+            ->and($entry->properties)->toMatchArray(['count' => 1]);
+    });
+
+    it('signs out everywhere, replaces the remember token and tells the person', function () {
+        $admin = actingAsRole(BuiltInRole::Admin);
+        $before = (int) ActivityEvent::max('id');
+
+        Livewire::test(SessionsRelationManager::class, ['ownerRecord' => $this->member, 'pageClass' => EditUser::class])
+            ->callAction(TestAction::make('signOutEverywhere')->table())
+            ->assertNotified();
+
+        expect(sessionIds($this->member))->toBe([])
+            ->and(sessionIds())->toBe(['strangers-session'])
+            ->and($this->member->fresh()->remember_token)->not->toBe('known-token');
+        Notification::assertSentTo($this->member, SessionsSignedOut::class, fn (SessionsSignedOut $notice, array $channels) => $notice->signedOutBy === $admin->name && $channels === ['database', 'mail']);
+
+        $entry = ActivityEvent::where('id', '>', $before)->where('type', ActivityType::SessionsSignedOut)->sole();
+        expect($entry->user_id)->toBe($admin->id)
+            ->and($entry->properties)->toMatchArray(['count' => 3]);
+    });
+
+    it('is open to super admins and user managers who may manage the person', function (callable $actor) {
+        $this->actingAs($actor());
+
+        expect(SessionsRelationManager::canViewForRecord($this->member, EditUser::class))->toBeTrue();
+    })->with([
+        'super admin' => [fn () => userWithRole(BuiltInRole::SuperAdmin)],
+        'user manager' => [fn () => userManager()],
+    ]);
+
+    it('is closed to those who may not manage the person', function (callable $actor) {
+        $this->actingAs($actor());
+        $admin = userWithRole(BuiltInRole::Admin);
+        expect(SessionsRelationManager::canViewForRecord($admin, EditUser::class))->toBeFalse();
+
+        Livewire::test(EditUser::class, ['record' => $admin->id])->assertForbidden();
+    })->with([
+        'user manager' => [fn () => userManager()],
+        'user without access' => [fn () => User::factory()->create()],
+    ]);
+
+    it('is not offered when sessions are not stored in the database', function () {
+        config(['session.driver' => 'file']);
+        $this->actingAs(userWithRole(BuiltInRole::SuperAdmin));
+
+        expect(SessionsRelationManager::canViewForRecord($this->member, EditUser::class))->toBeFalse();
     });
 });

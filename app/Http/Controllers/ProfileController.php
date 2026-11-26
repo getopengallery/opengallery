@@ -8,6 +8,7 @@ use App\Support\AccountDeletion;
 use App\Support\Avatars;
 use App\Support\PhotoZip;
 use App\Support\SecurityNotices;
+use App\Support\UserSessions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,7 @@ class ProfileController extends Controller
             'user' => $request->user(),
             'ownedAlbums' => AccountDeletion::ownedAlbums([$request->user()->id]),
             'uploadedPhotos' => Photo::query()->where('uploader_id', $request->user()->id)->count(),
+            'sessions' => UserSessions::for($request->user()),
         ]);
     }
 

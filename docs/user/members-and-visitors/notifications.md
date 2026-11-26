@@ -25,6 +25,7 @@ Both bells show the same notifications, so reading one on the site also marks it
 | Someone created an account, or is waiting for approval | People who manage users, while **Tell people who manage users when someone creates an account** is on, and always while new accounts need approval (see [Site settings](../administration/settings.md#access)) | Yes |
 | A problem with the installation | People who may change the site settings (see below) | Only for problems that stop the site from working |
 | Your password was changed | You, after a change in your profile, with a reset link, or by an administrator (then with their name) | Yes |
+| An administrator signed you out on other devices | You, when someone who manages users signs you out of one or more devices. Signing yourself out sends nothing (see [Where you're signed in](profile.md#where-youre-signed-in)) | Yes |
 | Your e-mail address was changed | You. The e-mail goes to your **old** address, so you notice if someone else changed it | Yes, to the old address |
 | Logging in was blocked for a short time | You, after several wrong passwords for your account. It arrives within a few minutes, at most once an hour | Yes |
 
