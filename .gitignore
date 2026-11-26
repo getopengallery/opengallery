@@ -6,7 +6,12 @@
 .phpactor.json
 .phpunit.result.cache
 /.agents
-/.claude
+/.claude/*
+!/.claude/rules/
+!/.claude/agents/
+!/.claude/skills/
+/.claude/skills/*
+!/.claude/skills/feature/
 /.codex
 /.cursor/
 /.github/skills
