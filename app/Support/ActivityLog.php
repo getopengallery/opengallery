@@ -349,6 +349,12 @@ class ActivityLog
         self::writeSecurity(ActivityType::AlbumPasswordFailed, $album, $request, actor: $request->user());
     }
 
+    /** Someone entered a wrong code on a guest link of $album (AlbumGuests). */
+    public static function albumGuestCodeFailed(Album $album, Request $request): void
+    {
+        self::writeSecurity(ActivityType::AlbumGuestCodeFailed, $album, $request, actor: $request->user());
+    }
+
     /** A sign-in account (identity provider) was linked to or removed from $user. */
     public static function accountLinked(User $user, string $provider, bool $linked): void
     {

@@ -17,6 +17,7 @@ use App\Filament\Resources\Users\UserResource;
 use App\Livewire\MediaPicker;
 use App\Models\ActivityEvent;
 use App\Models\Album;
+use App\Models\AlbumGuest;
 use App\Models\Group;
 use App\Models\Page;
 use App\Models\Photo;
@@ -1265,5 +1266,103 @@ describe('share notices', function () {
         expect($grace->notifications()->sole())
             ->type->toBe(AlbumShared::class)
             ->data->toMatchArray(['data' => ['album' => $album->id, 'slug' => $album->slug, 'title' => 'Camp', 'by' => $ada->name]]);
+    });
+});
+
+describe('sharing by e-mail', function () {
+    it('adds an address without an account as a guest and queues their invitation, whatever the notify switch says', function () {
+        deliverToMemory();
+        actingAsRole(attributes: ['name' => 'Ada']);
+        $album = Album::factory()->visibility(Visibility::Restricted)->create();
+
+        Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
+            ->fillForm(['shared_with' => ['email:new.guest@example.com'], 'notify_shared' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect($album->guests()->sole())
+            ->email->toBe('new.guest@example.com')
+            ->invited_by->not->toBeNull()
+            ->and(mailJobs())->toBe(1)
+            ->and($album->sharedUsers()->count())->toBe(0);
+
+        Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
+            ->assertFormSet(['shared_with' => ['email:new.guest@example.com']])
+            ->call('save');
+
+        expect($album->guests()->count())->toBe(1)
+            ->and(mailJobs())->toBe(1);
+    });
+
+    it('shares with the account instead when the address belongs to one, whatever its case', function () {
+        deliverToMemory();
+        actingAsRole();
+        $grace = User::factory()->create(['email' => 'Grace@Example.com']);
+        $album = Album::factory()->visibility(Visibility::Restricted)->create();
+
+        Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
+            ->fillForm(['shared_with' => ['email:grace@example.com']])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect($album->sharedUsers()->pluck('users.id')->all())->toBe([$grace->id])
+            ->and($album->guests()->count())->toBe(0)
+            ->and(mailJobs())->toBe(0);
+    });
+
+    it('ends the guest\'s access when the address is taken off the list', function () {
+        deliverToMemory();
+        actingAsRole();
+        $album = Album::factory()->visibility(Visibility::Restricted)->create();
+        $page = fn () => Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()]);
+
+        $page()->fillForm(['shared_with' => ['email:a@example.com', 'email:b@example.com']])->call('save');
+        expect($album->guests()->pluck('email')->all())->toEqualCanonicalizing(['a@example.com', 'b@example.com']);
+
+        $page()->fillForm(['shared_with' => ['email:b@example.com']])->call('save');
+
+        expect($album->guests()->pluck('email')->all())->toBe(['b@example.com'])
+            ->and(mailJobs())->toBe(2);
+    });
+
+    it('does not invite anyone new while sharing by e-mail is off, but lets the list shrink', function () {
+        deliverToMemory();
+        actingAsRole();
+        $album = Album::factory()->visibility(Visibility::Restricted)->create();
+        AlbumGuest::factory()->for($album)->create(['email' => 'old@example.com']);
+        Setting::put(SiteSettings::ALBUM_GUESTS, false);
+
+        Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
+            ->fillForm(['shared_with' => ['email:old@example.com', 'email:new@example.com']])
+            ->call('save');
+
+        expect($album->guests()->pluck('email')->all())->toBe(['old@example.com'])
+            ->and(mailJobs())->toBe(0);
+
+        Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
+            ->fillForm(['shared_with' => []])
+            ->call('save');
+
+        expect($album->guests()->count())->toBe(0);
+    });
+
+    it('offers an address in the picker only when it belongs to no account and guests are on', function () {
+        deliverToMemory();
+        actingAsRole();
+        User::factory()->create(['name' => 'Grace Hopper', 'email' => 'grace@example.com']);
+        $album = Album::factory()->visibility(Visibility::Restricted)->create();
+        $picker = fn () => Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
+            ->instance()->form->getComponent(fn ($component) => $component instanceof Select && $component->getName() === 'shared_with');
+
+        expect($picker()->getSearchResults(' New@Example.com '))->toHaveKey('email:new@example.com')
+            ->and($picker()->getSearchResults('not an address'))->toBe([])
+            ->and(array_keys($picker()->getSearchResults('Grace@Example.com')))->toBe(['user:'.User::where('email', 'grace@example.com')->value('id')]);
+
+        Setting::put(SiteSettings::ALBUM_GUESTS, false);
+        expect($picker()->getSearchResults('new@example.com'))->toBe([]);
+
+        Setting::put(SiteSettings::ALBUM_GUESTS, true);
+        config(['mail.default' => 'log']);
+        expect($picker()->getSearchResults('new@example.com'))->toBe([]);
     });
 });

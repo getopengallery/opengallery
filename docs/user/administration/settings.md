@@ -104,6 +104,11 @@ The symbols use the colours of the active theme. Messengers keep previews for a 
   - **A landing page**: a welcome page whose text, image and layout you set in the theme settings (see [Themes](themes.md#landing-page)).
   - **The login page**.
 
+### Guests
+
+- **Allow sharing albums by e-mail with people without an account**: on by default. Albums shared with "Specific users & groups" can then be shared with e-mail addresses too. Those people, the guests, get a personal link and confirm each visit with a code sent to their e-mail address (see [Sharing with people without an account](../content/sharing.md#sharing-with-people-without-an-account)). The option to invite by e-mail only appears while [e-mail](#e-mail) works. Turning this off stops guests from opening albums; they get their access back when you turn it on again.
+- **Days guests keep access**: only shown while sharing by e-mail is on. Counted from when the guest was added; 30 by default, 0 means no limit, at most 3650.
+
 ## Photos
 
 ### Albums

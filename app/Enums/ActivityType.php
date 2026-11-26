@@ -33,6 +33,7 @@ enum ActivityType: string
     case LockedOut = 'locked_out';
     case PasswordReset = 'password_reset';
     case AlbumPasswordFailed = 'album_password_failed';
+    case AlbumGuestCodeFailed = 'album_guest_code_failed';
     case AccountLinked = 'account_linked';
     case AccountUnlinked = 'account_unlinked';
     case SessionsSignedOut = 'sessions_signed_out';
@@ -61,6 +62,7 @@ enum ActivityType: string
             self::LockedOut => __('Locked out'),
             self::PasswordReset => __('Reset password'),
             self::AlbumPasswordFailed => __('Wrong album password'),
+            self::AlbumGuestCodeFailed => __('Wrong guest code'),
             self::AccountLinked => __('Linked sign-in account'),
             self::AccountUnlinked => __('Unlinked sign-in account'),
             self::SessionsSignedOut => __('Signed out sessions'),
@@ -76,7 +78,7 @@ enum ActivityType: string
     /** @return list<self> */
     public static function security(): array
     {
-        return [self::LoginFailed, self::LockedOut, self::PasswordReset, self::AlbumPasswordFailed, self::AccountLinked, self::AccountUnlinked, self::SessionsSignedOut];
+        return [self::LoginFailed, self::LockedOut, self::PasswordReset, self::AlbumPasswordFailed, self::AlbumGuestCodeFailed, self::AccountLinked, self::AccountUnlinked, self::SessionsSignedOut];
     }
 
     /** Visits, as opposed to administrative changes. */

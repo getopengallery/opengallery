@@ -71,6 +71,12 @@ class SiteSettings
 
     public const GUEST_HOME = 'access.guest_home';
 
+    /** Restricted albums can be shared by e-mail with people without an account (AlbumGuests). */
+    public const ALBUM_GUESTS = 'access.album_guests';
+
+    /** Days an album shared by e-mail stays open to that guest; 0 = no limit. */
+    public const ALBUM_GUEST_DAYS = 'access.album_guest_days';
+
     /** @deprecated Old on/off switch; read only as fallback for ACTIVITY_LEVEL. */
     public const ACTIVITY_LOG = 'access.activity_log';
 
@@ -490,6 +496,17 @@ class SiteSettings
         $seconds = (int) Setting::get(self::SLIDESHOW_SECONDS, self::SLIDESHOW_SECONDS_DEFAULT);
 
         return max(self::SLIDESHOW_SECONDS_MIN, min(self::SLIDESHOW_SECONDS_MAX, $seconds ?: self::SLIDESHOW_SECONDS_DEFAULT));
+    }
+
+    public static function albumGuestsEnabled(): bool
+    {
+        return (bool) Setting::get(self::ALBUM_GUESTS, true);
+    }
+
+    /** Days a guest keeps access after being invited; 0 means no limit. */
+    public static function albumGuestDays(): int
+    {
+        return max(0, (int) Setting::get(self::ALBUM_GUEST_DAYS, 30));
     }
 
     public static function notifiesAboutRegistrations(): bool

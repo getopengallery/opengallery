@@ -21,6 +21,15 @@ Route::post('/albums/{album}/unlock', [AlbumController::class, 'unlock'])
 Route::get('/albums/{album}/download', [AlbumController::class, 'download'])
     ->middleware('throttle:10,1')
     ->name('albums.download');
+Route::get('/albums/{album}/guest/{token}', [AlbumController::class, 'guest'])
+    ->middleware('throttle:guest-link')
+    ->name('albums.guest');
+Route::post('/albums/{album}/guest/{token}', [AlbumController::class, 'verifyGuest'])
+    ->middleware('throttle:guest-code-verify')
+    ->name('albums.guest.verify');
+Route::post('/albums/{album}/guest/{token}/resend', [AlbumController::class, 'resendGuestCode'])
+    ->middleware('throttle:guest-code-send')
+    ->name('albums.guest.resend');
 Route::get('/s/{token}', [AlbumController::class, 'shared'])->name('albums.shared');
 
 Route::get('/pages/{page}', [PageController::class, 'show'])->name('pages.show');

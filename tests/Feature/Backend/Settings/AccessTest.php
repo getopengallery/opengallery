@@ -43,3 +43,42 @@ it('turns a sign-up option on', function (string $field, Closure $isOn) {
     'approval' => ['require_approval', fn () => SiteSettings::requiresApproval()],
     'notices about new accounts' => ['notify_registrations', fn () => SiteSettings::notifiesAboutRegistrations()],
 ]);
+
+describe('guests', function () {
+    it('shows the defaults: sharing by e-mail on, access for 30 days', function () {
+        Livewire::test(AccessSettings::class)
+            ->assertFormSet(['album_guests' => true, 'album_guest_days' => 30]);
+    });
+
+    it('saves and loads whether guests are allowed and for how many days', function () {
+        Livewire::test(AccessSettings::class)
+            ->fillForm(['album_guests' => true, 'album_guest_days' => 0])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect(Setting::get(SiteSettings::ALBUM_GUESTS))->toBeTrue()
+            ->and(SiteSettings::albumGuestDays())->toBe(0);
+
+        Livewire::test(AccessSettings::class)
+            ->assertFormSet(['album_guests' => true, 'album_guest_days' => 0])
+            ->fillForm(['album_guest_days' => 7])
+            ->call('save');
+
+        expect(SiteSettings::albumGuestDays())->toBe(7);
+
+        Livewire::test(AccessSettings::class)
+            ->fillForm(['album_guests' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect(SiteSettings::albumGuestsEnabled())->toBeFalse()
+            ->and(SiteSettings::albumGuestDays())->toBe(7);
+    });
+
+    it('rejects a number of days that is negative, too large or not a number', function (mixed $days) {
+        Livewire::test(AccessSettings::class)
+            ->fillForm(['album_guests' => true, 'album_guest_days' => $days])
+            ->call('save')
+            ->assertHasFormErrors(['album_guest_days']);
+    })->with(['negative' => -1, 'too large' => 4000, 'text' => 'soon']);
+});

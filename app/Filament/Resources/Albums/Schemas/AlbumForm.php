@@ -197,6 +197,16 @@ class AlbumForm
                     ->onlyKeys(fn (?Album $record): ?array => $record && ! auth()->user()->can('update', $record) && ! auth()->user()->can('searchDirectory', $record)
                         ? AlbumSettings::shareKeys($record)
                         : null)
+                    // People without an account are added by typing their e-mail address (AlbumGuests).
+                    ->allowEmails(fn (): bool => SiteSettings::albumGuestsEnabled() && Mailing::delivers())
+                    ->searchPrompt(fn (): string => SiteSettings::albumGuestsEnabled() && Mailing::delivers()
+                        ? __('Type a name or e-mail address. People without an account can be invited by their e-mail address.')
+                        : __('Type a name or e-mail address'))
+                    ->helperText(fn (): ?string => SiteSettings::albumGuestsEnabled() && Mailing::delivers()
+                        ? (SiteSettings::albumGuestDays() === 0
+                            ? __('People added by e-mail (✉) get a personal link and confirm it with a code sent to them.')
+                            : trans_choice('People added by e-mail (✉) get a personal link and confirm it with a code sent to them. Their access ends after :count day.|People added by e-mail (✉) get a personal link and confirm it with a code sent to them. Their access ends after :count days.', SiteSettings::albumGuestDays()))
+                        : null)
                     ->saveRelationshipsUsing(fn (Album $record, ?array $state) => AlbumSettings::syncShareKeys($record, $state ?? [], auth()->user()))
                     ->columnSpanFull()
                     ->visible(fn (Get $get) => self::is($get('visibility'), Visibility::Restricted)),

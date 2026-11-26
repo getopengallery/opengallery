@@ -4,16 +4,18 @@ namespace App\Filament\Clusters\Settings\Pages;
 
 use App\Filament\Clusters\Settings\SettingsPage;
 use App\Filament\Navigation\NavigationGroup;
+use App\Support\Mailing;
 use App\Support\SiteSettings;
 use BackedEnum;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
-/** Settings → Access: who can create an account and what visitors see. */
+/** Settings → Access: who can create an account, what visitors see and whether albums can be shared with guests by e-mail. */
 class AccessSettings extends SettingsPage
 {
     protected const FIELDS = [
@@ -22,7 +24,11 @@ class AccessSettings extends SettingsPage
         'notify_registrations' => [SiteSettings::NOTIFY_REGISTRATIONS, 'Notify about new accounts'],
         'public_albums' => [SiteSettings::PUBLIC_ALBUMS, 'Public albums'],
         'guest_home' => [SiteSettings::GUEST_HOME, 'Guest start page'],
+        'album_guests' => [SiteSettings::ALBUM_GUESTS, 'Share albums by e-mail'],
+        'album_guest_days' => [SiteSettings::ALBUM_GUEST_DAYS, 'Days guests keep access'],
     ];
+
+    protected const INTEGER_FIELDS = ['album_guest_days'];
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
@@ -45,6 +51,8 @@ class AccessSettings extends SettingsPage
             'notify_registrations' => SiteSettings::notifiesAboutRegistrations(),
             'public_albums' => SiteSettings::publicAlbumsEnabled(),
             'guest_home' => SiteSettings::guestHome(),
+            'album_guests' => SiteSettings::albumGuestsEnabled(),
+            'album_guest_days' => SiteSettings::albumGuestDays(),
         ];
     }
 
@@ -84,6 +92,27 @@ class AccessSettings extends SettingsPage
                         ->required()
                         ->live()
                         ->visible(fn (Get $get) => ! $get('public_albums')),
+                ]),
+
+            Section::make(__('Guests'))
+                ->description(__('People without an account can get access to albums shared with "Specific users & groups" by e-mail. They get a personal link, and each time they open it on a new device they confirm with a code sent to their e-mail address.'))
+                ->columns(1)
+                ->schema([
+                    Toggle::make('album_guests')
+                        ->label(__('Allow sharing albums by e-mail with people without an account'))
+                        ->helperText(fn (): string => Mailing::delivers()
+                            ? __('When off, guests can no longer open albums. They keep their access once it is turned on again.')
+                            : __('E-mail is not set up in the site settings, so guests cannot get their link or code.'))
+                        ->live(),
+                    TextInput::make('album_guest_days')
+                        ->label(__('Days guests keep access'))
+                        ->helperText(__('Counted from when the guest was added. Until then, their link keeps working and sends a new code when needed. 0 means no limit.'))
+                        ->integer()
+                        ->minValue(0)
+                        ->maxValue(3650)
+                        ->suffix(__('days'))
+                        ->required()
+                        ->visible(fn (Get $get) => (bool) $get('album_guests')),
                 ]),
         ];
     }

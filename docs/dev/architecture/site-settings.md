@@ -36,6 +36,8 @@ The site settings (pages of the cluster `App\Filament\Clusters\Settings\Settings
 | `NOTIFY_REGISTRATIONS` | `access.notify_registrations` | `SiteSettings::notifiesAboutRegistrations()` (e-mail people who manage users about sign-ups; off by default) |
 | `PUBLIC_ALBUMS` | `access.public_albums` | `config('gallery.public_albums_enabled')` |
 | `GUEST_HOME` | `access.guest_home` | `SiteSettings::guestHome()` (`landing` or `login`) |
+| `ALBUM_GUESTS` | `access.album_guests` | `SiteSettings::albumGuestsEnabled()` (on by default; sharing restricted albums by e-mail with people without an account, see [Album guests](access-model.md#album-guests)) |
+| `ALBUM_GUEST_DAYS` | `access.album_guest_days` | `SiteSettings::albumGuestDays()` (30 by default, 0 = no limit, at most 3650; counted from when the guest was added) |
 | `DEFAULT_PHOTO_ORDER` | `albums.default_photo_order` | `config('gallery.default_photo_order')`, `SiteSettings::defaultPhotoOrder()` |
 | `UPLOAD_MAX_MB` | `uploads.max_mb` | `config('gallery.max_upload_kb')` and `config('media-library.max_file_size')` |
 | `UPLOAD_TYPES` | `uploads.accepted_types` | `config('gallery.accepted_mime_types')`, `SiteSettings::uploadTypes()` |
