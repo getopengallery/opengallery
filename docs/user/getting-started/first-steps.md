@@ -52,7 +52,7 @@ Back in the album's **Visibility & sharing** section, choose who may see it:
 - **Public**: everyone.
 - **Unlisted (link only)**: everyone who has the share link. Save, then copy the **Share link** and send it.
 - **Registered users**: everyone with an account.
-- **Specific users & groups**: only the people and groups you pick.
+- **Specific users & groups**: only the people and groups you pick, and people without an account you invite by e-mail.
 
 You can also add a password or an end date. See [Sharing albums](../content/sharing.md).
 

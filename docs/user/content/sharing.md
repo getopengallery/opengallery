@@ -17,7 +17,7 @@ Visibility and sharing are set in the **Visibility & sharing** section when you 
 | Public | Everyone, including visitors who are not logged in. Listed on the home page. |
 | Unlisted (link only) | Everyone who has the share link. Never listed. |
 | Registered users | Everyone who is logged in. |
-| Specific users & groups | Only the people and groups you share it with. |
+| Specific users & groups | Only the people and groups you share it with, and people without an account you invite by e-mail. |
 | Private (owner only) | Only the owner. |
 
 New albums are private until you change this.
@@ -32,7 +32,7 @@ Some people can open an album whatever its visibility, password or end date:
 
 - the album's owner;
 - people with the permission "See every album" (by default administrators and moderators);
-- people and groups a "Specific users & groups" album is shared with;
+- people and groups a "Specific users & groups" album is shared with (people invited by e-mail are not on this list: they confirm with a code, see [Sharing with people without an account](#sharing-with-people-without-an-account));
 - [collaborators](#working-on-an-album-together), whatever the album's visibility.
 
 ## Share links for unlisted albums
@@ -52,6 +52,31 @@ With **Specific users & groups**, choose people and groups in **Shared with**. T
 Albums shared with someone appear on their "My albums" page under "Shared with you".
 
 With **Tell people when they get access** on (the default), everyone who gains access when you save gets a [notification](../members-and-visitors/notifications.md) in the gallery and, while e-mail works, an e-mail, both with a link to the album: people you added, and members of groups you added. People who already had access, and you yourself, get nothing. E-mails to many people go out in portions, so some can arrive later (see [E-mail settings](../administration/settings.md#e-mail)). People who join a group later can be told when they are added (see [Groups](../administration/users-and-permissions.md#groups)).
+
+## Sharing with people without an account
+
+An album shared with **Specific users & groups** can also be shared with people who have no account, by e-mail. This needs e-mail to work (see [E-mail settings](../administration/settings.md#e-mail)) and **Allow sharing albums by e-mail with people without an account** to be on in the [site settings](../administration/settings.md#guests), which it is by default.
+
+In **Shared with**, type the person's e-mail address. When it belongs to no account, the list offers "address (invite by e-mail)": choose it. If the address belongs to an account, whatever the capitalisation, the album is shared with that account instead.
+
+Each new guest gets an e-mail with a personal link when you save, whether or not **Tell people when they get access** is on. Like other e-mails, it can arrive a little later (see [E-mail settings](../administration/settings.md#e-mail)). Remove the address from **Shared with** to end their access.
+
+What guests do:
+
+1. They open their personal link. We e-mail them a 6-digit code and they see a page asking for it. Reloading the page does not send another code while the first one works; **Send a new code** does, and so does opening the link again after the code has expired.
+2. They enter the code. It works for 10 minutes and allows 5 tries. The right code opens the album until they close their browser; the next visit needs a new code.
+
+The album's own rules still apply to guests: the password, the end date (when it passes, guests lose access, even if their own days have not run out), and the downloads setting. Albums inside the album are not opened: each has its own visibility, so share it separately. Guests never see the album in lists or in search; they only have their link.
+
+Guest access ends when:
+
+- you remove the address from **Shared with**;
+- the album is no longer shared with **Specific users & groups**, or is moved to the trash;
+- the album's end date passes;
+- the days guests keep access run out (30 by default, counted from when the guest was added, see [site settings](../administration/settings.md#guests)). The link then says "This link no longer works";
+- an administrator turns off sharing by e-mail. Turning it back on restores access.
+
+Wrong codes are recorded in the activity log as "Wrong guest code", without IP addresses (see [Dashboard and activity log](../administration/activity.md)).
 
 ## Working on an album together
 

@@ -8,13 +8,17 @@ use App\Models\User;
 /**
  * One list of people and groups for pickers (who an album is shared with, who
  * works on it). An entry is a key such as "user:12" or "group:3". Keys come
- * from the browser, so split() only returns records that exist.
+ * from the browser, so split() only returns records that exist. Pickers that
+ * allow it also take "email:someone@example.com" for people without an
+ * account (AlbumGuests); split() returns those addresses separately.
  */
 class PeopleAndGroups
 {
     public const USER = 'user';
 
     public const GROUP = 'group';
+
+    public const EMAIL = 'email';
 
     /** Groups offered before anything is typed. People are only ever found by search. */
     private const GROUPS_OFFERED = 50;
@@ -25,25 +29,52 @@ class PeopleAndGroups
     }
 
     /**
-     * The people and groups behind $keys. Unknown types and missing records are dropped.
+     * The people and groups behind $keys. Unknown types and missing records
+     * are dropped; e-mail keys come back as valid, lower-case addresses.
      *
      * @param  iterable<int, mixed>  $keys
-     * @return array{users: list<int>, groups: list<int>}
+     * @return array{users: list<int>, groups: list<int>, emails: list<string>}
      */
     public static function split(iterable $keys): array
     {
         $ids = [self::USER => [], self::GROUP => []];
+        $emails = [];
 
         foreach ($keys as $key) {
             if (is_string($key) && preg_match('/^(user|group):([1-9]\d*)$/', $key, $match)) {
                 $ids[$match[1]][] = (int) $match[2];
+            } elseif (is_string($key) && str_starts_with($key, self::EMAIL.':') && ($email = AlbumGuests::normalize(substr($key, strlen(self::EMAIL) + 1)))) {
+                $emails[] = $email;
             }
         }
 
         return [
             'users' => $ids[self::USER] === [] ? [] : User::query()->whereKey($ids[self::USER])->pluck('id')->all(),
             'groups' => $ids[self::GROUP] === [] ? [] : Group::query()->whereKey($ids[self::GROUP])->pluck('id')->all(),
+            'emails' => array_values(array_unique($emails)),
         ];
+    }
+
+    public static function emailKey(string $email): string
+    {
+        return self::EMAIL.':'.$email;
+    }
+
+    /**
+     * The "invite by e-mail" entry for $term, when it is an e-mail address
+     * that belongs to no account (an account is found by search instead).
+     *
+     * @return array<string, string>
+     */
+    public static function emailOption(string $term): array
+    {
+        $email = AlbumGuests::normalize($term);
+
+        if ($email === null || User::query()->whereRaw('lower(email) = ?', [$email])->exists()) {
+            return [];
+        }
+
+        return [self::emailKey($email) => __('✉ :email (invite by e-mail)', ['email' => $email])];
     }
 
     /**
@@ -88,9 +119,16 @@ class PeopleAndGroups
     {
         $split = self::split($keys);
 
+        $emails = [];
+
+        foreach ($split['emails'] as $email) {
+            $emails[self::emailKey($email)] = __('✉ :email', ['email' => $email]);
+        }
+
         return [
             ...self::userOptions(User::query()->whereKey($split['users'])->orderBy('name')->pluck('name', 'id')->all()),
             ...self::groupOptions(Group::query()->whereKey($split['groups'])->orderBy('name')->pluck('name', 'id')->all()),
+            ...$emails,
         ];
     }
 

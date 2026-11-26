@@ -20,6 +20,9 @@ class PeopleAndGroupsSelect extends Select
     /** @var list<string>|Closure(): (list<string>|null)|null when set, only these can be chosen: no directory search */
     protected array|Closure|null $onlyKeys = null;
 
+    /** Whether an e-mail address without an account can be added ("email:…" keys, AlbumGuests). */
+    protected bool|Closure $allowsEmails = false;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -32,8 +35,23 @@ class PeopleAndGroupsSelect extends Select
                 : PeopleAndGroups::offeredGroups($component->getExceptKeys()))
             ->getSearchResultsUsing(fn (self $component, string $search): array => ($only = $component->getOnlyKeys()) !== null
                 ? array_filter(PeopleAndGroups::labels($only), fn (string $label) => str_contains(mb_strtolower($label), mb_strtolower(trim($search))))
-                : PeopleAndGroups::search($search, $component->getExceptKeys()))
+                : [
+                    ...PeopleAndGroups::search($search, $component->getExceptKeys()),
+                    ...($component->allowsEmails() ? PeopleAndGroups::emailOption($search) : []),
+                ])
             ->getOptionLabelsUsing(fn (array $values): array => PeopleAndGroups::labels($values));
+    }
+
+    public function allowEmails(bool|Closure $condition = true): static
+    {
+        $this->allowsEmails = $condition;
+
+        return $this;
+    }
+
+    public function allowsEmails(): bool
+    {
+        return (bool) $this->evaluate($this->allowsEmails);
     }
 
     /** @param  list<string>|Closure(): list<string>  $keys */

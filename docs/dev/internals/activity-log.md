@@ -29,7 +29,7 @@ Database sessions keep nearly the same promise: `App\Support\PrivateDatabaseSess
 
 ## Event types
 
-`App\Enums\ActivityType` lists every type with `label()` for display. `isSecurity()` marks `LoginFailed`, `LockedOut`, `PasswordReset`, `AlbumPasswordFailed`, `AccountLinked`, `AccountUnlinked` and `SessionsSignedOut`; `isVisit()` marks `Login` and `AlbumView`. These two groups are the "Kind" filter of the activity log; everything else counts as a change.
+`App\Enums\ActivityType` lists every type with `label()` for display. `isSecurity()` marks `LoginFailed`, `LockedOut`, `PasswordReset`, `AlbumPasswordFailed`, `AlbumGuestCodeFailed`, `AccountLinked`, `AccountUnlinked` and `SessionsSignedOut`; `isVisit()` marks `Login` and `AlbumView`. These two groups are the "Kind" filter of the activity log; everything else counts as a change.
 
 ## Where entries come from
 
@@ -38,7 +38,7 @@ Database sessions keep nearly the same promise: `App\Support\PrivateDatabaseSess
 | `App\Observers\ActivityObserver` on `Album`, `User`, `Group`, `Role`, `Page`, `Photo` (registered in `AppServiceProvider`) | `created`, `updated`, `deleted`, `restored`. A photo's `created` is skipped; uploads are logged per batch. |
 | `App\Models\Pivots\RecordsPivotActivity` on the pivot models | Adding and removing related records ("Albums: +X", members, roles, permissions, shares) through `ActivityLog::pivotChanged()` |
 | Auth event listeners in `AppServiceProvider` | `Login`, `LoginFailed`, `LockedOut`, `PasswordReset` |
-| `AlbumController` | `AlbumView` (once per album, visitor and day, remembered in the session), `AlbumPasswordFailed` |
+| `AlbumController` | `AlbumView` (once per album, visitor and day, remembered in the session), `AlbumPasswordFailed`, `AlbumGuestCodeFailed` (wrong code on a guest link) |
 | Explicit calls in the admin | `photosUploaded()`, `photosAdded()`, `photosRemoved()`, `photosReordered()`, `albumsReordered()`, `settingsChanged()`, `extensionChanged()` (theme activated, plugin on or off, theme or plugin uploaded) |
 | `App\Models\SocialAccount` events (`created`, `deleted`) | `AccountLinked`, `AccountUnlinked` |
 | `App\Support\UserSessions` | `SessionsSignedOut` through `ActivityLog::sessionsSignedOut($user, $count, $by)`: the subject is the signed-out account, the actor the person who did it (the account itself when `$by` is null), `properties` holds `count`. Written at every level except `Off`, like all security types. |

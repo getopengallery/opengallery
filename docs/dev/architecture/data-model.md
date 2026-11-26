@@ -117,6 +117,20 @@ Relations: `roles()` (through the `UserRole` pivot), `groups()`, `albums()` (own
 
 Shares of restricted albums: `album_id` plus `user_id` or `group_id`. A share only grants viewing (the former `can_upload` columns were removed).
 
+### `album_guests` (`App\Models\AlbumGuest`)
+
+People without an account a restricted album is shared with by e-mail (see [Album guests](access-model.md#album-guests)). Not part of the share tables, and not users.
+
+| Column | Meaning |
+| --- | --- |
+| `album_id` | The album. Cascades on delete. Unique together with `email`. |
+| `email` | Lower-case address |
+| `token` | SHA-256 of the token in the guest's personal link; unique. Hidden. |
+| `code`, `code_expires_at`, `code_attempts` | The current 6-digit code (hashed, hidden), when it expires and how many wrong tries it had; empty after use |
+| `invited_by` | The user who added the guest; null after that user is deleted |
+| `last_used_at` | When the guest last entered a correct code |
+| `created_at`, `updated_at` | When; the guest's days (`SiteSettings::albumGuestDays()`) count from `created_at` |
+
 ### Album collaborators
 
 People and groups who work on an album, in `album_collaborators` and `album_group_collaborators` (pivots `AlbumCollaborator`, `AlbumGroupCollaborator`). Never reuse the share tables for this: shares only grant viewing and only apply to restricted albums.

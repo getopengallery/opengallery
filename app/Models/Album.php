@@ -374,6 +374,12 @@ class Album extends Model
         return $this->belongsToMany(Group::class)->using(AlbumGroup::class);
     }
 
+    /** @return HasMany<AlbumGuest, $this> people without an account it is shared with by e-mail */
+    public function guests(): HasMany
+    {
+        return $this->hasMany(AlbumGuest::class);
+    }
+
     /** @return BelongsToMany<User, $this> people invited to work on this album */
     public function collaborators(): BelongsToMany
     {

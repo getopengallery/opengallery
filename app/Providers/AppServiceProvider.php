@@ -134,6 +134,16 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by('minute:'.$request->ip()),
             Limit::perHour(20)->by('hour:'.$request->ip()),
         ]);
+        // Guest links of albums shared by e-mail (AlbumGuests): per visitor and per link, so one address cannot be flooded with codes.
+        RateLimiter::for('guest-link', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+        RateLimiter::for('guest-code-send', fn (Request $request) => [
+            Limit::perMinute(3)->by('minute:'.$request->ip()),
+            Limit::perHour(10)->by('hour:'.hash('sha256', (string) $request->route('token'))),
+        ]);
+        RateLimiter::for('guest-code-verify', fn (Request $request) => [
+            Limit::perMinute(10)->by('minute:'.$request->ip()),
+            Limit::perHour(30)->by('hour:'.hash('sha256', (string) $request->route('token'))),
+        ]);
         RateLimiter::for('password-check', fn (Request $request) => $request->filled('current_password') || $request->filled('password')
             ? Limit::perMinute(6)->by((string) ($request->user()?->id ?? $request->ip()))
             : Limit::none());

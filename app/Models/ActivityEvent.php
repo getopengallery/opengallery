@@ -130,6 +130,7 @@ class ActivityEvent extends Model
             ActivityType::LockedOut => $this->subject_id ? __('was locked out after too many login attempts for') : __('was locked out after too many login attempts'),
             ActivityType::PasswordReset => __('reset their password'),
             ActivityType::AlbumPasswordFailed => __('entered a wrong password for'),
+            ActivityType::AlbumGuestCodeFailed => __('entered a wrong guest code for'),
             ActivityType::AccountLinked => $this->isOwnAccount() ? __('linked a :provider account to their account', $provider) : __('linked a :provider account to', $provider),
             ActivityType::AccountUnlinked => $this->isOwnAccount() ? __('unlinked a :provider account from their account', $provider) : __('unlinked a :provider account from', $provider),
             ActivityType::SessionsSignedOut => $this->isOwnAccount()

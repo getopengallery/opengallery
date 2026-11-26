@@ -62,7 +62,12 @@ Named limiters are defined in `AppServiceProvider::configureRateLimiting()`. Use
 | `password-email` | `POST /forgot-password` | 5 per minute and 30 per hour per IP |
 | `password-reset` | `POST /reset-password` | 10 per minute per IP |
 | `register` | `POST /register` | 5 per minute and 20 per hour per IP |
+| `guest-link` | `GET /albums/{album}/guest/{token}` | 20 per minute per IP |
+| `guest-code-send` | `POST /albums/{album}/guest/{token}/resend` | 3 per minute per IP and 10 per hour per link |
+| `guest-code-verify` | `POST /albums/{album}/guest/{token}` | 10 per minute per IP and 30 per hour per link |
 | `password-check` | confirm password, change password, update and delete profile, sign out all other devices | 6 per minute per account, only for requests that send a password |
+
+Guest links (albums shared by e-mail, see [Album guests](access-model.md#album-guests)) store only the SHA-256 of their token, and their 6-digit codes hashed, valid for 10 minutes and 5 tries. The per-link hourly limits (keyed by a hash of the token) keep one address from being flooded with codes or guessed at. The session key `album_guests.{albumId}` is checked against the guest's fingerprint on every request.
 
 ## Location data
 

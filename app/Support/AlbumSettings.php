@@ -6,6 +6,7 @@ use App\Enums\Visibility;
 use App\Models\Album;
 use App\Models\Photo;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The save rules for an album's settings in the admin form (CreateAlbum,
@@ -92,13 +93,15 @@ class AlbumSettings
         return [
             ...$album->sharedUsers()->pluck('users.id')->map(fn ($id) => PeopleAndGroups::key(PeopleAndGroups::USER, (int) $id))->all(),
             ...$album->sharedGroups()->pluck('groups.id')->map(fn ($id) => PeopleAndGroups::key(PeopleAndGroups::GROUP, (int) $id))->all(),
+            ...$album->guests()->orderBy('email')->pluck('email')->map(fn ($email) => PeopleAndGroups::emailKey($email))->all(),
         ];
     }
 
     /**
      * Shares the album with exactly the people and groups in $keys (the
-     * combined picker). Keys that do not exist are ignored. Someone who may
-     * not search the directory can only take entries off the list.
+     * combined picker). Keys that do not exist are ignored. E-mail addresses
+     * become guests (AlbumGuests), or shares with the account they belong to.
+     * Someone who may not search the directory can only take entries off the list.
      *
      * @param  iterable<int, mixed>  $keys
      */
@@ -112,7 +115,20 @@ class AlbumSettings
 
         $split = PeopleAndGroups::split($keys);
 
-        $album->sharedUsers()->sync($split['users']);
+        // An address that belongs to an account is shared with that account.
+        $accounts = $split['emails'] === [] ? [] : User::query()
+            ->whereIn(DB::raw('lower(email)'), $split['emails'])
+            ->get(['id', 'email'])
+            ->mapWithKeys(fn (User $user) => [mb_strtolower($user->email) => $user->id])
+            ->all();
+        $emails = array_values(array_diff($split['emails'], array_keys($accounts)));
+
+        if (! SiteSettings::albumGuestsEnabled()) {
+            $emails = array_values(array_intersect($emails, $album->guests()->pluck('email')->all()));
+        }
+
+        $album->sharedUsers()->sync(array_values(array_unique([...$split['users'], ...array_values($accounts)])));
         $album->sharedGroups()->sync($split['groups']);
+        AlbumGuests::sync($album, $emails, $editor);
     }
 }

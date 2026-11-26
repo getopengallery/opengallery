@@ -2,7 +2,9 @@
 
 namespace App\Support;
 
+use App\Enums\Visibility;
 use App\Models\Album;
+use App\Models\AlbumGuest;
 use App\Models\Photo;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -13,8 +15,10 @@ use Illuminate\Support\Facades\Gate;
  *  - direct access (owner, staff, people/groups a restricted album is shared
  *    with): always, regardless of password and end date;
  *  - the album's end date: afterwards nobody else gets in;
- *  - its visibility (AlbumPolicy) or the unlisted share link opened earlier
- *    in this session (a new link invalidates that);
+ *  - its visibility (AlbumPolicy), the unlisted share link opened earlier
+ *    in this session (a new link invalidates that), or, for restricted
+ *    albums, a guest code entered in this session (AlbumGuests; removing
+ *    the guest invalidates that);
  *  - its password, if set: entered earlier in this session. Changing the
  *    password invalidates earlier unlocks.
  */
@@ -23,6 +27,8 @@ class AlbumAccess
     private const LINKS = 'unlocked_albums';
 
     private const PASSWORDS = 'album_passwords';
+
+    private const GUESTS = 'album_guests';
 
     /**
      * Whether $user may see $photo on the site: through any of its albums
@@ -75,6 +81,12 @@ class AlbumAccess
         session()->put(self::LINKS.'.'.$album->id, $album->shareLinkFingerprint());
     }
 
+    /** Opens the album for this session to $guest, who entered the right code. */
+    public static function rememberGuest(AlbumGuest $guest): void
+    {
+        session()->put(self::GUESTS.'.'.$guest->album_id, $guest->id.':'.$guest->fingerprint());
+    }
+
     public static function rememberPassword(Album $album): void
     {
         session()->put(self::PASSWORDS.'.'.$album->id, $album->passwordFingerprint());
@@ -88,7 +100,27 @@ class AlbumAccess
         }
 
         return Gate::forUser($user)->allows('view', $album)
-            || ($album->share_token !== null && hash_equals($album->shareLinkFingerprint(), (string) session(self::LINKS.'.'.$album->id)));
+            || ($album->share_token !== null && hash_equals($album->shareLinkFingerprint(), (string) session(self::LINKS.'.'.$album->id)))
+            || self::guestEntered($album);
+    }
+
+    /** A guest of the restricted album entered their code in this session, and is still a guest. */
+    private static function guestEntered(Album $album): bool
+    {
+        $value = session(self::GUESTS.'.'.$album->id);
+
+        if ($album->visibility !== Visibility::Restricted || ! is_string($value) || ! str_contains($value, ':')) {
+            return false;
+        }
+
+        [$guestId, $fingerprint] = explode(':', $value, 2);
+
+        $guest = RequestMemo::instance()->remember('album-guest:'.$album->id.':'.$guestId, fn () => AlbumGuest::query()
+            ->whereKey((int) $guestId)
+            ->where('album_id', $album->id)
+            ->first()?->setRelation('album', $album));
+
+        return $guest !== null && hash_equals($guest->fingerprint(), $fingerprint) && AlbumGuests::isActive($guest);
     }
 
     private static function passwordEntered(Album $album): bool

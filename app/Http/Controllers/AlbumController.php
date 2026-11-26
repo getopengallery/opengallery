@@ -7,6 +7,7 @@ use App\Models\Photo;
 use App\Support\ActivityLog;
 use App\Support\AlbumAccess;
 use App\Support\AlbumCollaboration;
+use App\Support\AlbumGuests;
 use App\Support\AlbumPreviewImage;
 use App\Support\AlbumSearch;
 use App\Support\Favorites;
@@ -163,6 +164,86 @@ class AlbumController extends Controller
         AlbumAccess::rememberPassword($album);
 
         return redirect()->route('albums.show', $album);
+    }
+
+    /**
+     * Personal link of someone without an account the album is shared with by
+     * e-mail (AlbumGuests). Sends them a code unless one is still waiting to
+     * be entered, then asks for it. Once they entered it, the link opens the album.
+     */
+    public function guest(Request $request, Album $album, string $token): View|Response|RedirectResponse
+    {
+        $guest = AlbumGuests::findByToken($album, $token);
+        abort_unless($guest, 404);
+        $guest->setRelation('album', $album);
+
+        if ($album->accessExpired()) {
+            return response()->view('albums.expired', compact('album'), 410);
+        }
+
+        if (! AlbumGuests::isActive($guest)) {
+            return response()->view('albums.guest-expired', compact('album'), 410);
+        }
+
+        if (AlbumAccess::canView($request->user(), $album) || AlbumAccess::requiresPassword($request->user(), $album)) {
+            return redirect()->route('albums.show', $album);
+        }
+
+        $failed = false;
+
+        if (! AlbumGuests::hasActiveCode($guest)) {
+            $failed = ! AlbumGuests::sendCode($guest);
+        }
+
+        return response()->view('albums.guest-code', [
+            'album' => $album,
+            'token' => $token,
+            'email' => AlbumGuests::maskedEmail($guest),
+            'failed' => $failed,
+        ]);
+    }
+
+    /** The code form on a guest's link. */
+    public function verifyGuest(Request $request, Album $album, string $token): RedirectResponse
+    {
+        $request->validate(['code' => ['required', 'string', 'max:20']]);
+
+        $guest = AlbumGuests::findByToken($album, $token);
+        abort_unless($guest, 404);
+        $guest->setRelation('album', $album);
+        abort_unless(AlbumGuests::isActive($guest), 404);
+
+        if (! AlbumGuests::hasActiveCode($guest)) {
+            return back()->withErrors(['code' => __('This code is no longer valid. Ask for a new one.')]);
+        }
+
+        if (! AlbumGuests::verify($guest, preg_replace('/\s+/', '', (string) $request->input('code')))) {
+            ActivityLog::albumGuestCodeFailed($album, $request);
+
+            return back()->withErrors(['code' => AlbumGuests::hasActiveCode($guest)
+                ? __('That code is not right. Check it and try again.')
+                : __('That code is not right, and it can no longer be used. Ask for a new one.')]);
+        }
+
+        $request->session()->regenerate();
+        AlbumAccess::rememberGuest($guest);
+
+        return redirect()->route('albums.show', $album);
+    }
+
+    /** "Send a new code" on a guest's link. */
+    public function resendGuestCode(Request $request, Album $album, string $token): RedirectResponse
+    {
+        $guest = AlbumGuests::findByToken($album, $token);
+        abort_unless($guest, 404);
+        $guest->setRelation('album', $album);
+        abort_unless(AlbumGuests::isActive($guest), 404);
+
+        if (! AlbumGuests::sendCode($guest)) {
+            return back()->withErrors(['code' => __('The code could not be sent. Try again later.')]);
+        }
+
+        return back()->with('status', __('We sent you a new code.'));
     }
 
     /**
