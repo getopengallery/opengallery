@@ -68,7 +68,7 @@ To distribute a plugin, zip its folder (`watermark.zip` containing `watermark/pl
 - A new plugin is off. Replacing a plugin that is on calls `ProductionCaches::outdated()`, as switching it does.
 - Failures throw `App\Extensions\ExtensionInstallFailed` with a translated message for the admin.
 
-Uploads need the permission `install extensions` (`Permission::InstallExtensions`) besides `manage plugins` / `manage themes`, because an uploaded extension runs code on the server (plugin PHP, theme Blade views). `GALLERY_EXTENSION_UPLOADS=false` (`config('gallery.extension_uploads')`) turns uploads off for everyone. The zip goes through Livewire's temporary upload, so PHP's `upload_max_filesize` and `post_max_size` limit it too, besides `ExtensionInstaller::MAX_UPLOAD_KB`. Covered by `tests/Feature/ExtensionUploadTest.php`.
+Uploads need the permission `install extensions` (`Permission::InstallExtensions`) besides `manage plugins` / `manage themes`, because an uploaded extension runs code on the server (plugin PHP, theme Blade views). `GALLERY_EXTENSION_UPLOADS=false` (`config('gallery.extension_uploads')`) turns uploads off for everyone. The zip goes through Livewire's temporary upload, so PHP's `upload_max_filesize` and `post_max_size` limit it too, besides `ExtensionInstaller::MAX_UPLOAD_KB`. Covered by `tests/Feature/Backend/PluginsTest.php` ("uploading a plugin").
 
 ## How plugins are loaded
 
@@ -128,7 +128,7 @@ public function register(): void
 }
 ```
 
-Resources work the same way (`$panel->resources([...])`); `pages()` and the others add to what core registers. Dashboard widgets are registered with `App\Extensions\DashboardWidgets` instead, under a stable key (see [Dashboard widgets](dashboard-widgets.md)). The Example plugin adds `Plugins\Example\Filament\ExamplePage` like this (with its view loaded under `example::` in `boot()`), and `tests/Feature/Plugins/ExamplePluginTest.php` checks that the page appears while the plugin is enabled and is gone when it is off. Give such screens a navigation group from `App\Filament\Navigation\NavigationGroup`, a `canAccess()` that checks a permission and translated texts from the plugin's own `lang` folder (see [Admin UI conventions](../internals/admin-ui.md)).
+Resources work the same way (`$panel->resources([...])`); `pages()` and the others add to what core registers. Dashboard widgets are registered with `App\Extensions\DashboardWidgets` instead, under a stable key (see [Dashboard widgets](dashboard-widgets.md)). The Example plugin adds `Plugins\Example\Filament\ExamplePage` like this (with its view loaded under `example::` in `boot()`), and `tests/Feature/System/Plugins/ExamplePluginTest.php` checks that the page appears while the plugin is enabled and is gone when it is off. Give such screens a navigation group from `App\Filament\Navigation\NavigationGroup`, a `canAccess()` that checks a permission and translated texts from the plugin's own `lang` folder (see [Admin UI conventions](../internals/admin-ui.md)).
 
 ## Settings page
 
@@ -224,4 +224,4 @@ When a plugin needs something core does not offer yet, add a general hook to cor
 
 ## Testing
 
-Plugin behaviour is tested from core's test suite: `phpunit.xml` sets `GALLERY_PLUGINS=identity-providers`, and its tests are in `tests/Feature/Plugins`. A plugin that is not in `GALLERY_PLUGINS` is not loaded in tests.
+Plugin behaviour is tested from core's test suite: `phpunit.xml` sets `GALLERY_PLUGINS=identity-providers`, and its tests are in `tests/Feature/System/Plugins`. A plugin that is not in `GALLERY_PLUGINS` is not loaded in tests.

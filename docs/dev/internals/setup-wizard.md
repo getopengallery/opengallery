@@ -48,4 +48,4 @@ Once a super administrator exists, every step except Welcome needs the session t
 
 ## Tests
 
-`Tests\TestCase` points the marker files at a temporary folder for every test (`Installation::useDirectory()`), so tests never touch `storage/app`. `tests/Feature/SetupWizardTest.php` sets `gallery.installed` to null, uses a temporary `.env` (`app()->useEnvironmentPath()`) and a temporary SQLite file (`DatabaseSetup::$sqlitePath`).
+`Tests\TestCase` points the marker files at a temporary folder for every test (`Installation::useDirectory()`), so tests never touch `storage/app`. `tests/Feature/Frontend/SetupTest.php` sets `gallery.installed` to null, uses a temporary `.env` (`app()->useEnvironmentPath()`) and a temporary SQLite file (`DatabaseSetup::$sqlitePath`).

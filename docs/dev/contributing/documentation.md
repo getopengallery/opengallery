@@ -37,7 +37,7 @@ order: 20
 - **Folders** take their place and label from their `README.md`: its `order` places the folder among the pages and folders next to it, and its first `#` heading is the label in the navigation, which links to the README. A folder without a README is labelled after its name (`extra-notes` becomes "Extra notes") and comes last.
 - `user/README.md` and `dev/README.md` place the two guides the same way (`order: 10` and `order: 20`).
 - The **page title** is the first `#` heading (the file name if there is none).
-- `docs/README.md` is always first and needs no `order`. Every other page must have one; `tests/Feature/DocumentationTest.php` checks this.
+- `docs/README.md` is always first and needs no `order`. Every other page must have one; `tests/Feature/System/DocumentationTest.php` checks this.
 
 The front matter is plain `key: value` lines between two `---` lines (no nesting or lists). It is removed before the page is shown and is not searched. Only `order` is used at the moment.
 
@@ -74,7 +74,7 @@ See [Site settings](../administration/settings.md#albums) and ![Upload dialog](.
 
 When rendered, links to other `.md` files point to the Documentation page (fragments included) and images point to the `docs.asset` route, which serves PNG, JPEG, GIF and WebP files from `docs/assets` to users who can access the admin. Both use host-relative URLs, so they work whatever address the admin is opened on. Absolute URLs and `#fragment` links are left as they are.
 
-`tests/Feature/DocumentationTest.php` checks every relative link, section anchor and image in `/docs`. When you move or rename a page, or change a heading other pages link to, update those links in the same change.
+`tests/Feature/System/DocumentationTest.php` checks every relative link, section anchor and image in `/docs`. When you move or rename a page, or change a heading other pages link to, update those links in the same change.
 
 ## Screenshots
 

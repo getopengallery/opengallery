@@ -106,4 +106,4 @@ A page declares:
 2. If it maps to a config key, set that key in `SiteSettings::apply()`, using `original()` for the fallback, and put the initial default in `config/gallery.php` (with an `env()` call there only).
 3. Add the field to the settings page of its topic (`FIELDS`, `formValues()` and `formSections()`), or add a new page class for a new topic, with `__()` texts in every `lang/*.json`.
 4. Read it through the config key or the accessor everywhere else.
-5. Add a test (see `tests/Feature/SiteSettingsTest.php` and `SettingsDefaultsTest.php`) and describe the field in the user guide's [Site settings](../../user/administration/settings.md).
+5. Add a test (see `tests/Feature/Backend/Settings/<Page>Test.php` for the page of the topic and `tests/Feature/System/SettingsTest.php` for defaults and reading) and describe the field in the user guide's [Site settings](../../user/administration/settings.md).
