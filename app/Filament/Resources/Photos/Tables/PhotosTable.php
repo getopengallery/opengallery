@@ -195,6 +195,9 @@ class PhotosTable
                 ->url(fn (Photo $record, mixed $state): ?string => ($album = $record->albums->find($state)) && AlbumResource::canEdit($album)
                     ? AlbumResource::getUrl('edit', ['record' => $album])
                     : null)
+                // One badge per album, like every list cell; one under the other, since paths are long.
+                ->badge()
+                ->color(fn (Photo $record, mixed $state): string => $record->albums->find($state)?->trashed() ? 'gray' : 'primary')
                 ->listWithLineBreaks()
                 ->limitList(3)
                 ->expandableLimitedList()
@@ -205,9 +208,7 @@ class PhotosTable
                 ->placeholder(__('Unknown'))
                 ->limit(self::TEXT_LIMIT)
                 ->tooltip(fn (Photo $record): ?string => self::tooltipIfCut($record->uploader?->name))
-                ->url(fn (Photo $record): ?string => $record->uploader && UserResource::canEdit($record->uploader)
-                    ? UserResource::getUrl('edit', ['record' => $record->uploader])
-                    : null)
+                ->url(fn (Photo $record): ?string => UserResource::editUrlFor($record->uploader))
                 ->sortable(),
             TextColumn::make('created_at')
                 ->label(__('Uploaded'))

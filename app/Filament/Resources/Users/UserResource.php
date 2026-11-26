@@ -76,6 +76,12 @@ class UserResource extends Resource
         return auth()->user()?->can(Permission::ManageUsers->value) ?? false;
     }
 
+    /** Link to a person's account for table cells and pages; null (plain text) when the viewer may not edit them. */
+    public static function editUrlFor(?User $user): ?string
+    {
+        return $user !== null && static::canEdit($user) ? static::getUrl('edit', ['record' => $user]) : null;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);

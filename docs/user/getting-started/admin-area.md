@@ -82,6 +82,18 @@ Each row has the same kinds of buttons, in the same order:
 - Then the row's own action, such as **Move to trash**, **Delete** or **Remove**. When a row has several, they are in its **…** menu. Red buttons delete or move to the trash; gray ones only unlink, for example **Remove** takes someone out of a group.
 - A few actions are written out because they are the reason to open the list: **Approve** for accounts waiting for approval, and **Restore** and **Delete permanently** in the trash.
 
+A cell that can hold several entries, such as a photo's albums or a person's roles and groups, shows each entry as a badge. Single values are plain text; the album's visibility is the one exception, shown as a badge so it is easy to spot. Security events in the activity log are shown in a warning colour with a shield icon.
+
+Names in a list that belong to something else open it when you click them:
+
+- **Albums**: the **Owner** opens that person's page.
+- **Media**: an album under **Albums** opens the album, the name under **Uploaded by** opens that person's page.
+- **Users**: a role or group badge opens that role or group.
+- **Groups** and **Roles**: a picture in the members or users column opens that person's page; so does a name in a group's **Members** or a role's **Users** section.
+- **Activity log**: the name under **Who** opens that person's page. Failed logins and lock-outs show "Someone" and are never linked.
+
+Names are plain text when you may not open what they point to: a person's page needs "Manage users" and the right to manage that account, a role needs "Manage roles", a group "Manage groups", and for an album you need to own it or have "Edit any album". Click anywhere else in a row to open the row itself.
+
 An empty list says what it is for and offers its first step, for example **New album**. If the search or a filter hides every row, it says "Nothing matches" instead; change the search or the filters.
 
 The media library keeps its search and filters when you switch between list and grid, and the photo picker in an album ("Add photos") uses the same filters as the media library.

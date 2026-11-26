@@ -7,6 +7,7 @@ use App\Enums\Permission;
 use App\Filament\Clusters\Settings\Pages\ActivityLogSettings;
 use App\Filament\Navigation\NavigationGroup;
 use App\Filament\Resources\ActivityEvents\Pages\ManageActivityEvents;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\EmptyState;
 use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Models\ActivityEvent;
@@ -80,12 +81,17 @@ class ActivityEventResource extends Resource
                 TextColumn::make('user.name')
                     ->label(__('Who'))
                     ->state(fn (ActivityEvent $record) => $record->actorName())
+                    // Failed logins and lock-outs show "Someone" on purpose, so they stay unlinked.
+                    ->url(fn (ActivityEvent $record): ?string => in_array($record->type, [ActivityType::LoginFailed, ActivityType::LockedOut], true)
+                        ? null
+                        : UserResource::editUrlFor($record->user))
                     ->searchable(query: fn (Builder $query, string $search) => $query->whereHas('user', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))),
                 TextColumn::make('what')
                     ->label(__('What'))
                     ->state(fn (ActivityEvent $record) => trim($record->action().' '.($record->showsSubject() ? ($record->subjectLabel() ?? '') : '')))
-                    ->badge(fn (ActivityEvent $record) => $record->type->isSecurity())
+                    // A single value, so no badge (badges are for cells with several entries); security events stand out by colour and icon.
                     ->color(fn (ActivityEvent $record) => $record->type->isSecurity() ? 'warning' : null)
+                    ->icon(fn (ActivityEvent $record) => $record->type->isSecurity() ? Heroicon::OutlinedShieldExclamation : null)
                     ->url(fn (ActivityEvent $record) => $record->subjectUrl())
                     ->wrap(),
                 TextColumn::make('details')

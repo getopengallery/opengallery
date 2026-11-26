@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 /**
  * A record's users (group members, role holders) as overlapping pictures,
- * each with its own name as tooltip, plus "+N" for the rest. Load the users
+ * each with its own name as tooltip and linked to the person for those who
+ * may edit them, plus "+N" for the rest. Load the users
  * with self::withUsers() so only the first few are fetched per row.
  */
 class UserStackColumn extends ViewColumn
@@ -18,6 +19,14 @@ class UserStackColumn extends ViewColumn
     protected string $view = 'filament.tables.member-stack';
 
     protected ?string $emptyText = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Each picture links to its person, so the cell must not also be the row's link.
+        $this->disabledClick();
+    }
 
     public function emptyText(string $text): static
     {

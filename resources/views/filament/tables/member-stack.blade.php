@@ -1,7 +1,8 @@
 {{--
     UserStackColumn: users as overlapping pictures, each with its own name as
-    a tooltip. Only the first few are loaded (UserStackColumn::withUsers());
-    the rest are counted by the database.
+    a tooltip and, for people the viewer may edit, a link to them. Only the
+    first few are loaded (UserStackColumn::withUsers()); the rest are counted
+    by the database.
 --}}
 @php
     $record = $getRecord();
@@ -11,8 +12,14 @@
 
 <div class="og-member-stack px-3 py-2">
     @forelse ($shown as $member)
-        <img src="{{ filament()->getUserAvatarUrl($member) }}" alt="{{ $member->name }}"
-             x-tooltip="{ content: @js($member->name), theme: $store.theme }">
+        @if ($url = \App\Filament\Resources\Users\UserResource::editUrlFor($member))
+            <a href="{{ $url }}" x-tooltip="{ content: @js($member->name), theme: $store.theme }">
+                <img src="{{ filament()->getUserAvatarUrl($member) }}" alt="{{ $member->name }}">
+            </a>
+        @else
+            <img src="{{ filament()->getUserAvatarUrl($member) }}" alt="{{ $member->name }}"
+                 x-tooltip="{ content: @js($member->name), theme: $store.theme }">
+        @endif
     @empty
         <span class="og-member-empty">{{ __($column->getEmptyText()) }}</span>
     @endforelse

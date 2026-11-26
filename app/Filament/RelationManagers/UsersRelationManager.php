@@ -2,8 +2,10 @@
 
 namespace App\Filament\RelationManagers;
 
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\Columns\UserAvatarColumn;
 use App\Filament\Tables\EmptyState;
+use App\Models\User;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
@@ -65,6 +67,7 @@ abstract class UsersRelationManager extends RelationManager
                 UserAvatarColumn::make(),
                 TextColumn::make('name')
                     ->label(__('Name'))
+                    ->url(fn (User $record): ?string => UserResource::editUrlFor($record))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('email')

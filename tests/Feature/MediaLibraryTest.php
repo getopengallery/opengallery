@@ -429,7 +429,10 @@ it('links the albums and the uploader in the list layout and cuts long titles an
         ->assertSeeHtml(AlbumResource::getUrl('edit', ['record' => $album]))
         ->assertSeeHtml(UserResource::getUrl('edit', ['record' => $uploader]))
         ->assertSee(Str::limit($photo->title, 40))
-        ->assertSee(Str::limit($uploader->name, 40));
+        ->assertSee(Str::limit($uploader->name, 40))
+        // A photo can be in several albums, so each one is a badge; the single uploader is not.
+        ->assertTableColumnExists('albums', fn ($column) => $column->isBadge())
+        ->assertTableColumnExists('uploader.name', fn ($column) => ! $column->isBadge());
 });
 
 it('shows the albums and the uploader as plain text to people who may not open them', function () {
