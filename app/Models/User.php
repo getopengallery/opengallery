@@ -166,6 +166,12 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         return $this->belongsToMany(Album::class)->using(AlbumUser::class);
     }
 
+    /** @return BelongsToMany<Photo, $this> photos this user liked (their private Favorites, App\Support\Favorites) */
+    public function favoritePhotos(): BelongsToMany
+    {
+        return $this->belongsToMany(Photo::class, 'photo_favorites')->withTimestamps();
+    }
+
     /** @return BelongsToMany<Album, $this> albums this user was directly invited to work on */
     public function collaborationAlbums(): BelongsToMany
     {

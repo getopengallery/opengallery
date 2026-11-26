@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AlbumController;
 use App\Http\Controllers\BackgroundJobController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoUploadController;
@@ -56,6 +57,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+
+    // Each person's private Favorites and the heart in the lightbox (Settings → Photos).
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/{photo}', [FavoriteController::class, 'toggle'])
+        ->middleware('throttle:60,1')
+        ->name('favorites.toggle');
 
     // Chunked photo uploads from the media picker (no throttle: big batches send many chunks).
     Route::post('/uploads/photos', PhotoUploadController::class)->name('uploads.photos');

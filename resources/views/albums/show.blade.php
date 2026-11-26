@@ -11,8 +11,8 @@
         $shareUrl = $managesAlbum && $album->visibility === \App\Enums\Visibility::Unlisted && $album->share_token
             ? route('albums.shared', $album->share_token)
             : null;
-        // Visitors of albums that allow downloads, and people who may edit the album.
-        $downloadsAll = $photos->total() > 0 && ($album->allow_downloads || $user?->can('update', $album));
+        // While downloads are on (Settings → Photos): visitors of albums that allow them, and people who may edit the album.
+        $downloadsAll = $photos->total() > 0 && \App\Support\SiteSettings::downloadsEnabled() && ($album->allow_downloads || $user?->can('update', $album));
     @endphp
 
     <x-slot name="header">

@@ -243,7 +243,7 @@ class AlbumForm
                     ->label(__('Visitors may download the photos'))
                     ->columnSpanFull()
                     ->helperText(__('Adds a download button for the original file to the photo viewer on the site. Otherwise visitors only get the photos in screen size.'))
-                    ->visible(fn (Get $get) => ! self::is($get('visibility'), Visibility::Private)),
+                    ->visible(fn (Get $get) => SiteSettings::downloadsEnabled() && ! self::is($get('visibility'), Visibility::Private)),
             ]);
     }
 

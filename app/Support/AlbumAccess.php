@@ -24,6 +24,17 @@ class AlbumAccess
 
     private const PASSWORDS = 'album_passwords';
 
+    /**
+     * Whether $user may see $photo on the site: through any of its albums
+     * that is not in the trash and that they may open (as MediaController
+     * serves its thumbnails). Trashed photos are only for people who may edit them.
+     */
+    public static function canViewPhoto(?User $user, Photo $photo): bool
+    {
+        return (! $photo->trashed() && $photo->activeAlbums()->contains(fn (Album $album) => self::canView($user, $album)))
+            || (bool) $user?->can('update', $photo);
+    }
+
     public static function canView(?User $user, Album $album): bool
     {
         if ($album->hasDirectAccess($user)) {
@@ -35,8 +46,9 @@ class AlbumAccess
 
     /**
      * Whether $user may download the original file of $photo: people who may
-     * edit it, and visitors of an album it is in that allows downloads (and
-     * that they may open). Everyone else only gets the thumbnail and preview.
+     * edit it (always, also in the admin), and, while downloads are on
+     * (Settings → Photos), visitors of an album it is in that allows downloads
+     * (and that they may open). Everyone else only gets the thumbnail and preview.
      */
     public static function canDownload(?User $user, Photo $photo): bool
     {
@@ -44,7 +56,8 @@ class AlbumAccess
             return true;
         }
 
-        return ! $photo->trashed()
+        return SiteSettings::downloadsEnabled()
+            && ! $photo->trashed()
             && $photo->activeAlbums()->contains(fn (Album $album) => $album->allow_downloads && self::canView($user, $album));
     }
 

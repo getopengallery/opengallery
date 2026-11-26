@@ -9,6 +9,7 @@ use App\Support\AlbumAccess;
 use App\Support\AlbumCollaboration;
 use App\Support\AlbumPreviewImage;
 use App\Support\AlbumSearch;
+use App\Support\Favorites;
 use App\Support\PageMeta;
 use App\Support\PhotoFileResponse;
 use App\Support\PhotoGridItems;
@@ -75,7 +76,14 @@ class AlbumController extends Controller
                 ->orWhereIntegerInRaw('albums.id', AlbumCollaboration::albumIdsFor($user)))
             ->paginate(24, pageName: 'shared')->withQueryString();
 
-        return view('albums.mine', compact('own', 'shared'));
+        // Their private Favorites, once they liked a photo they can still see.
+        $favorites = Favorites::enabledFor($user) && Favorites::ids($user) !== [] ? Favorites::page($user, 1) : null;
+
+        return view('albums.mine', [
+            'own' => $own,
+            'shared' => $shared,
+            'favorites' => $favorites?->total() ? $favorites : null,
+        ]);
     }
 
     public function show(Request $request, Album $album, ?string $shareToken = null): View|Response
@@ -120,8 +128,9 @@ class AlbumController extends Controller
     }
 
     /**
-     * All photos of the album as one zip, for visitors of albums that allow
-     * downloads (and for people who may edit the album).
+     * All photos of the album as one zip, while downloads are on (Settings →
+     * Photos), for visitors of albums that allow them (and for people who may
+     * edit the album).
      */
     public function download(Request $request, Album $album): MediaStream|RedirectResponse
     {
@@ -130,7 +139,7 @@ class AlbumController extends Controller
         }
 
         abort_unless(AlbumAccess::canView($request->user(), $album), 404);
-        abort_unless($album->allow_downloads || $request->user()?->can('update', $album), 404);
+        abort_unless(SiteSettings::downloadsEnabled() && ($album->allow_downloads || $request->user()?->can('update', $album)), 404);
 
         $photos = $album->photos()->with(['media', 'albums'])->get();
         abort_if($photos->isEmpty(), 404);

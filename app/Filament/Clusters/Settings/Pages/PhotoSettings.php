@@ -16,17 +16,22 @@ use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
-/** Settings → Photos: the default photo order, what can be uploaded and location data in downloads. */
+/** Settings → Photos: the default photo order, uploads, downloads and what the lightbox offers. */
 class PhotoSettings extends SettingsPage
 {
     protected const FIELDS = [
         'default_photo_order' => [SiteSettings::DEFAULT_PHOTO_ORDER, 'Default photo order'],
         'upload_max_mb' => [SiteSettings::UPLOAD_MAX_MB, 'Largest photo'],
         'upload_types' => [SiteSettings::UPLOAD_TYPES, 'Accepted file types'],
+        'downloads_enabled' => [SiteSettings::DOWNLOADS_ENABLED, 'Albums can allow downloads'],
         'remove_location' => [SiteSettings::REMOVE_PHOTO_LOCATION, 'Remove location from downloads'],
+        'favorites_enabled' => [SiteSettings::FAVORITES_ENABLED, 'Users can favorite photos'],
+        'photo_info_enabled' => [SiteSettings::PHOTO_INFO_ENABLED, 'Show photo information'],
+        'slideshow_enabled' => [SiteSettings::SLIDESHOW_ENABLED, 'Slideshow'],
+        'slideshow_seconds' => [SiteSettings::SLIDESHOW_SECONDS, 'Seconds per photo'],
     ];
 
-    protected const INTEGER_FIELDS = ['upload_max_mb'];
+    protected const INTEGER_FIELDS = ['upload_max_mb', 'slideshow_seconds'];
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
 
@@ -47,7 +52,12 @@ class PhotoSettings extends SettingsPage
             'default_photo_order' => SiteSettings::defaultPhotoOrder()->value,
             'upload_max_mb' => SiteSettings::maxUploadMb(),
             'upload_types' => $this->processableOnly(SiteSettings::uploadTypes()),
+            'downloads_enabled' => SiteSettings::downloadsEnabled(),
             'remove_location' => SiteSettings::removesPhotoLocation(),
+            'favorites_enabled' => SiteSettings::favoritesEnabled(),
+            'photo_info_enabled' => SiteSettings::photoInfoEnabled(),
+            'slideshow_enabled' => SiteSettings::slideshowEnabled(),
+            'slideshow_seconds' => SiteSettings::slideshowSeconds(),
         ];
     }
 
@@ -89,9 +99,45 @@ class PhotoSettings extends SettingsPage
 
             Section::make(__('Downloads'))
                 ->schema([
+                    Toggle::make('downloads_enabled')
+                        ->label(__('Albums can allow downloads'))
+                        ->live()
+                        ->helperText(__('When on, each album\'s settings decide whether visitors may download its photos. When off, nobody can download photos or albums on the site.')),
                     Toggle::make('remove_location')
                         ->label(__('Remove location from downloads'))
+                        ->visible(fn ($get) => (bool) $get('downloads_enabled'))
                         ->helperText(__('Visitors get original photos without GPS data. The stored files do not change, and people who may edit a photo still get its position.')),
+                ]),
+
+            Section::make(__('Favorites'))
+                ->schema([
+                    Toggle::make('favorites_enabled')
+                        ->label(__('Users can favorite photos'))
+                        ->helperText(__('Logged-in people get a heart in the lightbox. Photos they like are collected in their own private Favorites album.')),
+                ]),
+
+            Section::make(__('Photo information'))
+                ->schema([
+                    Toggle::make('photo_info_enabled')
+                        ->label(__('Show photo information'))
+                        ->helperText(__('An "i" button in the lightbox shows the photo\'s description and camera details. Location data is never shown there.')),
+                ]),
+
+            Section::make(__('Slideshow'))
+                ->schema([
+                    Toggle::make('slideshow_enabled')
+                        ->label(__('Users can play a slideshow'))
+                        ->live()
+                        ->helperText(__('A play button in the lightbox shows the photos one after another.')),
+                    TextInput::make('slideshow_seconds')
+                        ->label(__('Seconds per photo'))
+                        ->integer()
+                        ->minValue(SiteSettings::SLIDESHOW_SECONDS_MIN)
+                        ->maxValue(SiteSettings::SLIDESHOW_SECONDS_MAX)
+                        ->suffix(__('s'))
+                        ->required()
+                        ->maxWidth('xs')
+                        ->visible(fn ($get) => (bool) $get('slideshow_enabled')),
                 ]),
         ];
     }

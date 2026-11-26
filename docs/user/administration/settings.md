@@ -117,7 +117,21 @@ The symbols use the colours of the active theme. Messengers keep previews for a 
 
 ### Downloads
 
-- **Remove location from downloads**: on by default. Visitors get original photos without the GPS position saved by the camera or phone. The stored files do not change, and people who may edit a photo still get its position.
+- **Albums can allow downloads**: off by default. While it is off, nobody can download photos or albums on the site: there is no download button in the photo viewer, no **Download all**, and visitors only get the photos in screen size. The **Visitors may download the photos** switch is then hidden in the album form. People who may edit a photo (its uploader, the people who manage its album and staff) still get the original, for example with **Download original** in the admin. When it is on, each album's own switch decides (see [Letting visitors download photos](../content/sharing.md#letting-visitors-download-photos)). When you update from an older version, it is turned on if any album already allowed downloads.
+- **Remove location from downloads**: only shown while downloads are on, and on by default. Visitors get original photos without the GPS position saved by the camera or phone. The stored files do not change, and people who may edit a photo still get its position.
+
+### Favorites
+
+- **Users can favorite photos**: on by default. Logged-in people get a heart in the photo viewer on the site (see [The site](../members-and-visitors/the-site.md#albums-and-photos)), and their liked photos are collected in their own private **Favorites**. When off, the heart and the Favorites page are gone; the likes stay and come back when you turn it on again.
+
+### Photo information
+
+- **Show photo information**: on by default. An **i** button in the photo viewer shows the photo's description and camera details. The location is never shown there.
+
+### Slideshow
+
+- **Users can play a slideshow**: on by default. A play button in the photo viewer shows the photos one after another.
+- **Seconds per photo**: how long each photo stays in the slideshow, 5 by default, between 2 and 60. Only shown while the slideshow is on.
 
 ## Tags
 

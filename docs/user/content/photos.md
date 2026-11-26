@@ -57,7 +57,7 @@ The second row has **File** (name, type, size and dimensions) and, next to it, *
 
 Click an album under **Albums** or **Cover of** to open its edit page, and click the name under **Uploaded by** to open that person's page in the admin. They are plain text when you may not open them: for an album you need to own it or have the permission "Edit any album", for a person the permission "Manage users" and the right to manage that account.
 
-From here you can **Open in album** (on the site), **Download original** (only if you may edit the photo, or one of its albums lets visitors download photos), **Edit**, or **Move to trash**. For a photo in the trash, the page says since when and offers **Restore** and **Delete permanently**.
+From here you can **Open in album** (on the site), **Download original** (only if you may edit the photo, or downloads are turned on in the [photo settings](../administration/settings.md#downloads) and one of its albums lets visitors download photos), **Edit**, or **Move to trash**. For a photo in the trash, the page says since when and offers **Restore** and **Delete permanently**.
 
 ![A single photo with its preview, albums and history](../../assets/photos-view.png)
 

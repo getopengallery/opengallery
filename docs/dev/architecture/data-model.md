@@ -29,7 +29,7 @@ The tables OpenGallery creates, what each column means and how the models relate
 | `share_token` | 40 characters while the album is unlisted, null otherwise |
 | `password` | Hashed album password, or null |
 | `access_expires_at` | End of sharing, or null |
-| `allow_downloads` | Whether the album's visitors may download the original files (`AlbumAccess::canDownload()`); false by default and for private albums |
+| `allow_downloads` | Whether the album's visitors may download the original files (`AlbumAccess::canDownload()`); false by default and for private albums; only effective while `SiteSettings::downloadsEnabled()` is on |
 | `tags_apply_to_sub_albums` | Whether the albums below this one, at every level, and their photos get its tags; false by default. Worked out when read, never copied (see [Tags](#tags)). |
 | `cover_photo_id` | Chosen cover, or null (the first photo is shown). Set to null when that photo is deleted. |
 | `sort_order` | Position among its siblings |
@@ -59,6 +59,10 @@ Relations: `albums()` (including trashed albums), `activeAlbums()` (a collection
 `album_id`, `photo_id` (primary key together), `sort_order` (position in the album with manual order), `created_at`. Both foreign keys cascade on delete. To keep every photo in at least one album, delete albums permanently only through `App\Support\AlbumDeletion::forceDelete()` (used by the admin's "Delete permanently" actions): photos left in no album move to "Unsorted uploads", or are deleted on request unless a page uses them (`Page::usedPhotoIds()`).
 
 Add photos with `Album::addPhotos()` (no log entry; uploads are logged per batch, other callers log `photosAdded()`) or `$photo->albums()->attach()` (logged as "Albums: +X" through the pivot). Remove several photos from one album with `Album::removePhotos()`, which keeps every photo in at least one album and logs once; with `moveLastCopies: true` a photo in no other album moves to its uploader's "Unsorted uploads" instead of staying. Covers are kept valid by the pivot and by `Photo` model events.
+
+### `photo_favorites`
+
+Each person's favourite photos (`App\Support\Favorites`, `User::favoritePhotos()`): `id`, `user_id`, `photo_id` (both cascade on delete, unique together) and timestamps; the creation time orders Favorites, newest first. It is a table of its own, not `album_photo` and not a system album, so a like never gives rights to a photo (see [Downloads and favourites](access-model.md#downloads-and-favourites)). Trashing a photo only hides it from Favorites; deleting it for good (or the person) removes the rows.
 
 ### `media` (Spatie Media Library)
 

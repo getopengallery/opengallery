@@ -15,7 +15,9 @@ use App\Models\Album;
 use App\Models\Page;
 use App\Models\Photo;
 use App\Models\Role as RoleModel;
+use App\Models\Setting;
 use App\Models\User;
+use App\Support\SiteSettings;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
@@ -110,6 +112,7 @@ it('finds people to share with by name or e-mail instead of listing every user',
 
 it('lets visitors download only while the album is not private', function () {
     asAdmin();
+    Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
     $album = Album::factory()->visibility(Visibility::Public)->create();
 
     Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
