@@ -106,4 +106,4 @@ Put any new reusable page section in a block instead of inline in a page:
 1. Create `resources/views/blocks/{name}.blade.php` with a plain layout that works in every theme. Style it with the `og-*` classes and tokens only.
 2. Render it with `<x-block name="{name}" ... />` and document its props in the table above.
 3. If a theme should be able to choose between layouts, ship the extra layouts in a theme (`themes/default/views/blocks/{name}/{variant}.blade.php`) and add a `layout` field with `"block": "{name}"` to that theme's settings. Core ships only the plain fallback.
-4. Check that the Scrapbook theme, which replaces most blocks and has no parent, still renders the page (`tests/Feature/ScrapbookThemeTest.php`, `tests/Feature/ThemeSeamsTest.php`).
+4. Check that the Scrapbook theme, which replaces most blocks and has no parent, still renders the page (`tests/Feature/Frontend/ScrapbookThemeTest.php`, and the "theme seams" tests in `tests/Feature/System/ExtensionManagerTest.php`).

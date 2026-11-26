@@ -18,7 +18,7 @@ Self-hosted photo gallery (Laravel 13, Filament 5, Spatie Permission + Media Lib
 - Admin: Filament in `app/Filament` (settings pages in `Clusters/Settings`, media library in `Resources/Photos`). Site settings: `App\Support\SiteSettings`.
 - Extensions: `App\Extensions\{PluginManager,ThemeManager}`, `/themes/{slug}`, `/plugins/{slug}`. Blocks: `resources/views/blocks`.
 - Logging: `App\Support\ActivityLog`, `App\Observers\ActivityObserver`, pivots in `App\Models\Pivots`.
-- Tests: Pest in `tests/Feature`. Docs: `docs/user/` (admins, no code) and `docs/dev/` (developers).
+- Tests: Pest in `tests/Feature/{Frontend,Backend,System}`, one file per view (`Frontend/AlbumShowTest`, `Backend/Settings/EmailTest`); behaviour without a view goes in `System`. Shared helpers live in `tests/Helpers` (test files define no named functions). Docs: `docs/user/` (admins, no code) and `docs/dev/` (developers).
 
 ## Area rules
 
@@ -26,6 +26,6 @@ Detailed rules live in `.claude/rules/` (access model, security and settings, la
 
 ## Conventions
 
-- Pest feature tests for every behaviour change; roles are seeded automatically in feature tests (`tests/Pest.php`). Delegate writing and running tests to the `test-writer` subagent, and doc updates to the `docs-writer` subagent (after tests pass).
+- Pest feature tests for every behaviour change; roles are seeded once per run (`TestCase::$seeder`) and each test runs in a transaction; never add real sleeps (Sleep is faked, the queue worker stops instead of sleeping). Delegate writing and running tests to the `test-writer` subagent, and doc updates to the `docs-writer` subagent (after tests pass).
 - Run `vendor/bin/pint --dirty --format agent` before finishing.
 - Image processing uses GD by default (Imagick optional); conversions run synchronously unless `GALLERY_QUEUE_CONVERSIONS=true`.

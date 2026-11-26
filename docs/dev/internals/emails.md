@@ -55,7 +55,7 @@ Extend `InAppNotification`, keep `inAppData()` to plain values, build every text
 - `Mailing::delivers()` is false while mail only goes to the log (`MAIL_MAILER=log` with "Server configuration") or to the test `array` mailer. Senders then skip the mail (notifications in the gallery still go out); the admin shows invitation links to pass on instead. The test mailbox counts as delivering.
 - `Mailing::send(fn () => ...)` reports a failing mail server (`report()`) and returns false instead of throwing, so a broken mail setup never stops a save or a sign-up. Callers tell the admin what was not sent.
 
-Tests switch delivery on with `config(['mail.default' => 'smtp'])` and `Notification::fake()` (see `tests/Feature/EmailNoticesTest.php`). To run real sending through the queue, use the `array` transport for that mailer (see `tests/Feature/MailQueueTest.php`).
+Tests switch delivery on with `config(['mail.default' => 'smtp'])` and `Notification::fake()` (see `tests/Feature/Backend/UsersTest.php` and the "share notices" tests in `tests/Feature/Backend/AlbumsTest.php`). To run real sending through the queue, use the `array` transport for that mailer (see `tests/Feature/System/MailQueueTest.php`).
 
 ## The mail queue
 

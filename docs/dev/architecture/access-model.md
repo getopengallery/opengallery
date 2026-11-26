@@ -33,7 +33,7 @@ The built-in roles are the cases of `App\Enums\Role` (`super-admin`, `admin`, `m
 
 - `super-admin` has no permissions assigned. `Gate::before()` in `AppServiceProvider` lets it pass every check.
 - New accounts get `user` (the `Registered` listener in `AppServiceProvider`).
-- The standard sets are `RolesAndPermissionsSeeder::matrix()`. The seeder never removes a permission and never re-grants one an administrator took away: it remembers what it has given each role in the setting `roles.seeded_permissions` (`RolesAndPermissionsSeeder::SEEDED_SETTING`) and on every run (`gallery:install`, the upgrade step) only gives what is in the matrix but not in that record. A built-in role created in this run gets its full set. Installations from before the record are treated as having received the current set, except permissions created in the same run. Covered by `tests/Feature/RolesSeederUpgradeTest.php`.
+- The standard sets are `RolesAndPermissionsSeeder::matrix()`. The seeder never removes a permission and never re-grants one an administrator took away: it remembers what it has given each role in the setting `roles.seeded_permissions` (`RolesAndPermissionsSeeder::SEEDED_SETTING`) and on every run (`gallery:install`, the upgrade step) only gives what is in the matrix but not in that record. A built-in role created in this run gets its full set. Installations from before the record are treated as having received the current set, except permissions created in the same run. Covered by `tests/Feature/System/RolesSeederUpgradeTest.php`.
 - The `uploader` role includes `access admin panel`, because album creation and uploads only exist in the admin. Installations from before the seeder kept track get it on their next `gallery:install` (`RolesAndPermissionsSeeder::untrackedMatrix()` is the baseline for them).
 
 The admin's resources and pages check permissions in their `canAccess()` methods. `Album`, `Photo` and `User` also have policies.
@@ -45,7 +45,7 @@ The admin's resources and pages check permissions in their `canAccess()` methods
 - `Role::scopeAssignableBy($user)` returns the roles someone may give or take away: every role for super admins, otherwise only roles whose permissions all belong to the editor, never `super-admin`. The roles select in `UserForm` uses it as its relationship query, so Filament rejects other role ids on save and never detaches roles outside it.
 - `User::canManage($other)` is true when every role of `$other` is in that set. `UserPolicy::update()` and `delete()` require it; the users table's bulk delete checks each record (`authorizeIndividualRecords('delete')`).
 
-Covered by `tests/Feature/UserRoleEscalationTest.php`.
+Covered by `tests/Feature/Backend/UsersTest.php` (the user manager tests).
 
 ### Deleting users
 
@@ -54,7 +54,7 @@ Covered by `tests/Feature/UserRoleEscalationTest.php`.
 - `deleteKeepingAlbums($user, ?$newOwner)`: the admin's delete actions (`EditUser`, the users table's bulk delete, both using `UserDeletionForm`). Every album goes to `$newOwner` (default: the person deleting); the system albums are merged into the new owner's own. Without a new owner, albums ("Unsorted uploads" included) are trashed and the user's deletion clears their owner; "Page images" is never trashed.
 - `deleteWithAllData($user)`: the profile's "Delete account", only after the person confirms (`delete_albums`). Force-deletes their albums ("Unsorted uploads" included, "Page images" kept for the pages) and every photo left in no album, after `AlbumCollaboration::keepCollaboratorUploads()` moved collaborators' uploads to their own "Unsorted uploads". Other people's sub-albums move to the nearest surviving ancestor, so `tree_path` stays valid.
 
-`AccountDeletion::ownedAlbums()` lists the albums concerned (trash and "Unsorted uploads" included, "Page images" excluded) for the confirmation dialogs. Albums without an owner pass `AlbumPolicy` only for staff. Covered by `tests/Feature/AccountDeletionTest.php`.
+`AccountDeletion::ownedAlbums()` lists the albums concerned (trash and "Unsorted uploads" included, "Page images" excluded) for the confirmation dialogs. Albums without an owner pass `AlbumPolicy` only for staff. Covered by `tests/Feature/Frontend/ProfileTest.php` ("deleting the account") and `tests/Feature/System/OwnershipOnDeleteTest.php`.
 
 ### Adding a permission
 
@@ -136,7 +136,7 @@ Shares (`album_user`, `album_group`) only grant viewing; they never grant upload
 
 ## Collaboration
 
-Collaborators work on an album with a role, `App\Enums\CollaboratorRole` (`Contributor` < `Organizer` < `Editor`), stored in `album_collaborators` and `album_group_collaborators` (see [Data model](data-model.md#album-collaborators)). Covered by `tests/Feature/AlbumCollaborationTest.php` and `AlbumCollaborationSiteTest.php`.
+Collaborators work on an album with a role, `App\Enums\CollaboratorRole` (`Contributor` < `Organizer` < `Editor`), stored in `album_collaborators` and `album_group_collaborators` (see [Data model](data-model.md#album-collaborators)). Covered by `tests/Feature/Backend/AlbumCollaboratorsTest.php` and `tests/Feature/System/AccessModelTest.php`.
 
 ### Resolving a role
 
@@ -202,13 +202,13 @@ Photos and albums are many-to-many (`album_photo`, pivot model `App\Models\Pivot
 
 Pages have their own rule. `Page::isVisibleTo(?User)` is true for published pages, and for members-only pages only when logged in. A photo placed on a page with the photo or gallery block is served by `PageController@photo` (`pages.photo`) to everyone who may see the page, whatever its albums say, but only if `Page::embeddedPhotoIds()` finds its id in the page body. Only the `thumb` and `preview` conversions are served this way, never the original. They go out through `App\Support\PhotoFileResponse` like media files: always `Cache-Control: private` (with `ETag` and `304 Not Modified`), so no shared cache keeps serving a photo after its page is unpublished.
 
-Because placing a photo publishes it, `CreatePage` and `EditPage` re-check the body before saving (`PageForm::ensurePhotosAreUsable()` → `Page::unusablePhotoIds()`): every photo id in a block that is not already on the saved page must be in `Photo::visibleTo($editor)`, otherwise the save fails with an error on the content field. Photos placed earlier, for example by staff, may stay when someone else edits the page. Covered by `tests/Feature/PageMediaBlocksTest.php`.
+Because placing a photo publishes it, `CreatePage` and `EditPage` re-check the body before saving (`PageForm::ensurePhotosAreUsable()` → `Page::unusablePhotoIds()`): every photo id in a block that is not already on the saved page must be in `Photo::visibleTo($editor)`, otherwise the save fails with an error on the content field. Photos placed earlier, for example by staff, may stay when someone else edits the page. Covered by `tests/Feature/Backend/PagesTest.php`.
 
 ## Checklist for new code
 
 - Listing albums on the site: `Album::listableFor($user)`. Showing one: `AlbumAccess::canView()`. Never compare `visibility` by hand.
-- Listing albums in the admin: `Album::manageableBy($user)` (every album with "view/edit/delete any album", `Album::managesEveryAlbum()`, otherwise own albums), or `Album::workableBy($user)`, which adds albums with a collaborator role. `AlbumResource::getEloquentQuery()` applies `workableBy()` to the list, edit pages (other albums are 404) and global search; the "Inside album" select offers own albums (plus the current parent) unless the person may edit any album. Covered by `tests/Feature/AlbumAdminTest.php`.
+- Listing albums in the admin: `Album::manageableBy($user)` (every album with "view/edit/delete any album", `Album::managesEveryAlbum()`, otherwise own albums), or `Album::workableBy($user)`, which adds albums with a collaborator role. `AlbumResource::getEloquentQuery()` applies `workableBy()` to the list, edit pages (other albums are 404) and global search; the "Inside album" select offers own albums (plus the current parent) unless the person may edit any album. Covered by `tests/Feature/Backend/AlbumsTest.php`.
 - Listing or picking photos in the admin: `Photo::visibleTo($user)`, and re-check ids on the server. Adding them to an album or using them as a cover also needs `Photo::reusableBy($user)`.
 - Serving a photo file: `route('media.show', [$media, 'thumb'|'preview'])`. Never link to storage paths or use `storage:link`. A new controller that sends photo files checks access first and then returns `PhotoFileResponse::make()`; photo files are never `public` in `Cache-Control`.
 - Keeping a value for the rest of a request: `RequestMemo::instance()->remember($key, ...)`, and forget it (`forget($prefix)`) where its inputs change. Never put access decisions into the cache.
-- Changing the visibility rules: update `isVisibleTo()`, `scopeListableFor()`, `AlbumAccess` and `MediaController` together, and extend `tests/Feature/AlbumVisibilityTest.php`.
+- Changing the visibility rules: update `isVisibleTo()`, `scopeListableFor()`, `AlbumAccess` and `MediaController` together, and extend `tests/Feature/System/AccessModelTest.php`.

@@ -8,7 +8,7 @@ A theme is a folder in `/themes/{slug}` that can change every part of the site v
 
 The Default theme (`themes/default`) is the reference: it uses every feature described here. Read it next to this page.
 
-The Scrapbook theme (`themes/scrapbook`) is the second example and the opposite approach: it has no parent, replaces every visible block with its own markup, does nearly all of its styling in one plain stylesheet (`assets/scrapbook.css`) and adds tokens of its own (see [Theme tokens](#theme-tokens)). Use it to check that a change to core still works for a theme that shares nothing with the Default theme. `tests/Feature/ScrapbookThemeTest.php` covers it.
+The Scrapbook theme (`themes/scrapbook`) is the second example and the opposite approach: it has no parent, replaces every visible block with its own markup, does nearly all of its styling in one plain stylesheet (`assets/scrapbook.css`) and adds tokens of its own (see [Theme tokens](#theme-tokens)). Use it to check that a change to core still works for a theme that shares nothing with the Default theme. `tests/Feature/Frontend/ScrapbookThemeTest.php` covers it.
 
 The admin panel follows the active theme's colours and corners, but its layout is not themeable.
 

@@ -31,7 +31,7 @@ You research one planned change in OpenGallery so the main agent can implement i
 - <rule bullet, shortened> (from .claude/rules/<file>.md)
 
 ## Tests
-- existing: tests/Feature/XTest.php (what it covers)
+- existing: tests/Feature/{Frontend|Backend|System}/XTest.php (what it covers)
 - needed: <behaviours and failure modes to cover>
 
 ## Docs
