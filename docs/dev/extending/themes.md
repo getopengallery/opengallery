@@ -314,6 +314,6 @@ Recent changes that affect existing themes:
 - The Default theme's Slate, Harbour and Plum palettes were removed. Sites that chose one fall back to Black and white.
 - New tokens `--og-danger` and `--og-on-danger`, and the header tokens `--og-header-*`. Custom header layouts should add the `og-header` class to their `<header>` element.
 - The album list (`albums/index.blade.php`) now also receives `$search` (the current search, or an empty string) and shows the `album-search` block. A theme that replaces this view should render the block and the search result line; see core's view.
-- The lightbox items carry more keys (`id`, `description`, `taken`, `download`, `position`, `total`, `page`, `previousPage`, `nextPage`, `previousItems`, `nextItems`). Layouts that pass `$items->pluck('lightbox')` to `ogLightbox()` get them without changes.
+- The lightbox items carry more keys (`id`, `description`, `taken`, `download`, `favorite`, `info`, `position`, `total`, `page`, `previousPage`, `nextPage`, `previousItems`, `nextItems`). Layouts that pass `$items->pluck('lightbox')` to `ogLightbox()` get them without changes.
 - Text props of `<x-block>` are no longer escaped twice. A block that printed one with `{!! !!}` to undo the double escaping must use `{{ }}` now.
 - Core ships `errors/403.blade.php` and `albums/forbidden.blade.php`; themes can replace both.

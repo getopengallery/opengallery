@@ -26,9 +26,11 @@ use App\Livewire\MediaPicker;
 use App\Models\Album;
 use App\Models\Group;
 use App\Models\Photo;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\AlbumCollaboratorAdded;
 use App\Notifications\AlbumShared;
+use App\Support\SiteSettings;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -200,6 +202,7 @@ describe('the album page by role', function () {
     })->with([CollaboratorRole::Contributor, CollaboratorRole::Organizer]);
 
     it('lets an Editor without admin access save the settings', function () {
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->create(['title' => 'Before']);
         $this->actingAs(addCollaborator($album, CollaboratorRole::Editor));
 

@@ -117,3 +117,78 @@ it('rejects a retention period outside the allowed range', function (mixed $days
         ->call('save')
         ->assertHasFormErrors(['activity_retention']);
 })->with([0, 5000, '']);
+
+describe('lightbox and download settings', function () {
+    it('starts with downloads off and favorites, information and the slideshow on', function () {
+        expect(SiteSettings::downloadsEnabled())->toBeFalse()
+            ->and(SiteSettings::favoritesEnabled())->toBeTrue()
+            ->and(SiteSettings::photoInfoEnabled())->toBeTrue()
+            ->and(SiteSettings::slideshowEnabled())->toBeTrue()
+            ->and(SiteSettings::slideshowSeconds())->toBe(5);
+    });
+
+    it('saves them on the photo settings page', function () {
+        settingsAdmin();
+
+        Livewire::test(PhotoSettings::class)
+            ->assertFormSet(['downloads_enabled' => false, 'favorites_enabled' => true, 'slideshow_seconds' => 5])
+            ->fillForm([
+                'downloads_enabled' => true,
+                'favorites_enabled' => false,
+                'photo_info_enabled' => false,
+                'slideshow_enabled' => true,
+                'slideshow_seconds' => 12,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect(SiteSettings::downloadsEnabled())->toBeTrue()
+            ->and(SiteSettings::favoritesEnabled())->toBeFalse()
+            ->and(SiteSettings::photoInfoEnabled())->toBeFalse()
+            ->and(SiteSettings::slideshowEnabled())->toBeTrue()
+            ->and(SiteSettings::slideshowSeconds())->toBe(12);
+    });
+
+    it('rejects slideshow seconds outside the allowed range', function (int $seconds) {
+        settingsAdmin();
+
+        Livewire::test(PhotoSettings::class)
+            ->fillForm(['slideshow_enabled' => true, 'slideshow_seconds' => $seconds])
+            ->call('save')
+            ->assertHasFormErrors(['slideshow_seconds']);
+
+        expect(SiteSettings::slideshowSeconds())->toBe(5);
+    })->with([
+        'below the minimum' => SiteSettings::SLIDESHOW_SECONDS_MIN - 1,
+        'above the maximum' => SiteSettings::SLIDESHOW_SECONDS_MAX + 1,
+    ]);
+
+    it('accepts the limits themselves', function (int $seconds) {
+        settingsAdmin();
+
+        Livewire::test(PhotoSettings::class)
+            ->fillForm(['slideshow_seconds' => $seconds])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect(SiteSettings::slideshowSeconds())->toBe($seconds);
+    })->with([SiteSettings::SLIDESHOW_SECONDS_MIN, SiteSettings::SLIDESHOW_SECONDS_MAX]);
+
+    it('keeps a stored value inside the range', function (mixed $stored, int $expected) {
+        Setting::put(SiteSettings::SLIDESHOW_SECONDS, $stored);
+
+        expect(SiteSettings::slideshowSeconds())->toBe($expected);
+    })->with([[1, 2], [500, 60], [0, 5]]);
+
+    it('shows the seconds only with the slideshow on and the location option only with downloads on', function () {
+        settingsAdmin();
+
+        Livewire::test(PhotoSettings::class)
+            ->fillForm(['slideshow_enabled' => false, 'downloads_enabled' => false])
+            ->assertFormFieldHidden('slideshow_seconds')
+            ->assertFormFieldHidden('remove_location')
+            ->fillForm(['slideshow_enabled' => true, 'downloads_enabled' => true])
+            ->assertFormFieldVisible('slideshow_seconds')
+            ->assertFormFieldVisible('remove_location');
+    });
+});

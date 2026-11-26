@@ -1,5 +1,10 @@
-{{-- Block: lightbox. Rendered inside an x-data="ogLightbox(...)" scope by the photo-grid blocks. --}}
+{{--
+    Block: lightbox. Rendered inside an x-data="ogLightbox(...)" scope by the photo-grid blocks.
+    Settings → Photos decides about the slideshow and the "i" panel (configure()); the heart and
+    download button appear for items that carry `favorite` / `download`.
+--}}
 <div x-show="index !== null" x-cloak
+     x-init="configure(@js(['slideshow' => \App\Support\SiteSettings::slideshowEnabled(), 'seconds' => \App\Support\SiteSettings::slideshowSeconds(), 'info' => \App\Support\SiteSettings::photoInfoEnabled()]))"
      x-transition.opacity.duration.150ms
      @keydown.window="onKey($event)"
      role="dialog" aria-modal="true" :aria-label="current?.title || @js(__('Photo'))"
@@ -10,6 +15,22 @@
             <span class="ms-2 text-white/40" x-text="counter"></span>
         </p>
         <div class="flex items-center gap-1">
+            <button type="button" x-show="slideshow && (items.length > 1 || current?.nextPage || current?.previousPage)" @click="togglePlay()"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-og hover:bg-white/10 focus-visible:outline-white"
+                    :aria-label="playing ? @js(__('Pause slideshow')) : @js(__('Play slideshow'))" :title="playing ? @js(__('Pause slideshow')) : @js(__('Play slideshow'))">
+                <svg x-show="! playing" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.5v11l9-5.5z"/></svg>
+                <svg x-show="playing" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5h2.5v11H6zM11.5 4.5H14v11h-2.5z"/></svg>
+            </button>
+            <button type="button" x-show="hasInfo" @click="infoOpen = ! infoOpen" :aria-expanded="infoOpen.toString()" aria-controls="og-lightbox-info"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-og hover:bg-white/10 focus-visible:outline-white" :class="infoOpen && 'bg-white/10'"
+                    aria-label="{{ __('Photo information') }}" title="{{ __('Photo information') }}">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 6.2v.1"/></svg>
+            </button>
+            <button type="button" x-show="current?.favorite" @click="toggleFavorite()" :aria-pressed="(current?.favorite?.active ?? false).toString()"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-og hover:bg-white/10 focus-visible:outline-white"
+                    aria-label="{{ __('Favorite') }}" :title="current?.favorite?.active ? @js(__('Remove from favorites')) : @js(__('Add to favorites'))">
+                <svg class="h-5 w-5" :fill="current?.favorite?.active ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17s-6.5-3.9-6.5-8.6A3.6 3.6 0 0 1 10 6.1a3.6 3.6 0 0 1 6.5 2.3C16.5 13.1 10 17 10 17Z"/></svg>
+            </button>
             <a x-show="current?.download" :href="current?.download" download
                class="inline-flex h-9 w-9 items-center justify-center rounded-og hover:bg-white/10 focus-visible:outline-white" aria-label="{{ __('Download') }}" title="{{ __('Download') }}">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M6 9l4 4 4-4M4 16h12"/></svg>
@@ -37,6 +58,25 @@
                 </button>
             </div>
         </template>
+
+        <aside id="og-lightbox-info" x-show="infoOpen && hasInfo" x-transition.opacity.duration.150ms
+               class="absolute inset-y-0 right-0 z-10 w-full max-w-xs overflow-y-auto bg-black/85 p-5 text-sm sm:right-4"
+               aria-label="{{ __('Photo information') }}">
+            <h2 class="font-semibold" x-text="current?.title || @js(__('Photo information'))"></h2>
+            <p x-show="current?.description" x-text="current?.description" class="mt-3 whitespace-pre-line text-white/80"></p>
+            <dl class="mt-4 space-y-2">
+                <div x-show="current?.taken" class="flex justify-between gap-4">
+                    <dt class="text-white/50">{{ __('Taken') }}</dt>
+                    <dd class="text-end" x-text="current?.taken"></dd>
+                </div>
+                <template x-for="detail in (current?.info ?? [])" :key="detail.label">
+                    <div class="flex justify-between gap-4">
+                        <dt class="text-white/50" x-text="detail.label"></dt>
+                        <dd class="text-end" x-text="detail.value"></dd>
+                    </div>
+                </template>
+            </dl>
+        </aside>
     </div>
 
     <div x-show="current?.description || current?.taken" class="shrink-0 px-4 pb-6 text-center text-sm sm:px-16">

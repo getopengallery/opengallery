@@ -36,7 +36,7 @@ What visitors who are not logged in see depends on the [site settings](../admini
 
 An album's page shows its title and description, the albums inside it that the visitor may see (24 per page), and its photos in the album's photo order, 60 per page.
 
-When an album lets visitors download photos, everyone who may open it also sees **Download all**, which downloads all its photos as one zip file. People who manage the album also see buttons at the top of its page: **Add photos** (with the permission "Upload photos") opens the album in the admin with the photo picker already open, **Edit album** opens its settings, and for unlisted albums **Copy share link** copies the link to send. Visitors never see these buttons.
+When downloads are turned on for the site and an album lets visitors download photos, everyone who may open it also sees **Download all**, which downloads all its photos as one zip file. People who manage the album also see buttons at the top of its page: **Add photos** (with the permission "Upload photos") opens the album in the admin with the photo picker already open, **Edit album** opens its settings, and for unlisted albums **Copy share link** copies the link to send. Visitors never see these buttons.
 
 Click a photo to view it large, on a dark background with its title and its position in the album (for example "62 / 140", counted across all pages). Below the photo are its description and the date it was taken, when there are any. In this view:
 
@@ -44,7 +44,12 @@ Click a photo to view it large, on a dark background with its title and its posi
 - tapping or clicking the photo shows the next one;
 - after the last photo of a page, the view goes on with the photos of the album's next page (and the other way round at the first photo); closing the view on a photo from another page opens that page of the album;
 - the cross, or the Escape key, closes it;
-- the download button saves the original file, if the album lets visitors download photos (see [Sharing albums](../content/sharing.md#letting-visitors-download-photos)).
+- the download button saves the original file, if downloads are turned on for the site and the album lets visitors download photos (see [Sharing albums](../content/sharing.md#letting-visitors-download-photos));
+- the heart, for people who are logged in, adds the photo to your private **Favorites** or takes it out again (see [Favorites](#favorites));
+- the **i** button shows or hides a panel with the photo's title, description, the date it was taken and the camera details saved in the file: camera make and model, lens, focal length, aperture, exposure time and ISO. It never shows the location, and the button is missing for photos that have none of these details;
+- the play button starts a slideshow that moves on by itself after the number of seconds set by an administrator. Using the arrows or swiping starts the timer again, the space bar plays and pauses, and closing the view stops it.
+
+Administrators can turn the heart, the **i** button and the slideshow off in the photo settings, under [Favorites](../administration/settings.md#favorites), [Photo information](../administration/settings.md#photo-information) and [Slideshow](../administration/settings.md#slideshow).
 
 While a photo is open, the address in the browser points to that photo. Copy it to send someone a link that opens the album at this photo; reloading the page keeps it open too.
 
@@ -81,6 +86,12 @@ People who may create albums and open the admin area also see a **New album** bu
 People who cannot create albums only see the albums shared with them. Until there are any, the page explains that shared albums will appear there.
 
 ![My albums with the albums shared with you](../../assets/site-my-albums.png)
+
+### Favorites
+
+Once you have liked a photo with the heart in the photo viewer, a **Favorites** tile appears on **My albums**. It opens your favorite photos, the most recently liked first, in the same viewer. Only you can see them. A photo leaves your Favorites when you take the heart off, when it goes to the trash or is deleted for good (for example by its owner), or when you can no longer see it through any album, for example because the album is no longer shared with you.
+
+Liking a photo gives you no extra rights to it: you cannot edit or download it because it is a favorite. Favorites are not an album and cannot be shared.
 
 ## Installing the site as an app
 

@@ -19,7 +19,11 @@ use Illuminate\Support\Collection;
  * straight away, the rest when scrolled to.
  *
  * The `lightbox` part is what the lightbox (resources/js/lightbox.js) shows,
- * including a `download` address when the album allows downloads.
+ * including a `download` address when downloads are on (Settings → Photos)
+ * and the album allows them, the heart (`favorite`: toggle address and
+ * whether it is on; null for guests or with favourites off) and the camera
+ * details for the "i" panel (`info`, App\Support\PhotoExif; null when that
+ * panel is off).
  * For a page of a paginated list it also carries the photo's place in the
  * whole list (`position` of `total`) and the address of its `page`, and the
  * first / last photo carry the address of the previous / next page, so the
@@ -31,7 +35,7 @@ class PhotoGridItems
 {
     /**
      * @param  iterable<Photo>  $photos
-     * @return Collection<int, array{ratio: float, thumb: string, srcset: ?string, loading: string, fetchpriority: string, decoding: string, lightbox: array{id: int, src: string, title: ?string, description: ?string, taken: ?string, download: ?string, position?: int, total?: int, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}}>
+     * @return Collection<int, array{ratio: float, thumb: string, srcset: ?string, loading: string, fetchpriority: string, decoding: string, lightbox: array{id: int, src: string, title: ?string, description: ?string, taken: ?string, download: ?string, favorite: ?array{url: string, active: bool}, info: ?list<array{label: string, value: string}>, position?: int, total?: int, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}}>
      */
     public static function from(iterable $photos): Collection
     {
@@ -39,8 +43,12 @@ class PhotoGridItems
 
         $photos = collect($paginator ? $paginator->items() : $photos);
 
+        $user = auth()->user();
+        $favorites = Favorites::enabledFor($user);
+        $info = SiteSettings::photoInfoEnabled();
+
         $items = $photos
-            ->map(function (Photo $photo) {
+            ->map(function (Photo $photo) use ($user, $favorites, $info) {
                 $media = $photo->getFirstMedia(Photo::COLLECTION);
 
                 if (! $media) {
@@ -62,6 +70,8 @@ class PhotoGridItems
                         'description' => $photo->description,
                         'taken' => DateFormat::date($photo->taken_at),
                         'download' => self::allowsDownloads($photo) ? route('media.show', ['media' => $media, 'download' => 1]) : null,
+                        'favorite' => $favorites ? ['url' => route('favorites.toggle', $photo), 'active' => Favorites::has($user, $photo)] : null,
+                        'info' => $info ? PhotoExif::details($photo) : null,
                     ],
                 ];
             })
@@ -78,7 +88,7 @@ class PhotoGridItems
      */
     private static function allowsDownloads(Photo $photo): bool
     {
-        return (bool) self::albumOf($photo)?->allow_downloads;
+        return SiteSettings::downloadsEnabled() && (bool) self::albumOf($photo)?->allow_downloads;
     }
 
     private static function albumOf(?Photo $photo): ?Album

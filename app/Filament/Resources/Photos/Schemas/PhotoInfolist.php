@@ -6,6 +6,7 @@ use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\Album;
 use App\Models\Photo;
+use App\Support\PhotoExif;
 use App\Support\SiteSettings;
 use App\Support\Tagging;
 use Filament\Infolists\Components\ImageEntry;
@@ -17,17 +18,6 @@ use Illuminate\Support\Number;
 
 class PhotoInfolist
 {
-    /** EXIF keys shown under "Camera", with readable labels (English, translated when shown). */
-    private const EXIF = [
-        'Make' => 'Make',
-        'Model' => 'Camera',
-        'LensModel' => 'Lens',
-        'FocalLength' => 'Focal length',
-        'FNumber' => 'Aperture',
-        'ExposureTime' => 'Exposure',
-        'ISOSpeedRatings' => 'ISO',
-    ];
-
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -156,9 +146,9 @@ class PhotoInfolist
             ->extraAttributes(['class' => 'og-fill'])
             ->visible(fn (Photo $record) => self::hasCameraData($record))
             ->columns(2)
-            ->schema(collect(self::EXIF)->map(fn (string $label, string $key) => TextEntry::make("exif.{$key}")
+            ->schema(collect(PhotoExif::LABELS)->map(fn (string $label, string $key) => TextEntry::make("exif.{$key}")
                 ->label(__($label))
-                ->state(fn (Photo $record) => self::exifValue($key, $record->exif[$key] ?? null))
+                ->state(fn (Photo $record) => PhotoExif::value($key, $record->exif[$key] ?? null))
                 ->visible(fn (Photo $record) => filled($record->exif[$key] ?? null)))
                 ->values()
                 ->all());
@@ -166,7 +156,7 @@ class PhotoInfolist
 
     public static function hasCameraData(Photo $record): bool
     {
-        return array_intersect_key((array) $record->exif, self::EXIF) !== [];
+        return array_intersect_key((array) $record->exif, PhotoExif::LABELS) !== [];
     }
 
     /** Album path, marked when the album is in the trash. */
@@ -183,24 +173,5 @@ class PhotoInfolist
     private static function albumUrl(?Album $album): ?string
     {
         return $album && AlbumResource::canEdit($album) ? AlbumResource::getUrl('edit', ['record' => $album]) : null;
-    }
-
-    /** EXIF stores fractions like "1/250" or "28/10"; show them the way photographers read them. */
-    private static function exifValue(string $key, mixed $value): ?string
-    {
-        if ($value === null || $value === '' || is_array($value)) {
-            return is_array($value) ? implode(', ', $value) : null;
-        }
-
-        $number = is_string($value) && preg_match('#^(\d+)/(\d+)$#', $value, $m) && (int) $m[2] !== 0
-            ? (int) $m[1] / (int) $m[2]
-            : (is_numeric($value) ? (float) $value : null);
-
-        return match ($key) {
-            'FNumber' => $number ? 'f/'.rtrim(rtrim(number_format($number, 1), '0'), '.') : (string) $value,
-            'FocalLength' => $number ? round($number).' mm' : (string) $value,
-            'ExposureTime' => $number ? ($number >= 1 ? rtrim(rtrim(number_format($number, 1), '0'), '.').' s' : '1/'.round(1 / $number).' s') : (string) $value,
-            default => (string) $value,
-        };
     }
 }

@@ -17,6 +17,7 @@ use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Group;
 use App\Models\Photo;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\AlbumCollaboratorAdded;
 use App\Support\AccountDeletion;
@@ -25,6 +26,7 @@ use App\Support\AlbumCollaboration;
 use App\Support\AlbumDeletion;
 use App\Support\PeopleAndGroups;
 use App\Support\RequestMemo;
+use App\Support\SiteSettings;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -251,6 +253,7 @@ describe('access', function () {
     });
 
     it('serves previews but not originals through a role until downloads are on', function () {
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Registered)->create();
         $media = collaborationPhoto($album, $album->owner)->original();
         $this->actingAs(addCollaborator($album, CollaboratorRole::Editor));

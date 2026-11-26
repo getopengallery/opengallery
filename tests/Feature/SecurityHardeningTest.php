@@ -419,6 +419,8 @@ describe('share links', function () {
 });
 
 describe('location in photo files', function () {
+    beforeEach(fn () => Setting::put(SiteSettings::DOWNLOADS_ENABLED, true));
+
     it('removes the GPS position from a JPEG and keeps everything else', function (bool $littleEndian) {
         $original = jpegWithPosition($littleEndian);
         $clean = withoutLocation($original);

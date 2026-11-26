@@ -139,6 +139,8 @@ Turn on **Visitors may download the photos** in **Visibility & sharing** to add 
 
 The switch is off for every album. While it is off, visitors only get the photos in screen size; the original files stay with the people who may edit the photos. It is not available for private albums.
 
+The switch only appears while an administrator has turned on **Albums can allow downloads** in the [photo settings](../administration/settings.md#downloads). While that site-wide setting is off, nobody can download photos or albums from the site, whatever the albums say. Albums that already had downloads on keep their choice and work again when it is turned back on.
+
 ## When someone may not see an album
 
 People who are logged in but not allowed to open an album get a page saying that it has not been shared with them, with a link back to the gallery. Visitors who are not logged in get "not found", so they cannot tell whether a private album exists.

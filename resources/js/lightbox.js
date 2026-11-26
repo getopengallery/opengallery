@@ -13,7 +13,11 @@
  * `previousPage` / `nextPage` (ending in #photo-last / #photo-first) instead.
  * Closing the viewer on a photo of another page opens that page.
  *
- * @param {{id: number, src: string, title: string|null, description: string|null, taken: string|null, position?: number, total?: number, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}[]} items
+ * The lightbox block calls configure() with what Settings → Photos allows:
+ * the heart (items carry `favorite`: {url, active}), the "i" panel (items
+ * carry `info`: camera details) and the slideshow (seconds per photo).
+ *
+ * @param {{id: number, src: string, title: string|null, description: string|null, taken: string|null, download?: string|null, favorite?: {url: string, active: boolean}|null, info?: {label: string, value: string}[]|null, position?: number, total?: number, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}[]} items
  */
 export default (items) => {
     /** Neighbouring pages being loaded or loaded: address => Promise of items. */
@@ -46,6 +50,20 @@ export default (items) => {
         address: window.location.pathname + window.location.search,
         gridPage: items[0]?.page ?? null,
         loading: false,
+
+        /** What Settings → Photos allows (see configure()). */
+        slideshow: false,
+        seconds: 5,
+        photoInfo: false,
+        infoOpen: false,
+        playing: false,
+        timer: null,
+
+        configure(options) {
+            this.slideshow = Boolean(options?.slideshow);
+            this.seconds = Math.max(1, Number(options?.seconds) || 5);
+            this.photoInfo = Boolean(options?.info);
+        },
 
         init() {
             const hash = window.location.hash;
@@ -83,6 +101,8 @@ export default (items) => {
                 return;
             }
 
+            this.pause();
+            this.infoOpen = false;
             this.index = null;
             document.body.classList.remove('overflow-hidden');
             this.forget();
@@ -113,6 +133,7 @@ export default (items) => {
 
         show(index, delta) {
             this.index = index;
+            this.schedule();
             // The next photo in the direction of travel first, then the one behind, so stepping back is instant too.
             this.preload(index + delta);
             this.preload(index - delta);
@@ -140,6 +161,57 @@ export default (items) => {
             } finally {
                 this.loading = false;
             }
+        },
+
+        /** Whether the open photo has anything for the "i" panel. */
+        get hasInfo() {
+            return this.photoInfo && Boolean(this.current?.description || this.current?.taken || this.current?.info?.length);
+        },
+
+        /** Like or unlike the open photo; the heart changes at once and goes back if that fails. */
+        async toggleFavorite() {
+            const item = this.current;
+            if (!item?.favorite) return;
+
+            const before = item.favorite.active;
+            item.favorite.active = !before;
+
+            try {
+                const response = await fetch(item.favorite.url, {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                if (!response.ok) throw new Error(response.statusText);
+                item.favorite.active = Boolean((await response.json()).favorite);
+            } catch {
+                item.favorite.active = before;
+            }
+        },
+
+        play() {
+            if (!this.slideshow || this.index === null) return;
+            this.playing = true;
+            this.schedule();
+        },
+
+        pause() {
+            this.playing = false;
+            clearTimeout(this.timer);
+            this.timer = null;
+        },
+
+        togglePlay() {
+            this.playing ? this.pause() : this.play();
+        },
+
+        /** While playing: the next photo after the configured time (counted again after every change). */
+        schedule() {
+            clearTimeout(this.timer);
+            this.timer = this.playing ? setTimeout(() => this.step(1), this.seconds * 1000) : null;
         },
 
         /** Load the neighbouring page early when the open photo is the first or last one. */
@@ -203,7 +275,14 @@ export default (items) => {
 
         onKey(event) {
             if (this.index === null) return;
-            if (event.key === 'Escape') this.close();
+            if (event.key === 'Escape') {
+                if (this.infoOpen) this.infoOpen = false;
+                else this.close();
+            }
+            if (event.key === ' ' && this.slideshow && !event.target.closest?.('button, a, input, textarea')) {
+                event.preventDefault();
+                this.togglePlay();
+            }
             if (event.key === 'ArrowRight') this.step(1);
             if (event.key === 'ArrowLeft') this.step(-1);
         },

@@ -28,10 +28,7 @@ class MediaController extends Controller
         // Visible through any album the visitor may see (including unlocked share
         // links). Photos in the trash, or only in trashed albums, are only for
         // people who may edit them.
-        $visible = ! $photo->trashed()
-            && $photo->activeAlbums()->contains(fn ($album) => AlbumAccess::canView($request->user(), $album));
-
-        abort_unless($visible || $request->user()?->can('update', $photo), 404);
+        abort_unless(AlbumAccess::canViewPhoto($request->user(), $photo), 404);
 
         if ($conversion !== null) {
             abort_unless(array_key_exists($conversion, Photo::CONVERSION_SIZES) && $media->hasGeneratedConversion($conversion), 404);

@@ -4,8 +4,10 @@ use App\Actions\AddPhotoToAlbum;
 use App\Enums\Visibility;
 use App\Models\Album;
 use App\Models\Photo;
+use App\Models\Setting;
 use App\Models\User;
 use App\Support\ConversionsFromPreview;
+use App\Support\SiteSettings;
 use App\Support\SmallThumbnails;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Filesystem\Filesystem;
@@ -80,6 +82,7 @@ describe('downloading originals', function () {
     });
 
     it('lets visitors download the original from an album that allows it', function () {
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true]);
         $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
         $url = route('media.show', ['media' => $media, 'download' => 1]);
@@ -91,6 +94,7 @@ describe('downloading originals', function () {
     });
 
     it('still needs the album password before downloading', function () {
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true, 'password' => 'lake-2026']);
         $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
         $url = route('media.show', ['media' => $media, 'download' => 1]);
@@ -126,6 +130,7 @@ function zipEntries(TestResponse $response): array
 
 describe('zip downloads', function () {
     it('downloads a whole album as a zip when the album allows downloads', function () {
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Public)->create(['title' => 'Summer camp', 'allow_downloads' => true]);
         addTestPhoto($album);
         addTestPhoto($album);
@@ -138,6 +143,7 @@ describe('zip downloads', function () {
     });
 
     it('keeps the zip from visitors while downloads are off or the password is missing', function () {
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $closed = Album::factory()->visibility(Visibility::Public)->create();
         addTestPhoto($closed);
         $locked = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true, 'password' => 'lake-2026']);

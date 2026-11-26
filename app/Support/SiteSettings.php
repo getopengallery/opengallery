@@ -119,6 +119,27 @@ class SiteSettings
     /** Whether visitors get photo files without GPS data (on unless turned off). */
     public const REMOVE_PHOTO_LOCATION = 'photos.remove_location';
 
+    /** Site-wide switch for downloads; albums can only allow them while it is on. Off by default. */
+    public const DOWNLOADS_ENABLED = 'photos.downloads_enabled';
+
+    /** Logged-in people can keep favourite photos (App\Support\Favorites). On by default. */
+    public const FAVORITES_ENABLED = 'photos.favorites_enabled';
+
+    /** The lightbox's "i" button shows a photo's description and camera details. On by default. */
+    public const PHOTO_INFO_ENABLED = 'photos.info_enabled';
+
+    /** The lightbox can play the photos as a slideshow. On by default. */
+    public const SLIDESHOW_ENABLED = 'photos.slideshow_enabled';
+
+    /** Seconds each photo is shown in the slideshow. */
+    public const SLIDESHOW_SECONDS = 'photos.slideshow_seconds';
+
+    public const SLIDESHOW_SECONDS_DEFAULT = 5;
+
+    public const SLIDESHOW_SECONDS_MIN = 2;
+
+    public const SLIDESHOW_SECONDS_MAX = 60;
+
     /** List of mime types (keys of PhotoUploads::TYPES). */
     public const UPLOAD_TYPES = 'uploads.accepted_types';
 
@@ -442,6 +463,33 @@ class SiteSettings
     public static function removesPhotoLocation(): bool
     {
         return (bool) Setting::get(self::REMOVE_PHOTO_LOCATION, true);
+    }
+
+    public static function downloadsEnabled(): bool
+    {
+        return (bool) Setting::get(self::DOWNLOADS_ENABLED, false);
+    }
+
+    public static function favoritesEnabled(): bool
+    {
+        return (bool) Setting::get(self::FAVORITES_ENABLED, true);
+    }
+
+    public static function photoInfoEnabled(): bool
+    {
+        return (bool) Setting::get(self::PHOTO_INFO_ENABLED, true);
+    }
+
+    public static function slideshowEnabled(): bool
+    {
+        return (bool) Setting::get(self::SLIDESHOW_ENABLED, true);
+    }
+
+    public static function slideshowSeconds(): int
+    {
+        $seconds = (int) Setting::get(self::SLIDESHOW_SECONDS, self::SLIDESHOW_SECONDS_DEFAULT);
+
+        return max(self::SLIDESHOW_SECONDS_MIN, min(self::SLIDESHOW_SECONDS_MAX, $seconds ?: self::SLIDESHOW_SECONDS_DEFAULT));
     }
 
     public static function notifiesAboutRegistrations(): bool
