@@ -2,49 +2,9 @@
 
 use App\Extensions\PluginManager;
 use App\Support\ProductionCaches;
-use BladeUI\Icons\IconsManifest;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
 use Mockery\MockInterface;
-
-/** Points every cache this test could write at a temporary folder; returns the folder. */
-function temporaryCacheFolder(): string
-{
-    $folder = sys_get_temp_dir().'/og-caches-'.Str::random(8);
-    mkdir($folder.'/filament/panels', 0777, true);
-    config(['filament.cache_path' => $folder.'/filament']);
-    app()->instance(IconsManifest::class, new IconsManifest(new Filesystem, $folder.'/blade-icons.php'));
-    test()->beforeApplicationDestroyed(fn () => (new Filesystem)->deleteDirectory($folder));
-
-    return $folder;
-}
-
-/** This request loaded its configuration from the cache, made from the code as it is now (or from older code). */
-function cachesBuilt(bool $outdated = false): void
-{
-    app()->instance('config_loaded_from_cache', true);
-    config(['gallery.code_fingerprint' => $outdated ? 'older code' : ProductionCaches::fingerprint()]);
-}
-
-/**
- * Records the Artisan commands the caches run instead of running them.
- *
- * @return ArrayObject<int, string>
- */
-function recordCacheCommands(int $exitCode = 0): ArrayObject
-{
-    $commands = new ArrayObject;
-    test()->mock(Kernel::class, fn (MockInterface $mock) => $mock->shouldReceive('call')
-        ->andReturnUsing(function (string $command) use ($commands, $exitCode) {
-            $commands[] = $command;
-
-            return str_ends_with($command, ':cache') ? $exitCode : 0;
-        }));
-
-    return $commands;
-}
 
 it('decides what to drop and what to build', function (bool $built, bool $fresh, bool $wanted, array $expected) {
     expect(ProductionCaches::plan($built, $fresh, $wanted))->toBe($expected);

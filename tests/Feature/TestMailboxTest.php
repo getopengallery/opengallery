@@ -5,7 +5,6 @@ use App\Enums\Role;
 use App\Filament\Clusters\Settings\Pages\EmailSettings;
 use App\Filament\Pages\TestMailbox;
 use App\Filament\Resources\Users\Pages\CreateUser;
-use App\Models\Setting;
 use App\Models\TestMail;
 use App\Models\User;
 use App\Support\Mailing;
@@ -13,22 +12,6 @@ use App\Support\SiteSettings;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
-
-/** Admin → Settings → E-mail set to "Test mailbox", applied like at boot. */
-function useTestMailbox(): void
-{
-    Setting::put(SiteSettings::MAIL_DELIVERY, MailDelivery::Mailbox->value);
-    SiteSettings::apply();
-    Mail::purge();
-}
-
-function superAdmin(): User
-{
-    $superAdmin = tap(User::factory()->create())->assignRole(Role::SuperAdmin->value);
-    test()->actingAs($superAdmin);
-
-    return $superAdmin;
-}
 
 it('keeps e-mails in the test mailbox instead of sending them, and counts that as working e-mail', function () {
     useTestMailbox();
@@ -44,7 +27,7 @@ it('keeps e-mails in the test mailbox instead of sending them, and counts that a
 
 it('lets invitations and confirmations work end to end without a mail server', function () {
     useTestMailbox();
-    superAdmin();
+    actingAsRole(Role::SuperAdmin);
 
     Livewire::test(CreateUser::class)
         ->fillForm(['name' => 'Grace', 'email' => 'grace@example.com', 'send_invitation' => true])
@@ -77,7 +60,7 @@ it('shows the mailbox only to super administrators, who can read and empty it', 
         ->get(TestMailbox::getUrl())
         ->assertForbidden();
 
-    superAdmin();
+    actingAsRole(Role::SuperAdmin);
     $this->get(TestMailbox::getUrl())->assertOk()->assertSee('Your account');
     Livewire::test(TestMailbox::class)
         ->mountAction(TestAction::make('open')->table($mail))
@@ -89,7 +72,7 @@ it('shows the mailbox only to super administrators, who can read and empty it', 
 });
 
 it('offers the test mailbox instead of writing mails to the log file, with a warning', function () {
-    superAdmin();
+    actingAsRole(Role::SuperAdmin);
 
     Livewire::test(EmailSettings::class)
         ->assertSee('Test mailbox (nothing is sent)')

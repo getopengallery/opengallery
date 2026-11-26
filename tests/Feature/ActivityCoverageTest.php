@@ -1,8 +1,6 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\ActivityType;
-use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Filament\Clusters\Settings\Pages\ActivityLogSettings;
 use App\Filament\Pages\ThemeSettings;
@@ -18,7 +16,6 @@ use App\Models\Photo;
 use App\Models\SocialAccount;
 use App\Models\User;
 use Filament\Actions\Testing\TestAction;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -28,32 +25,10 @@ beforeEach(function () {
     $this->before = (int) ActivityEvent::max('id');
 });
 
-function coverageAdmin(): User
-{
-    $admin = tap(User::factory()->create(['name' => 'Ada']))->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
-/** Entries written since the test started. */
-function newEntries(): Collection
-{
-    return ActivityEvent::where('id', '>', test()->before)->orderBy('id')->get();
-}
-
-function coveragePhoto(Album $album, string $name): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor(60, 40), $path);
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, $name);
-}
-
 // ---- Settings ---------------------------------------------------------------
 
 it('records turning the activity log off, before it stops recording', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
 
     Livewire::test(ActivityLogSettings::class)->fillForm(['activity_level' => 'off'])->call('save')->assertHasNoFormErrors();
 
@@ -65,7 +40,7 @@ it('records turning the activity log off, before it stops recording', function (
 });
 
 it('names the theme options that changed, not their values', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
 
     Livewire::test(ThemeSettings::class)
         ->set('data.palette', 'exp')
@@ -79,9 +54,9 @@ it('names the theme options that changed, not their values', function () {
 // ---- Bulk actions -------------------------------------------------------------
 
 it('logs moving many photos to the trash as one entry', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
     $album = Album::factory()->create();
-    $photos = collect(['Lake', 'Hill', 'Tree', 'Moon', 'Sea'])->map(fn ($name) => coveragePhoto($album, $name));
+    $photos = collect(['Lake', 'Hill', 'Tree', 'Moon', 'Sea'])->map(fn ($name) => galleryPhoto($album, name: $name, width: 60, height: 40));
     $this->before = (int) ActivityEvent::max('id');
 
     Livewire::test(ListPhotos::class)
@@ -95,10 +70,10 @@ it('logs moving many photos to the trash as one entry', function () {
 });
 
 it('logs adding and removing photos in the media library once for the album, like in the album', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
     $camp = Album::factory()->create(['title' => 'Camp']);
     $best = Album::factory()->create(['title' => 'Best of']);
-    $photos = collect(['Lake', 'Hill', 'Tree'])->map(fn ($name) => coveragePhoto($camp, $name));
+    $photos = collect(['Lake', 'Hill', 'Tree'])->map(fn ($name) => galleryPhoto($camp, name: $name, width: 60, height: 40));
     $this->before = (int) ActivityEvent::max('id');
 
     Livewire::test(ListPhotos::class)
@@ -115,7 +90,7 @@ it('logs adding and removing photos in the media library once for the album, lik
 });
 
 it('logs a bulk delete of users as one entry', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
     $users = User::factory()->count(3)->create();
     $this->before = (int) ActivityEvent::max('id');
 
@@ -127,7 +102,7 @@ it('logs a bulk delete of users as one entry', function () {
 });
 
 it('still logs a single item from a bulk action as usual', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
     $user = User::factory()->create(['name' => 'Ben']);
     $this->before = (int) ActivityEvent::max('id');
 
@@ -141,9 +116,9 @@ it('still logs a single item from a bulk action as usual', function () {
 // ---- Order --------------------------------------------------------------------
 
 it('logs dragging photos into order once per album', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
     $album = Album::factory()->create(['title' => 'Trip']);
-    $photos = collect(['A', 'B', 'C'])->map(fn ($name) => coveragePhoto($album, $name));
+    $photos = collect(['A', 'B', 'C'])->map(fn ($name) => galleryPhoto($album, name: $name, width: 60, height: 40));
     $this->before = (int) ActivityEvent::max('id');
 
     $manager = Livewire::test(PhotosRelationManager::class, ['ownerRecord' => $album, 'pageClass' => EditAlbum::class]);
@@ -154,7 +129,7 @@ it('logs dragging photos into order once per album', function () {
 });
 
 it('logs dragging albums into order once per level', function () {
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
     $parent = Album::factory()->create(['title' => 'Holidays']);
     $first = Album::factory()->create(['parent_id' => $parent->id, 'sort_order' => 1]);
     $second = Album::factory()->create(['parent_id' => $parent->id, 'sort_order' => 2]);
@@ -234,7 +209,7 @@ it('records security events at the "changes only" level and shows them under the
     $this->post(route('login'), ['email' => 'anna@example.com', 'password' => 'wrong']);
     $failed = newEntries()->where('type', ActivityType::LoginFailed)->sole();
 
-    coverageAdmin();
+    actingAsRole(attributes: ['name' => 'Ada']);
     Livewire::test(ManageActivityEvents::class)
         ->filterTable('kind', 'security')
         ->assertCanSeeTableRecords([$failed]);

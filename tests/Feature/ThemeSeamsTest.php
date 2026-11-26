@@ -1,30 +1,12 @@
 <?php
 
-use App\Extensions\ThemeManager;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 
-/** Activates the "contact-sheet" fixture theme (child of "plain") and wires it up. */
-function bootContactSheetTheme(): ThemeManager
-{
-    $themes = new ThemeManager(base_path('tests/Fixtures/themes'), 'plain');
-    app()->instance(ThemeManager::class, $themes);
-    $themes->activate('contact-sheet');
-    $themes->boot();
-
-    return $themes;
-}
-
-function pagedItems(): LengthAwarePaginator
-{
-    return new LengthAwarePaginator(range(1, 10), 50, 10, 2, ['path' => '/albums']);
-}
-
 it('renders error pages from the theme', function () {
-    bootContactSheetTheme();
+    useFixtureThemes('contact-sheet');
 
     $this->get('/this-page-does-not-exist')
         ->assertNotFound()
@@ -32,14 +14,14 @@ it('renders error pages from the theme', function () {
 });
 
 it('lets a theme override package views under views/vendor', function () {
-    bootContactSheetTheme();
+    useFixtureThemes('contact-sheet');
 
     expect(view('pagination::tailwind', ['paginator' => pagedItems(), 'elements' => []])->render())
         ->toContain('contact-sheet vendor pagination');
 });
 
 it('lets a theme override e-mail components', function () {
-    bootContactSheetTheme();
+    useFixtureThemes('contact-sheet');
 
     $html = (string) (new ResetPassword('secret-token'))->toMail(User::factory()->create())->render();
 
@@ -47,7 +29,7 @@ it('lets a theme override e-mail components', function () {
 });
 
 it('lets a theme change core copy through its language files, child before parent', function () {
-    bootContactSheetTheme();
+    useFixtureThemes('contact-sheet');
 
     $this->actingAs(User::factory()->create())
         ->get(route('home'))
@@ -70,14 +52,14 @@ it('renders pagination through the themeable block, with theme tokens', function
 });
 
 it('uses a pagination variant shipped by the theme', function () {
-    $themes = bootContactSheetTheme();
+    $themes = useFixtureThemes('contact-sheet');
 
     expect($themes->blockView('pagination'))->toBe('blocks.pagination.compact')
         ->and(pagedItems()->links()->toHtml())->toContain('contact-sheet compact pagination 2/5');
 });
 
 it('lets a child theme extend, change and drop its parent\'s settings', function () {
-    $themes = bootContactSheetTheme();
+    $themes = useFixtureThemes('contact-sheet');
     $sections = $themes->settingSections('contact-sheet');
 
     expect(array_column($sections, 'label'))->toBe(['Look and feel', 'Contact sheet'])

@@ -2,7 +2,6 @@
 
 use App\Enums\Visibility;
 use App\Models\Album;
-use App\Models\Photo;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Favorites;
@@ -12,17 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(fn () => Storage::fake('gallery'));
-
-/** A photo with its files in a new public album. */
-function favoritesPublicPhoto(): Photo
-{
-    return collaborationPhoto(Album::factory()->visibility(Visibility::Public)->create());
-}
-
-function favoriteThumb(Photo $photo): string
-{
-    return route('media.show', [$photo->original(), 'thumb']);
-}
 
 describe('the heart', function () {
     it('likes a photo and unlikes it on the second call', function () {
@@ -58,7 +46,7 @@ describe('the heart', function () {
 
     it('refuses photos the person cannot see and stores nothing', function () {
         $user = User::factory()->create();
-        $hidden = collaborationPhoto(Album::factory()->visibility(Visibility::Private)->create());
+        $hidden = galleryPhoto(Album::factory()->visibility(Visibility::Private)->create());
 
         $this->actingAs($user)->postJson(route('favorites.toggle', $hidden))->assertNotFound();
 
@@ -68,7 +56,7 @@ describe('the heart', function () {
     it('still lets people remove a heart from a photo they can no longer see', function () {
         $user = User::factory()->create();
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $photo = collaborationPhoto($album);
+        $photo = galleryPhoto($album);
         $user->favoritePhotos()->attach($photo);
         $album->update(['visibility' => Visibility::Private]);
 
@@ -129,7 +117,7 @@ describe('the Favorites page', function () {
         $this->actingAs($user)
             ->get(route('favorites.index'))
             ->assertOk()
-            ->assertSeeInOrder([favoriteThumb($second), favoriteThumb($first)], false);
+            ->assertSeeInOrder([photoThumbUrl($second), photoThumbUrl($first)], false);
     });
 
     it('shows only the person\'s own favourites', function () {
@@ -141,8 +129,8 @@ describe('the Favorites page', function () {
         $this->actingAs($user)
             ->get(route('favorites.index'))
             ->assertOk()
-            ->assertSee(favoriteThumb($mine), false)
-            ->assertDontSee(favoriteThumb($theirs), false);
+            ->assertSee(photoThumbUrl($mine), false)
+            ->assertDontSee(photoThumbUrl($theirs), false);
     });
 
     it('leaves out photos in the trash and brings them back on restore', function () {
@@ -151,21 +139,21 @@ describe('the Favorites page', function () {
         $user->favoritePhotos()->attach($photo);
 
         $photo->delete();
-        $this->actingAs($user)->get(route('favorites.index'))->assertOk()->assertDontSee(favoriteThumb($photo), false);
+        $this->actingAs($user)->get(route('favorites.index'))->assertOk()->assertDontSee(photoThumbUrl($photo), false);
 
         $photo->restore();
-        $this->get(route('favorites.index'))->assertSee(favoriteThumb($photo), false);
+        $this->get(route('favorites.index'))->assertSee(photoThumbUrl($photo), false);
     });
 
     it('leaves out photos the person can no longer see', function () {
         $user = User::factory()->create();
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $photo = collaborationPhoto($album);
+        $photo = galleryPhoto($album);
         $user->favoritePhotos()->attach($photo);
 
         $album->update(['visibility' => Visibility::Private]);
 
-        $this->actingAs($user)->get(route('favorites.index'))->assertOk()->assertDontSee(favoriteThumb($photo), false);
+        $this->actingAs($user)->get(route('favorites.index'))->assertOk()->assertDontSee(photoThumbUrl($photo), false);
         expect($user->favoritePhotos()->count())->toBe(1);
     });
 

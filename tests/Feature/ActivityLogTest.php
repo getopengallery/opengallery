@@ -12,11 +12,6 @@ use App\Models\User;
 use App\Support\DashboardStats;
 use Illuminate\Support\Carbon;
 
-function staff(Role $role = Role::Admin): User
-{
-    return tap(User::factory()->create())->assignRole($role->value);
-}
-
 it('records a login', function () {
     $user = User::factory()->create();
 
@@ -78,7 +73,7 @@ it('ranks the most viewed albums of the last 30 days', function () {
     ActivityEvent::factory()->guestView()->for($quiet)->create();
     ActivityEvent::factory()->count(5)->guestView()->for($old)->create(['created_at' => now()->subDays(31)]);
 
-    expect(DashboardStats::popularAlbums(staff())->map(fn ($row) => [$row->album->id, $row->views])->all())
+    expect(DashboardStats::popularAlbums(userWithRole())->map(fn ($row) => [$row->album->id, $row->views])->all())
         ->toBe([[$popular->id, 3], [$quiet->id, 1]]);
 });
 
@@ -97,7 +92,7 @@ it('shows library figures and activity on the dashboard', function () {
     $album = Album::factory()->visibility(Visibility::Public)->create(['title' => 'Summer camp']);
     ActivityEvent::factory()->guestView()->for($album)->create();
 
-    $this->actingAs(staff())
+    $this->actingAs(userWithRole())
         ->get('/admin')
         ->assertOk()
         ->assertSeeInOrder(['albums', 'photos', 'members', 'groups'])
@@ -110,7 +105,7 @@ it('escapes member names and album titles in the activity feed', function () {
     $user = User::factory()->create(['name' => '<script>alert(1)</script>']);
     ActivityEvent::factory()->for($user)->create();
 
-    $this->actingAs(staff())
+    $this->actingAs(userWithRole())
         ->get('/admin')
         ->assertDontSee('<script>alert(1)</script>', false)
         ->assertSee('&lt;script&gt;', false);
@@ -123,14 +118,14 @@ it('hides activity from staff without the view activity permission', function ()
 
     $this->actingAs($helper)->get('/admin')->assertOk()->assertDontSee('Recent activity')->assertDontSee('of photos stored');
     $this->actingAs($helper)->get(ActivityEventResource::getUrl())->assertForbidden();
-    $this->actingAs(staff(Role::Moderator))->get(ActivityEventResource::getUrl())->assertOk()->assertSee('Guest');
+    $this->actingAs(userWithRole(Role::Moderator))->get(ActivityEventResource::getUrl())->assertOk()->assertSee('Guest');
 });
 
 it('filters the activity log by kind and by members or guests', function () {
     $member = User::factory()->create();
     $login = ActivityEvent::factory()->for($member)->create();
     $guest = ActivityEvent::factory()->guestView()->create();
-    $this->actingAs(staff());
+    $this->actingAs(userWithRole());
 
     Livewire\Livewire::test(ManageActivityEvents::class)
         ->filterTable('member', false)

@@ -15,26 +15,6 @@ use App\Models\Photo;
 use App\Models\User;
 use App\Support\Documentation;
 use Filament\Facades\Filament;
-use Filament\GlobalSearch\GlobalSearchResult;
-
-/**
- * Runs the admin search like the field in the top bar does.
- *
- * @return array<string, list<GlobalSearchResult>>
- */
-function adminSearch(string $query): array
-{
-    return Filament::getGlobalSearchProvider()->getResults($query)
-        ->getCategories()
-        ->map(fn ($results) => collect($results)->values()->all())
-        ->all();
-}
-
-/** @return list<string> */
-function searchUrls(string $query): array
-{
-    return collect(adminSearch($query))->flatten()->map(fn (GlobalSearchResult $result) => $result->url)->all();
-}
 
 beforeEach(function () {
     app()->instance(Documentation::class, new Documentation(base_path('tests/Fixtures/docs')));

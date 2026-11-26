@@ -4,28 +4,14 @@ use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Filament\Resources\Albums\Pages\EditAlbum;
 use App\Models\Album;
-use App\Models\Photo;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\AlbumAccess;
-use App\Support\PhotoGridItems;
 use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 beforeEach(fn () => Storage::fake('gallery'));
-
-/** A photo in a public album that allows downloads. */
-function downloadablePhotoInPublicAlbum(): Photo
-{
-    return collaborationPhoto(Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true]), null, 'Beach.jpg');
-}
-
-/** The lightbox item of $photo as listed in its album (where the album decides on downloads). @return array<string, mixed> */
-function downloadLightboxItem(Photo $photo): array
-{
-    return PhotoGridItems::from($photo->albums()->first()->photos()->get())[0]['lightbox'];
-}
 
 describe('with the switch off', function () {
     it('keeps downloads from visitors even where the album allows them', function () {
@@ -78,7 +64,7 @@ describe('with the switch on', function () {
     it('offers downloads only where the album allows them', function () {
         Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $allowed = downloadablePhotoInPublicAlbum();
-        $closed = collaborationPhoto(Album::factory()->visibility(Visibility::Public)->create());
+        $closed = galleryPhoto(Album::factory()->visibility(Visibility::Public)->create());
 
         expect(downloadLightboxItem($allowed)['download'])->toBe(route('media.show', ['media' => $allowed->original(), 'download' => 1]))
             ->and(downloadLightboxItem($closed)['download'])->toBeNull();

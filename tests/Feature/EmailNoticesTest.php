@@ -22,21 +22,6 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Livewire\Livewire;
 
-/** E-mail that really leaves the server (the test default "array" counts as not sending). */
-function mailWorks(): void
-{
-    config(['mail.default' => 'smtp']);
-    Notification::fake();
-}
-
-function mailingAdmin(): User
-{
-    $admin = tap(User::factory()->create(['name' => 'Ada']))->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
 describe('sending', function () {
     it('only counts mail that leaves the server as delivered', function () {
         config(['mail.default' => 'log']);
@@ -55,7 +40,7 @@ describe('sending', function () {
 describe('invitations', function () {
     it('creates a user without a password and e-mails them an invitation', function () {
         mailWorks();
-        mailingAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
 
         Livewire::test(CreateUser::class)
             ->fillForm(['name' => 'Grace', 'email' => 'grace@example.com', 'send_invitation' => true])
@@ -70,7 +55,7 @@ describe('invitations', function () {
     it('gives the admin the link to pass on when e-mail is not set up', function () {
         config(['mail.default' => 'log']);
         Notification::fake();
-        mailingAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
 
         Livewire::test(CreateUser::class)
             ->fillForm(['name' => 'Grace', 'email' => 'grace@example.com', 'send_invitation' => true])
@@ -83,7 +68,7 @@ describe('invitations', function () {
 
     it('asks for a password when no invitation is sent', function () {
         mailWorks();
-        mailingAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
 
         Livewire::test(CreateUser::class)
             ->fillForm(['name' => 'Grace', 'email' => 'grace@example.com', 'send_invitation' => false])
@@ -130,7 +115,7 @@ describe('invitations', function () {
 
     it('sends a new password link from the user page', function () {
         mailWorks();
-        mailingAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $grace = User::factory()->create(['email' => 'grace@example.com']);
 
         Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
@@ -144,7 +129,7 @@ describe('invitations', function () {
 describe('share notices', function () {
     it('tells people who get access to a restricted album, directly or through a group', function () {
         mailWorks();
-        $ada = mailingAdmin();
+        $ada = actingAsRole(attributes: ['name' => 'Ada']);
         [$direct, $member, $already] = [User::factory()->create(), User::factory()->create(), User::factory()->create()];
         $group = Group::factory()->create();
         $group->users()->attach([$member->id, $ada->id]);
@@ -166,7 +151,7 @@ describe('share notices', function () {
 
     it('stays quiet when the switch is off or the album is not restricted', function () {
         mailWorks();
-        mailingAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $person = User::factory()->create();
 
         $restricted = Album::factory()->visibility(Visibility::Restricted)->create();
@@ -184,7 +169,7 @@ describe('share notices', function () {
 
     it('tells people when a new album is created already shared with them', function () {
         mailWorks();
-        mailingAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $person = User::factory()->create();
 
         Livewire::test(CreateAlbum::class)
@@ -233,7 +218,7 @@ describe('sign-up notices', function () {
     });
 
     it('turns the notice on in the site settings', function () {
-        mailingAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
 
         Livewire::test(AccessSettings::class)
             ->fillForm(['registration' => true, 'notify_registrations' => true])

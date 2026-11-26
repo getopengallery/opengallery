@@ -15,11 +15,6 @@ use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission as PermissionModel;
 
-function permissionId(Permission $permission): int
-{
-    return PermissionModel::findByName($permission->value)->id;
-}
-
 beforeEach(fn () => $this->actingAs(tap(User::factory()->create())->assignRole(BuiltInRole::Admin->value)));
 
 it('assigns every permission to exactly one group', function () {

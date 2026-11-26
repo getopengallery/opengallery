@@ -1,12 +1,10 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Filament\Clusters\Settings\Pages\SearchEngineSettings;
 use App\Models\Album;
 use App\Models\Page;
-use App\Models\Photo;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\AlbumDeletion;
@@ -15,7 +13,6 @@ use App\Support\PageMeta;
 use App\Support\SearchEngines;
 use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -23,52 +20,28 @@ beforeEach(function () {
     Storage::fake('local');
 });
 
-function previewPhoto(Album $album, int $width = 1600, int $height = 1200): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor($width, $height), $path);
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, 'Harbour.jpg');
-}
-
-/** The response is a link preview card: a JPEG in the card's size, stored with the given badge. */
-function expectPreviewCard(TestResponse $response, string $badge): void
-{
-    $response->assertOk();
-    $size = getimagesizefromstring($response->streamedContent());
-
-    expect([$size[0], $size[1], $size['mime']])->toBe([AlbumPreviewImage::WIDTH, AlbumPreviewImage::HEIGHT, 'image/jpeg'])
-        ->and(Storage::disk('local')->files(AlbumPreviewImage::DIRECTORY))->toHaveCount(1)
-        ->and(Storage::disk('local')->files(AlbumPreviewImage::DIRECTORY)[0])->toContain("-{$badge}-");
-}
-
-function thumbOf(Photo $photo): string
-{
-    return route('media.show', [$photo->getFirstMedia(Photo::COLLECTION), 'thumb']);
-}
-
 describe('link previews', function () {
     it('describes a public album with its cover, which guests may load', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create(['title' => 'Harbour walk', 'description' => '<b>Boats</b> at dawn.']);
-        $photo = previewPhoto($album);
+        $photo = galleryPhoto($album, name: 'Harbour.jpg', width: 1600, height: 1200);
 
         $this->get(route('albums.show', $album))
             ->assertOk()
             ->assertSee('<meta property="og:title" content="Harbour walk">', false)
             ->assertSee('<meta name="description" content="Boats at dawn.">', false)
-            ->assertSee('<meta property="og:image" content="'.thumbOf($photo).'">', false)
+            ->assertSee('<meta property="og:image" content="'.photoThumbUrl($photo).'">', false)
             ->assertSee('<meta property="og:image:width" content="720">', false)
             ->assertSee('<meta property="og:image:height" content="540">', false)
             ->assertSee('<meta name="twitter:card" content="summary_large_image">', false)
             ->assertSee('<link rel="canonical" href="'.route('albums.show', $album).'">', false)
             ->assertDontSee('noindex');
 
-        $this->get(thumbOf($photo))->assertOk();
+        $this->get(photoThumbUrl($photo))->assertOk();
     });
 
     it('shows an unlisted album at its share link, with a blurred card any link holder can load, kept out of search engines', function () {
         $album = Album::factory()->visibility(Visibility::Unlisted)->create(['title' => 'Our wedding']);
-        $photo = previewPhoto($album);
+        $photo = galleryPhoto($album, name: 'Harbour.jpg', width: 1600, height: 1200);
         $cardUrl = route('albums.shared.cover', $album->share_token);
 
         $this->get(route('albums.shared', $album->share_token))
@@ -81,13 +54,13 @@ describe('link previews', function () {
 
         // Preview apps fetch the image without the session the link unlocked.
         $this->flushSession();
-        $this->get(thumbOf($photo))->assertNotFound();
+        $this->get(photoThumbUrl($photo))->assertNotFound();
         expectPreviewCard($this->get($cardUrl), AlbumPreviewImage::LINK);
     });
 
     it('shows a lock card for a password-protected album, at its share link or its address', function (Visibility $visibility) {
         $album = Album::factory()->visibility($visibility)->create(['title' => 'Family', 'password' => 'secret']);
-        $photo = previewPhoto($album);
+        $photo = galleryPhoto($album, name: 'Harbour.jpg', width: 1600, height: 1200);
         $cardUrl = $visibility === Visibility::Unlisted ? route('albums.shared.cover', $album->share_token) : route('albums.cover', $album);
 
         $this->get($visibility === Visibility::Unlisted ? route('albums.shared', $album->share_token) : route('albums.show', $album))
@@ -95,7 +68,7 @@ describe('link previews', function () {
             ->assertSee('<meta property="og:title" content="Family">', false)
             ->assertSee('<meta property="og:image" content="'.$cardUrl.'">', false)
             ->assertSee('<meta name="robots" content="noindex, nofollow">', false)
-            ->assertDontSee(thumbOf($photo));
+            ->assertDontSee(photoThumbUrl($photo));
 
         $this->flushSession();
         expectPreviewCard($this->get($cardUrl), AlbumPreviewImage::LOCK);
@@ -106,7 +79,7 @@ describe('link previews', function () {
         $open = Album::factory()->visibility(Visibility::Public)->create();
         $ended = Album::factory()->visibility(Visibility::Unlisted)->create(['access_expires_at' => now()->subDay()]);
         foreach ([$private, $open, $ended] as $album) {
-            previewPhoto($album);
+            galleryPhoto($album, name: 'Harbour.jpg', width: 1600, height: 1200);
         }
 
         $this->get(route('albums.cover', $private))->assertNotFound();
@@ -117,10 +90,10 @@ describe('link previews', function () {
 
     it('makes a new card for a new cover and removes the cards of a deleted album', function () {
         $album = Album::factory()->visibility(Visibility::Unlisted)->create();
-        previewPhoto($album);
+        galleryPhoto($album, name: 'Harbour.jpg', width: 1600, height: 1200);
         $first = AlbumPreviewImage::path($album, AlbumPreviewImage::LINK);
 
-        $album->update(['cover_photo_id' => previewPhoto($album)->id]);
+        $album->update(['cover_photo_id' => galleryPhoto($album, name: 'Harbour.jpg', width: 1600, height: 1200)->id]);
         $second = AlbumPreviewImage::path($album->fresh(), AlbumPreviewImage::LINK);
 
         expect($second)->not->toBe($first)
@@ -137,7 +110,7 @@ describe('link previews', function () {
     });
 
     it('describes a page with its text and the first photo placed on it', function () {
-        $photo = previewPhoto(Album::factory()->visibility(Visibility::Private)->create());
+        $photo = galleryPhoto(Album::factory()->visibility(Visibility::Private)->create(), name: 'Harbour.jpg', width: 1600, height: 1200);
         $page = Page::factory()->create([
             'title' => 'About us',
             'body' => '<p>We &amp; our <em>cameras</em>.</p><div data-type="customBlock" data-id="photo" data-config="'.e(json_encode(['photo_id' => $photo->id])).'"></div>',

@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Permission;
 use App\Enums\Role as BuiltInRole;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
@@ -11,25 +10,13 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-/** Someone with "Manage users" but not every permission. */
-function userManager(): User
-{
-    Role::findOrCreate('user manager')->givePermissionTo([
-        Permission::AccessAdmin->value,
-        Permission::ManageUsers->value,
-    ]);
-
-    return tap(User::factory()->create())->assignRole('user manager');
-}
-
-function userWithRole(string $role): User
-{
-    return tap(User::factory()->create())->assignRole($role);
-}
-
 it('lets a user manager edit and delete only people whose roles they could give', function (?string $role, bool $allowed) {
     $manager = userManager();
-    $target = $role ? userWithRole($role) : User::factory()->create();
+    $target = User::factory()->create();
+
+    if ($role) {
+        $target->assignRole($role);
+    }
 
     expect($manager->can('update', $target))->toBe($allowed)
         ->and($manager->can('delete', $target))->toBe($allowed);
@@ -45,7 +32,7 @@ it('lets a user manager edit and delete only people whose roles they could give'
 it('refuses to open the edit page of a super admin for a user manager', function () {
     $this->actingAs(userManager());
 
-    Livewire::test(EditUser::class, ['record' => userWithRole(BuiltInRole::SuperAdmin->value)->id])
+    Livewire::test(EditUser::class, ['record' => userWithRole(BuiltInRole::SuperAdmin)->id])
         ->assertForbidden();
 });
 
@@ -82,7 +69,7 @@ it('lets a user manager give roles within their own permissions, themselves incl
 });
 
 it('lets a super admin give the super admin role', function () {
-    $this->actingAs(userWithRole(BuiltInRole::SuperAdmin->value));
+    $this->actingAs(userWithRole(BuiltInRole::SuperAdmin));
     $target = User::factory()->create();
 
     Livewire::test(EditUser::class, ['record' => $target->id])
@@ -95,8 +82,8 @@ it('lets a super admin give the super admin role', function () {
 
 it('skips people the user manager may not manage when deleting in bulk', function () {
     $this->actingAs(userManager());
-    $member = userWithRole(BuiltInRole::User->value);
-    $superAdmin = userWithRole(BuiltInRole::SuperAdmin->value);
+    $member = userWithRole(BuiltInRole::User);
+    $superAdmin = userWithRole(BuiltInRole::SuperAdmin);
 
     Livewire::test(ListUsers::class)
         ->selectTableRecords([$member->id, $superAdmin->id])

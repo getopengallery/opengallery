@@ -2,7 +2,6 @@
 
 use App\Enums\Visibility;
 use App\Models\Album;
-use App\Models\Photo;
 use App\Models\Setting;
 use App\Support\PhotoExif;
 use App\Support\PhotoGridItems;
@@ -11,11 +10,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Js;
 
 beforeEach(fn () => Storage::fake('gallery'));
-
-function photoWithCameraData(array $exif): Photo
-{
-    return tap(collaborationPhoto(Album::factory()->visibility(Visibility::Public)->create()))->update(['exif' => $exif]);
-}
 
 it('gives the lightbox the camera details in a readable form', function () {
     $photo = photoWithCameraData([
@@ -70,7 +64,7 @@ it('leaves the information out while the setting is off', function () {
 
 it('hands the slideshow and information settings to the viewer on the album page', function (bool $enabled) {
     $album = Album::factory()->visibility(Visibility::Public)->create();
-    collaborationPhoto($album);
+    galleryPhoto($album);
     Setting::put(SiteSettings::SLIDESHOW_SECONDS, 9);
     Setting::put(SiteSettings::SLIDESHOW_ENABLED, $enabled);
     Setting::put(SiteSettings::PHOTO_INFO_ENABLED, $enabled);

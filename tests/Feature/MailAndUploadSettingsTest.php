@@ -1,11 +1,9 @@
 <?php
 
 use App\Enums\MailDelivery;
-use App\Enums\Role;
 use App\Filament\Clusters\Settings\Pages\EmailSettings;
 use App\Filament\Clusters\Settings\Pages\PhotoSettings;
 use App\Models\Setting;
-use App\Models\User;
 use App\Support\PhotoUploads;
 use App\Support\SiteSettings;
 use Illuminate\Http\UploadedFile;
@@ -16,28 +14,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-function mailSettingsAdmin(): User
-{
-    $admin = tap(User::factory()->create(['email' => 'anna@example.com']))->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
-/**
- * @param  array<string, mixed>  $data
- * @param  class-string  $page
- */
-function saveSettings(array $data, string $page = EmailSettings::class): mixed
-{
-    return Livewire::test($page)->fillForm($data)->call('save');
-}
-
 describe('e-mail', function () {
     it('saves SMTP settings with an encrypted password and uses them', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
 
-        saveSettings([
+        saveSettingsPage([
             'mail_delivery' => MailDelivery::Smtp->value,
             'mail_host' => 'smtp.example.org',
             'mail_port' => 465,
@@ -62,40 +43,40 @@ describe('e-mail', function () {
     });
 
     it('keeps the saved password when the field is left empty and drops it with the user name', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
         $smtp = ['mail_delivery' => MailDelivery::Smtp->value, 'mail_host' => 'smtp.example.org', 'mail_port' => 587, 'mail_username' => 'me'];
 
-        saveSettings([...$smtp, 'mail_password' => 'first']);
-        saveSettings($smtp)->assertHasNoFormErrors();
+        saveSettingsPage([...$smtp, 'mail_password' => 'first']);
+        saveSettingsPage($smtp)->assertHasNoFormErrors();
 
         expect(config('mail.mailers.smtp.password'))->toBe('first');
 
-        saveSettings([...$smtp, 'mail_username' => '']);
+        saveSettingsPage([...$smtp, 'mail_username' => '']);
 
         expect(Setting::get(SiteSettings::MAIL_PASSWORD))->toBeNull()
             ->and(config('mail.mailers.smtp.password'))->toBeNull();
     });
 
     it('keeps the server configuration by default and signs e-mails with the site name', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
 
         Setting::put(SiteSettings::NAME, 'Scout Troop 7');
 
-        saveSettings(['mail_delivery' => MailDelivery::Server->value])->assertHasNoFormErrors();
+        saveSettingsPage(['mail_delivery' => MailDelivery::Server->value])->assertHasNoFormErrors();
 
         expect(config('mail.default'))->toBe('array')
             ->and(config('mail.from.name'))->toBe('Scout Troop 7');
     });
 
     it('requires a server and a valid sender address for SMTP', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
 
-        saveSettings(['mail_delivery' => MailDelivery::Smtp->value, 'mail_host' => '', 'mail_from_address' => 'not-an-address'])
+        saveSettingsPage(['mail_delivery' => MailDelivery::Smtp->value, 'mail_host' => '', 'mail_from_address' => 'not-an-address'])
             ->assertHasFormErrors(['mail_host' => 'required', 'mail_from_address' => 'email']);
     });
 
     it('sends a test e-mail to the admin with the settings in the form', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
         Event::fake([MessageSent::class]);
 
         Livewire::test(EmailSettings::class)
@@ -109,7 +90,7 @@ describe('e-mail', function () {
     });
 
     it('reports why a test e-mail could not be sent and keeps the saved settings', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
 
         Livewire::test(EmailSettings::class)
             ->fillForm(['mail_delivery' => MailDelivery::Smtp->value, 'mail_host' => '127.0.0.1', 'mail_port' => 1, 'mail_scheme' => 'smtp'])
@@ -127,9 +108,9 @@ describe('uploads', function () {
     });
 
     it('saves the largest photo size and the accepted file types and enforces them', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
 
-        saveSettings(['upload_max_mb' => 5, 'upload_types' => ['image/jpeg', 'image/png']], PhotoSettings::class)->assertHasNoFormErrors();
+        saveSettingsPage(['upload_max_mb' => 5, 'upload_types' => ['image/jpeg', 'image/png']], PhotoSettings::class)->assertHasNoFormErrors();
 
         expect(Setting::get(SiteSettings::UPLOAD_TYPES))->toBe(['image/jpeg', 'image/png'])
             ->and(PhotoUploads::maxBytes())->toBe(5 * 1024 * 1024)
@@ -148,19 +129,19 @@ describe('uploads', function () {
     });
 
     it('refuses file types this server cannot process', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
 
         expect(PhotoUploads::processableTypes())->not->toContain('image/heic');
 
-        saveSettings(['upload_types' => ['image/jpeg', 'image/heic']], PhotoSettings::class)->assertHasFormErrors(['upload_types.1']);
+        saveSettingsPage(['upload_types' => ['image/jpeg', 'image/heic']], PhotoSettings::class)->assertHasFormErrors(['upload_types.1']);
 
         expect(Setting::get(SiteSettings::UPLOAD_TYPES))->toBeNull();
     });
 
     it('needs at least one file type and a sensible size', function () {
-        mailSettingsAdmin();
+        actingAsRole(attributes: ['email' => 'anna@example.com']);
 
-        saveSettings(['upload_max_mb' => 0, 'upload_types' => []], PhotoSettings::class)
+        saveSettingsPage(['upload_max_mb' => 0, 'upload_types' => []], PhotoSettings::class)
             ->assertHasFormErrors(['upload_max_mb' => 'min', 'upload_types' => 'required']);
     });
 });

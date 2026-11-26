@@ -28,44 +28,6 @@ use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 use Plugins\IdentityProviders\Filament\Settings as IdentityProviderSettings;
 
-/**
- * Every core text key used in the code: literal arguments of __(), trans(),
- * trans_choice() and @lang() in app/, resources/views, themes/ * /views and
- * routes/. Namespaced keys (plugins, themes, Filament) and framework groups
- * (auth.*, validation.*, ...) are left out.
- *
- * @return array<string, string> key => first file it appears in
- */
-function coreTranslationKeys(): array
-{
-    $files = collect([app_path(), resource_path('views'), base_path('routes'), ...glob(base_path('themes/*/views')) ?: []])
-        ->flatMap(fn (string $dir) => File::allFiles($dir))
-        ->filter(fn (SplFileInfo $file) => str_ends_with($file->getFilename(), '.php'));
-
-    $keys = [];
-    foreach ($files as $file) {
-        preg_match_all('/(?:__|trans_choice|trans|@lang)\(\s*(?:\'((?:[^\'\\\\]|\\\\.)*)\'|"((?:[^"\\\\]|\\\\.)*)")/', $file->getContents(), $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            $key = ($match[2] ?? '') !== '' ? stripcslashes($match[2]) : str_replace("\\'", "'", $match[1]);
-
-            if (! str_contains($key, '::') && ! preg_match('/^(auth|passwords|pagination|validation)\.[\w.]+$/', $key)) {
-                $keys[$key] ??= $file->getRelativePathname();
-            }
-        }
-    }
-
-    return $keys;
-}
-
-/** @return list<string> the :placeholders in a text, sorted */
-function placeholders(string $text): array
-{
-    preg_match_all('/:([a-z_]+)/i', $text, $matches);
-
-    return collect($matches[1])->unique()->sort()->values()->all();
-}
-
 it('ships a translation for every core text in every language', function (string $file) {
     $translations = json_decode(File::get($file), true, flags: JSON_THROW_ON_ERROR);
 
@@ -100,23 +62,6 @@ it('ships every language of a theme or plugin with the same keys as its English 
         }
     }
 })->with(fn () => array_values(array_filter(glob(dirname(__DIR__, 2).'/{themes,plugins}/*/lang', GLOB_BRACE) ?: [], fn ($dir) => is_dir($dir.'/en'))));
-
-/**
- * Every German text the app knows (core JSON plus theme and plugin files), keyed by text.
- * Filament translates explicit labels once more (translateLabel()); those are German already.
- *
- * @return array<string, true>
- */
-function germanTexts(): array
-{
-    $texts = array_values(json_decode(File::get(lang_path('de.json')), true));
-
-    foreach ([...File::glob(base_path('themes/*/lang/de/*.php')), ...File::glob(base_path('plugins/*/lang/de/*.php'))] as $file) {
-        array_push($texts, ...array_values(Arr::dot(require $file)));
-    }
-
-    return array_fill_keys(array_filter($texts, 'is_string'), true);
-}
 
 it('renders the admin and the site in German without untranslated texts', function () {
     $missing = [];

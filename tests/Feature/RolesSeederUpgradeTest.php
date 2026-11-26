@@ -7,21 +7,6 @@ use App\Models\Setting;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\PermissionRegistrar;
-
-/** @return list<string> */
-function roleGrants(BuiltInRole $role): array
-{
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-    return Role::findByName($role->value)->permissions()->pluck('name')->sort()->values()->all();
-}
-
-/** @return list<string> */
-function standardGrants(BuiltInRole $role): array
-{
-    return collect(RolesAndPermissionsSeeder::matrix()[$role->value])->map->value->sort()->values()->all();
-}
 
 it('gives the built-in roles their standard permissions on a fresh install', function (BuiltInRole $role) {
     expect(roleGrants($role))->toBe(standardGrants($role));

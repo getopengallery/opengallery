@@ -1,6 +1,5 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\Permission;
 use App\Enums\PhotoOrder;
 use App\Enums\Role;
@@ -31,25 +30,9 @@ use Livewire\Livewire;
 
 beforeEach(fn () => Storage::fake('gallery'));
 
-function albumPhoto(Album $album, string $title): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor(160, 120), $path);
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, "{$title}.jpg");
-}
-
-function asAdmin(): User
-{
-    $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
 describe('hierarchy', function () {
     it('lists sub-albums directly under their parent', function () {
-        asAdmin();
+        actingAsRole();
         $camp = Album::factory()->create(['title' => 'Camp']);
         $day = Album::factory()->create(['title' => 'Day 3', 'parent_id' => $camp->id]);
         $autumn = Album::factory()->create(['title' => 'Autumn']);
@@ -72,7 +55,7 @@ describe('hierarchy', function () {
     });
 
     it('does not offer an album or its sub-albums as its own parent', function () {
-        asAdmin();
+        actingAsRole();
         $parent = Album::factory()->create(['title' => 'Parent']);
         $child = Album::factory()->create(['title' => 'Child', 'parent_id' => $parent->id]);
 
@@ -87,7 +70,7 @@ describe('hierarchy', function () {
 
 it('shows photos in the order chosen for the album', function () {
     $album = Album::factory()->visibility(Visibility::Public)->create();
-    [$b, $c, $a] = [albumPhoto($album, 'Banana'), albumPhoto($album, 'Cherry'), albumPhoto($album, 'Apple')];
+    [$b, $c, $a] = [galleryPhoto($album, name: 'Banana.jpg', width: 160, height: 120), galleryPhoto($album, name: 'Cherry.jpg', width: 160, height: 120), galleryPhoto($album, name: 'Apple.jpg', width: 160, height: 120)];
 
     $album->update(['photo_order' => PhotoOrder::TitleAsc]);
     $this->get(route('albums.show', $album))->assertSeeInOrder(['Apple', 'Banana', 'Cherry']);
@@ -97,7 +80,7 @@ it('shows photos in the order chosen for the album', function () {
 });
 
 it('finds people to share with by name or e-mail instead of listing every user', function () {
-    asAdmin();
+    actingAsRole();
     $ada = User::factory()->create(['name' => 'Ada Lovelace', 'email' => 'countess@example.com']);
     User::factory()->create(['name' => 'Grace Hopper', 'email' => 'grace@example.com']);
     $album = Album::factory()->visibility(Visibility::Restricted)->create();
@@ -111,7 +94,7 @@ it('finds people to share with by name or e-mail instead of listing every user',
 });
 
 it('lets visitors download only while the album is not private', function () {
-    asAdmin();
+    actingAsRole();
     Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
     $album = Album::factory()->visibility(Visibility::Public)->create();
 
@@ -131,7 +114,7 @@ it('lets visitors download only while the album is not private', function () {
 describe('password', function () {
     it('asks visitors for the password before showing the album and its photos', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create(['password' => 'lake-2026']);
-        $thumb = route('media.show', [albumPhoto($album, 'Lake')->original(), 'thumb']);
+        $thumb = route('media.show', [galleryPhoto($album, name: 'Lake.jpg', width: 160, height: 120)->original(), 'thumb']);
 
         $this->get(route('albums.show', $album))->assertStatus(401)->assertSee('Enter its password');
         $this->get($thumb)->assertNotFound();
@@ -163,7 +146,7 @@ describe('password', function () {
     });
 
     it('is set, kept and removed from the edit page', function () {
-        asAdmin();
+        actingAsRole();
         $album = Album::factory()->visibility(Visibility::Public)->create();
 
         Livewire::test(EditAlbum::class, ['record' => $album->slug])
@@ -201,10 +184,10 @@ describe('end date', function () {
 
 describe('cover', function () {
     it('uses a photo from elsewhere as cover and adds it to the album', function () {
-        asAdmin();
+        actingAsRole();
         $album = Album::factory()->create();
-        albumPhoto($album, 'First');
-        $elsewhere = albumPhoto(Album::factory()->create(), 'Elsewhere');
+        galleryPhoto($album, name: 'First.jpg', width: 160, height: 120);
+        $elsewhere = galleryPhoto(Album::factory()->create(), name: 'Elsewhere.jpg', width: 160, height: 120);
 
         Livewire::test(EditAlbum::class, ['record' => $album->slug])
             ->set('data.cover_photo_id', $elsewhere->id)
@@ -219,7 +202,7 @@ describe('cover', function () {
         RoleModel::findOrCreate('editor2')->syncPermissions([Permission::AccessAdmin->value]);
         $editor = tap(User::factory()->create())->assignRole('editor2');
         $album = Album::factory()->for($editor, 'owner')->create();
-        $hidden = albumPhoto(Album::factory()->create(), 'Hidden');
+        $hidden = galleryPhoto(Album::factory()->create(), name: 'Hidden.jpg', width: 160, height: 120);
         $this->actingAs($editor);
 
         Livewire::test(EditAlbum::class, ['record' => $album->slug])
@@ -231,7 +214,7 @@ describe('cover', function () {
 });
 
 it('changes the order among albums at the same level by dragging, without moving albums between levels', function () {
-    asAdmin();
+    actingAsRole();
     [$a, $b, $c] = Album::factory()->count(3)->sequence(['title' => 'A'], ['title' => 'B'], ['title' => 'C'])->create();
     [$a1, $a2] = Album::factory()->count(2)->sequence(['title' => 'A1', 'parent_id' => $a->id], ['title' => 'A2', 'parent_id' => $a->id])->create();
 
@@ -254,14 +237,6 @@ it('lets only staff who may edit any album change the album order', function () 
 
     expect($album->fresh()->sort_order)->toBe(3);
 });
-
-/** Someone who may create albums in the admin but not see every album. */
-function albumCreator(): User
-{
-    RoleModel::findOrCreate('album creator')->givePermissionTo([Permission::AccessAdmin->value, Permission::CreateAlbums->value]);
-
-    return tap(User::factory()->create())->assignRole('album creator');
-}
 
 describe('who sees which albums in the admin', function () {
     it('shows only their own albums to people who may not see every album', function () {
@@ -305,7 +280,7 @@ describe('who sees which albums in the admin', function () {
     });
 
     it('lets people who may edit every album give an album to someone else', function () {
-        asAdmin();
+        actingAsRole();
         $album = Album::factory()->create();
         $heir = User::factory()->create();
 
@@ -411,7 +386,7 @@ describe('uploaders', function () {
 
 describe('deleting permanently', function () {
     it('moves sub-albums up and photos in no other album to "Unsorted uploads" by default', function () {
-        asAdmin();
+        actingAsRole();
         $camp = Album::factory()->create(['title' => 'Camp']);
         $day = tap(Album::factory()->create(['title' => 'Day 3', 'parent_id' => $camp->id]))->delete();
         $evening = Album::factory()->create(['title' => 'Evening', 'parent_id' => $day->id]);
@@ -437,7 +412,7 @@ describe('deleting permanently', function () {
     });
 
     it('deletes those photos instead when asked, except photos used on a page', function () {
-        asAdmin();
+        actingAsRole();
         $album = tap(Album::factory()->create())->delete();
         $onlyHere = Photo::factory()->inAlbum($album)->create();
         $onPage = Photo::factory()->inAlbum($album)->create();
@@ -452,7 +427,7 @@ describe('deleting permanently', function () {
     });
 
     it('deletes nested albums together in bulk', function () {
-        asAdmin();
+        actingAsRole();
         $parent = tap(Album::factory()->create())->delete();
         $child = tap(Album::factory()->create(['parent_id' => $parent->id]))->delete();
         $photo = Photo::factory()->inAlbum($parent)->inAlbum($child)->create();
@@ -485,7 +460,7 @@ describe('deleting permanently', function () {
 
 describe('trash', function () {
     it('moves the albums inside an album to the trash with it and brings them back together', function () {
-        asAdmin();
+        actingAsRole();
         $camp = Album::factory()->create(['title' => 'Camp']);
         $day = Album::factory()->create(['title' => 'Day 3', 'parent_id' => $camp->id]);
         $evening = Album::factory()->create(['title' => 'Evening', 'parent_id' => $day->id]);
@@ -510,7 +485,7 @@ describe('trash', function () {
     });
 
     it('links the album edit page to the album on the site, except while it is in the trash', function () {
-        asAdmin();
+        actingAsRole();
         $album = Album::factory()->create();
         $trashed = tap(Album::factory()->create())->delete();
 

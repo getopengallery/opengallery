@@ -1,9 +1,7 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\ActivityType;
 use App\Enums\Permission;
-use App\Enums\Role;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Albums\Pages\CreateAlbum;
 use App\Filament\Resources\Albums\Pages\EditAlbum;
@@ -20,28 +18,12 @@ use Livewire\Livewire;
 
 beforeEach(fn () => Storage::fake('gallery'));
 
-function libraryPhoto(Album $album, ?User $uploader = null, string $name = 'Photo.jpg'): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor(240, 160), $path);
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, $name, $uploader);
-}
-
-function signInAdmin(): User
-{
-    $admin = tap(User::factory()->create(['name' => 'Ada']))->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
 describe('adding photos from the library', function () {
     it('adds photos chosen in the media picker to the album', function () {
-        signInAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $album = Album::factory()->create(['title' => 'Best of']);
-        $inAlbum = libraryPhoto($album);
-        $elsewhere = libraryPhoto(Album::factory()->create());
+        $inAlbum = galleryPhoto($album);
+        $elsewhere = galleryPhoto(Album::factory()->create());
 
         Livewire::test(PhotosRelationManager::class, ['ownerRecord' => $album, 'pageClass' => EditAlbum::class])
             ->call('addPickedPhotos', [$elsewhere->id, $inAlbum->id])
@@ -55,7 +37,7 @@ describe('adding photos from the library', function () {
         RoleModel::findOrCreate('helper')->syncPermissions([Permission::AccessAdmin->value, Permission::UploadPhotos->value]);
         $helper = tap(User::factory()->create())->assignRole('helper');
         $own = Album::factory()->for($helper, 'owner')->create();
-        $hidden = libraryPhoto(Album::factory()->create());
+        $hidden = galleryPhoto(Album::factory()->create());
         $this->actingAs($helper);
 
         Livewire::test(PhotosRelationManager::class, ['ownerRecord' => $own, 'pageClass' => EditAlbum::class])
@@ -70,9 +52,9 @@ describe('adding photos from the library', function () {
 
 describe('album photos section', function () {
     it('shows the album photos with the cover marked on the edit page', function () {
-        signInAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $album = Album::factory()->create();
-        libraryPhoto($album);
+        galleryPhoto($album);
 
         $this->get(AlbumResource::getUrl('edit', ['record' => $album]))
             ->assertOk()
@@ -82,11 +64,11 @@ describe('album photos section', function () {
     });
 
     it('removes photos from the album but keeps photos that are in no other album', function () {
-        $admin = signInAdmin();
+        $admin = actingAsRole(attributes: ['name' => 'Ada']);
         $album = Album::factory()->create(['title' => 'Camp']);
-        $shared = libraryPhoto($album, name: 'Shared.jpg');
+        $shared = galleryPhoto($album, name: 'Shared.jpg');
         Album::factory()->create()->addPhotos($shared);
-        $only = libraryPhoto($album, name: 'Only.jpg');
+        $only = galleryPhoto($album, name: 'Only.jpg');
 
         Livewire::test(PhotosRelationManager::class, ['ownerRecord' => $album, 'pageClass' => EditAlbum::class])
             ->selectTableRecords([$shared->id, $only->id])
@@ -98,9 +80,9 @@ describe('album photos section', function () {
     });
 
     it('uses exactly one selected photo as the cover', function () {
-        signInAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $album = Album::factory()->create();
-        [$first, $second] = [libraryPhoto($album), libraryPhoto($album)];
+        [$first, $second] = [galleryPhoto($album), galleryPhoto($album)];
 
         $manager = Livewire::test(PhotosRelationManager::class, ['ownerRecord' => $album, 'pageClass' => EditAlbum::class]);
         $manager->selectTableRecords([$first->id, $second->id])
@@ -113,7 +95,7 @@ describe('album photos section', function () {
     });
 
     it('opens "Add photos" on load when the site\'s Add photos button sends people here', function () {
-        signInAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $album = Album::factory()->create();
         parse_str(parse_url(PhotosRelationManager::addPhotosUrl($album), PHP_URL_QUERY), $query);
 
@@ -124,7 +106,7 @@ describe('album photos section', function () {
     });
 
     it('uploads photos in the album\'s picker straight into the album', function () {
-        $admin = signInAdmin();
+        $admin = actingAsRole(attributes: ['name' => 'Ada']);
         $album = Album::factory()->create(['title' => 'Camp']);
         $manager = Livewire::test(PhotosRelationManager::class, ['ownerRecord' => $album, 'pageClass' => EditAlbum::class])
             ->mountAction(TestAction::make('addFromLibrary')->table());
@@ -144,7 +126,7 @@ describe('album photos section', function () {
     });
 
     it('adds photos uploaded in the picker to the album, out of "Unsorted uploads"', function () {
-        signInAdmin();
+        actingAsRole(attributes: ['name' => 'Ada']);
         $album = Album::factory()->create();
 
         $photoId = uploadPhotoInChunks('inbox', 'lake.jpg')->assertOk()->json('photo');
@@ -161,10 +143,10 @@ describe('album photos section', function () {
 });
 
 it('creates an album with the photos and cover chosen in the media picker', function () {
-    $admin = signInAdmin();
-    [$first, $second] = [libraryPhoto(Album::factory()->create()), libraryPhoto(Album::factory()->create())];
-    $uploaded = libraryPhoto(Album::inbox($admin), name: 'Fresh.jpg');
-    $cover = libraryPhoto(Album::factory()->create(), name: 'Cover.jpg');
+    $admin = actingAsRole(attributes: ['name' => 'Ada']);
+    [$first, $second] = [galleryPhoto(Album::factory()->create()), galleryPhoto(Album::factory()->create())];
+    $uploaded = galleryPhoto(Album::inbox($admin), name: 'Fresh.jpg');
+    $cover = galleryPhoto(Album::factory()->create(), name: 'Cover.jpg');
 
     Livewire::test(CreateAlbum::class)
         ->set('data.title', 'Best of 2026')

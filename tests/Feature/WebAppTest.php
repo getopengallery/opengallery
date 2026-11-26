@@ -1,21 +1,14 @@
 <?php
 
-use App\Enums\Role;
 use App\Filament\Clusters\Settings\Pages\AppSettings;
 use App\Filament\Clusters\Settings\Pages\GeneralSettings;
 use App\Filament\Pages\Dashboard;
 use App\Models\Setting;
-use App\Models\User;
 use App\Support\SiteSettings;
 use App\Support\WebApp;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
-
-function webAppAdmin(): User
-{
-    return tap(User::factory()->create())->assignRole(Role::Admin->value);
-}
 
 it('describes the site as an installable app', function () {
     Setting::put(SiteSettings::NAME, 'Smith Family Photos');
@@ -42,7 +35,7 @@ it('links the manifest and registers the service worker on the site and in the a
         ->assertSee(route('web-app.manifest'), false)
         ->assertSee('navigator.serviceWorker.register', false);
 
-    $this->actingAs(webAppAdmin())
+    $this->actingAs(userWithRole())
         ->get(Dashboard::getUrl())
         ->assertOk()
         ->assertSee(route('web-app.manifest'), false);
@@ -67,7 +60,7 @@ it('shows an offline page', function () {
 
 it('makes square icons from an uploaded app icon', function () {
     Storage::fake('local');
-    $this->actingAs(webAppAdmin());
+    $this->actingAs(userWithRole());
 
     Livewire::test(AppSettings::class)
         ->set('data.app_icon', UploadedFile::fake()->image('icon.png', 800, 600))
@@ -91,7 +84,7 @@ it('forgets the generated icons when the app icon is removed', function () {
     Setting::put(SiteSettings::APP_ICON, 'branding/icon.png');
     $url = WebApp::iconUrl(192);
     $this->get($url)->assertOk();
-    $this->actingAs(webAppAdmin());
+    $this->actingAs(userWithRole());
 
     Livewire::test(AppSettings::class)->set('data.app_icon', null)->call('save')->assertHasNoErrors();
 
@@ -157,7 +150,7 @@ describe('without an app icon', function () {
         Storage::disk('local')->put('branding/favicon.png', UploadedFile::fake()->image('favicon.png', 64, 64)->getContent());
         Setting::put(SiteSettings::FAVICON, 'branding/favicon.png');
         $this->get(WebApp::iconUrl(192))->assertOk();
-        $this->actingAs(webAppAdmin());
+        $this->actingAs(userWithRole());
 
         Livewire::test(GeneralSettings::class)->set('data.favicon', null)->call('save')->assertHasNoErrors();
 

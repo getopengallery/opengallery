@@ -8,61 +8,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
-/**
- * Uses its own connection, because a backup and restore run real DDL. CI points
- * it at MySQL and MariaDB through the BACKUP_TEST_* variables. That database
- * must be dedicated to this test: its tables are dropped.
- */
-function backupConnectionConfig(string $folder): array
-{
-    $driver = getenv('BACKUP_TEST_DRIVER') ?: 'sqlite';
-
-    if ($driver === 'sqlite') {
-        touch("{$folder}/backup-test.sqlite");
-
-        return ['driver' => 'sqlite', 'database' => "{$folder}/backup-test.sqlite", 'prefix' => '', 'foreign_key_constraints' => true];
-    }
-
-    return [
-        'driver' => $driver,
-        'host' => getenv('BACKUP_TEST_HOST') ?: '127.0.0.1',
-        'port' => getenv('BACKUP_TEST_PORT') ?: '3306',
-        'database' => getenv('BACKUP_TEST_DATABASE') ?: 'backup_test',
-        'username' => getenv('BACKUP_TEST_USERNAME') ?: 'root',
-        'password' => getenv('BACKUP_TEST_PASSWORD') ?: '',
-        'charset' => 'utf8mb4',
-        'collation' => 'utf8mb4_unicode_ci',
-        'prefix' => '',
-        'strict' => true,
-    ];
-}
-
-function dropBackupTestTables(): void
-{
-    $schema = Schema::connection('backup_test');
-    $schema->disableForeignKeyConstraints();
-
-    foreach (['bk_photos', 'bk_albums', 'bk_pivot', 'bk_added', 'bk_other_app', 'cache'] as $table) {
-        $schema->dropIfExists($table);
-    }
-
-    $schema->enableForeignKeyConstraints();
-}
-
-function runBackup(DatabaseBackup $backup, array $paths): void
-{
-    while (! $backup->backup(microtime(true) - 1, $paths)) {
-        // One portion per call, as on a host with a short time limit.
-    }
-}
-
-function runRestore(DatabaseBackup $backup, array $paths = []): void
-{
-    while (! $backup->restore(microtime(true) - 1, $paths)) {
-        // One portion per call.
-    }
-}
-
 beforeEach(function () {
     $this->folder = storage_path('framework/testing/backup-'.Str::lower(Str::random(10)));
     File::ensureDirectoryExists("{$this->folder}/migrations");

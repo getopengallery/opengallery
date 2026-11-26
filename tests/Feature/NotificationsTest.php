@@ -22,13 +22,6 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-function sharedCamp(User $with): void
-{
-    $album = Album::factory()->visibility(Visibility::Restricted)->create(['title' => 'Camp']);
-    $album->sharedUsers()->attach($with);
-    $with->notify(new AlbumShared($album, 'Ada'));
-}
-
 describe('in the gallery', function () {
     it('lists notifications on the site in the reader\'s language and marks the shown ones as read', function () {
         $grace = User::factory()->create(['locale' => 'de']);

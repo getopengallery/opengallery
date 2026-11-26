@@ -25,7 +25,6 @@ use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Page;
 use App\Models\Photo;
-use App\Models\Role as RoleModel;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\Dashboard\SiteHealth as SiteHealthChecks;
@@ -35,36 +34,6 @@ use Filament\Widgets\AccountWidget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Once;
 use Livewire\Livewire;
-
-/**
- * A user of one of the audited types: a built-in role, or a custom role
- * with exactly these permissions.
- *
- * @param  Role|list<Permission>  $type
- */
-function dashboardUser(Role|array $type): User
-{
-    $user = User::factory()->create();
-
-    if ($type instanceof Role) {
-        return tap($user)->assignRole($type->value);
-    }
-
-    $role = RoleModel::findOrCreate('custom-'.md5(serialize($type)));
-    $role->syncPermissions(array_map(fn (Permission $permission) => $permission->value, $type));
-
-    return tap($user)->assignRole($role);
-}
-
-/** @return list<string> keys of the dashboard widgets the signed-in user sees */
-function visibleWidgets(): array
-{
-    return collect(app(DashboardWidgets::class)->all())
-        ->filter(fn (string $widget) => $widget::canView())
-        ->keys()
-        ->values()
-        ->all();
-}
 
 $activity = ['library', 'activity-calendar', 'activity-trends', 'recent-activity', 'popular-albums'];
 
@@ -83,7 +52,7 @@ dataset('user types', [
 
 describe('who sees which widget', function () {
     it('matches the capabilities of each user type', function (Role|array $type, array $expected) {
-        $user = dashboardUser($type);
+        $user = userWithRoleOrPermissions($type);
         $this->actingAs($user);
 
         expect(visibleWidgets())->toBe($expected);
@@ -94,7 +63,7 @@ describe('who sees which widget', function () {
     })->with('user types');
 
     it('never leaves an admin user on an empty dashboard', function () {
-        $this->actingAs(dashboardUser([Permission::AccessAdmin]))
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin]))
             ->get('/admin')
             ->assertOk()
             ->assertSee('Your account can open the media library and the documentation.')
@@ -104,7 +73,7 @@ describe('who sees which widget', function () {
     });
 
     it('offers only shortcuts the user may follow', function () {
-        $this->actingAs(dashboardUser([Permission::AccessAdmin, Permission::ManagePages]));
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ManagePages]));
 
         Livewire::test(QuickActions::class)
             ->assertSee('New page')
@@ -115,7 +84,7 @@ describe('who sees which widget', function () {
     });
 
     it('offers a new album to those who may create albums', function () {
-        $this->actingAs(dashboardUser([Permission::AccessAdmin, Permission::CreateAlbums]));
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin, Permission::CreateAlbums]));
 
         Livewire::test(QuickActions::class)
             ->assertSee('New album')
@@ -123,7 +92,7 @@ describe('who sees which widget', function () {
     });
 
     it('shows the trash only while it holds something of the viewer', function () {
-        $uploader = dashboardUser(Role::Uploader);
+        $uploader = userWithRoleOrPermissions(Role::Uploader);
         $this->actingAs($uploader);
         tap(Album::factory()->for(User::factory(), 'owner')->create())->delete();
 
@@ -147,7 +116,7 @@ describe('only what the viewer may see', function () {
     });
 
     it('leaves private albums out of the most viewed albums for people who cannot open them', function () {
-        $this->actingAs(dashboardUser([Permission::AccessAdmin, Permission::ViewActivity]));
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ViewActivity]));
 
         Livewire::test(PopularAlbums::class)
             ->assertSee('Open day')
@@ -156,7 +125,7 @@ describe('only what the viewer may see', function () {
     });
 
     it('lists every album for staff who may see them, linked to the album editor', function () {
-        $this->actingAs(dashboardUser(Role::Moderator));
+        $this->actingAs(userWithRoleOrPermissions(Role::Moderator));
 
         Livewire::test(PopularAlbums::class)
             ->assertSee('Private camp')
@@ -167,7 +136,7 @@ describe('only what the viewer may see', function () {
         $hiddenPhoto = Photo::factory()->inAlbum($this->private)->create(['title' => 'Hidden photo']);
         ActivityEvent::factory()->create(['type' => ActivityType::Updated, 'subject_type' => $hiddenPhoto->getMorphClass(), 'subject_id' => $hiddenPhoto->id, 'properties' => ['label' => 'Hidden photo']]);
         ActivityEvent::factory()->create(['type' => ActivityType::Updated, 'subject_type' => $this->private->getMorphClass(), 'subject_id' => $this->private->id]);
-        $analyst = dashboardUser([Permission::AccessAdmin, Permission::ViewActivity]);
+        $analyst = userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ViewActivity]);
 
         expect(DashboardStats::recent($analyst)->pluck('album_id')->filter()->unique()->values()->all())->toBe([$this->public->id]);
 
@@ -182,28 +151,28 @@ describe('only what the viewer may see', function () {
         $member = User::factory()->create(['name' => 'Grace']);
         ActivityEvent::factory()->create(['type' => ActivityType::Updated, 'subject_type' => $member->getMorphClass(), 'subject_id' => $member->id]);
 
-        $this->actingAs(dashboardUser([Permission::AccessAdmin, Permission::ViewActivity]));
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ViewActivity]));
         Livewire::test(RecentActivity::class)->assertSee('Grace')->assertDontSee(UserResource::getUrl('edit', ['record' => $member]));
 
-        $this->actingAs(dashboardUser(Role::Admin));
+        $this->actingAs(userWithRoleOrPermissions(Role::Admin));
         Livewire::test(RecentActivity::class)->assertSee(UserResource::getUrl('edit', ['record' => $member]));
     });
 
     it('shows a moderator albums needing attention, but uploaders only their own', function () {
-        $owner = dashboardUser(Role::Uploader);
+        $owner = userWithRoleOrPermissions(Role::Uploader);
         $empty = Album::factory()->for($owner, 'owner')->create(['title' => 'Still empty']);
         $expiring = Album::factory()->for($owner, 'owner')->create(['title' => 'Expiring soon', 'visibility' => Visibility::Registered, 'access_expires_at' => now()->addDays(3)]);
         Photo::factory()->inAlbum($expiring)->create();
         $expiring->update(['cover_photo_id' => $expiring->photos()->first()->id]);
 
-        $this->actingAs(dashboardUser(Role::Moderator));
+        $this->actingAs(userWithRoleOrPermissions(Role::Moderator));
         Livewire::test(AlbumsNeedingAttention::class)
             ->assertSee('Still empty')
             ->assertSee('Expiring soon')
             ->assertSee('Link expires soon')
             ->assertSee($owner->name);
 
-        $this->actingAs(dashboardUser(Role::Uploader));
+        $this->actingAs(userWithRoleOrPermissions(Role::Uploader));
         expect(AlbumsNeedingAttention::canView())->toBeFalse();
         Livewire::test(YourAlbums::class)->assertDontSee('Still empty');
     });
@@ -211,7 +180,7 @@ describe('only what the viewer may see', function () {
 
 describe('personal widgets', function () {
     it('points uploaders to photos waiting in "Unsorted uploads" and flags expiring links', function () {
-        $uploader = dashboardUser(Role::Uploader);
+        $uploader = userWithRoleOrPermissions(Role::Uploader);
         Photo::factory()->count(2)->inAlbum(Album::inbox($uploader))->create(['uploader_id' => $uploader->id]);
         Album::factory()->for($uploader, 'owner')->create(['title' => 'Party', 'visibility' => Visibility::Public, 'access_expires_at' => now()->subDay()]);
 
@@ -223,13 +192,13 @@ describe('personal widgets', function () {
     });
 
     it('tells people who may only upload where their photos go', function () {
-        $this->actingAs(dashboardUser([Permission::AccessAdmin, Permission::UploadPhotos]));
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin, Permission::UploadPhotos]));
 
         Livewire::test(YourAlbums::class)->assertSee('Photos you upload wait in “Unsorted uploads”');
     });
 
     it('shows only the viewer\'s own uploads', function () {
-        $uploader = dashboardUser(Role::Uploader);
+        $uploader = userWithRoleOrPermissions(Role::Uploader);
         $album = Album::factory()->for($uploader, 'owner')->create();
         $mine = Photo::factory()->inAlbum($album)->create(['title' => 'Mine', 'uploader_id' => $uploader->id]);
         Photo::factory()->inAlbum($album)->create(['title' => 'Someone else\'s', 'uploader_id' => User::factory()]);
@@ -252,8 +221,8 @@ describe('members, pages and site health', function () {
             ['email' => 'fresh@example.com', 'token' => 'a', 'created_at' => now()->subDay()],
             ['email' => 'old@example.com', 'token' => 'b', 'created_at' => now()->subDays(30)],
         ]);
-        $manager = dashboardUser([Permission::AccessAdmin, Permission::ManageUsers]);
-        $admin = dashboardUser(Role::Admin);
+        $manager = userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ManageUsers]);
+        $admin = userWithRoleOrPermissions(Role::Admin);
 
         $this->actingAs($manager);
         $html = Livewire::test(MembersOverview::class)
@@ -277,7 +246,7 @@ describe('members, pages and site health', function () {
         Page::factory()->draft()->create(['title' => 'Coming soon']);
         Page::factory()->create(['title' => 'About us']);
 
-        $this->actingAs(dashboardUser([Permission::AccessAdmin, Permission::ManagePages]));
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ManagePages]));
         Livewire::test(PagesOverview::class)
             ->assertSee('Published: 1. Drafts: 1. For members only: 0.')
             ->assertSee('Coming soon')
@@ -285,7 +254,7 @@ describe('members, pages and site health', function () {
     });
 
     it('reports problems with a link to what fixes them, and says so when all is well', function () {
-        $this->actingAs(dashboardUser([Permission::AccessAdmin, Permission::ManageSettings]));
+        $this->actingAs(userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ManageSettings]));
         config(['gallery.activity_log_level' => ActivityLevel::All->value, 'mail.default' => 'smtp']);
 
         Livewire::test(SiteHealth::class)->assertSee('checks passed');
@@ -300,14 +269,14 @@ describe('members, pages and site health', function () {
     it('notices when the background jobs do not run', function () {
         Setting::put(SiteSettings::BACKGROUND_JOBS, BackgroundJobMode::Cron->value);
 
-        $this->actingAs(dashboardUser(Role::Admin));
+        $this->actingAs(userWithRoleOrPermissions(Role::Admin));
         Livewire::test(SiteHealth::class)
             ->assertSee('Background jobs do not run')
             ->assertSee('System → Background jobs');
     });
 
     it('links settings problems to the page that fixes them', function (string $problem, string $page) {
-        $this->actingAs(dashboardUser(Role::Admin));
+        $this->actingAs(userWithRoleOrPermissions(Role::Admin));
 
         $url = SiteHealth::describe(['key' => $problem, 'severity' => SiteHealthChecks::WARNING, 'count' => null])['url'];
 
@@ -351,7 +320,7 @@ it('counts album views and logins per week', function () {
         ->and([$weeks[11]['memberViews'], $weeks[11]['guestViews'], $weeks[11]['logins']])->toBe([1, 1, 0])
         ->and($weeks[10]['logins'])->toBe(1);
 
-    $this->actingAs(dashboardUser(Role::Admin));
+    $this->actingAs(userWithRoleOrPermissions(Role::Admin));
     // Leads with the last full week; the running week (2 views so far) is drawn hatched.
     Livewire::test(ActivityTrends::class)
         ->assertSeeInOrder(['og-trend-value og-num">0<', 'album views last week', 'og-trend-value og-num">1<', 'login last week'], false)
@@ -359,7 +328,7 @@ it('counts album views and logins per week', function () {
 });
 
 it('keeps the number of queries independent of the size of the library', function (string $widget) {
-    $admin = dashboardUser(Role::Admin);
+    $admin = userWithRoleOrPermissions(Role::Admin);
     $this->actingAs($admin);
 
     $queries = function () use ($widget): int {

@@ -3,7 +3,6 @@
 use App\Enums\ActivityLevel;
 use App\Enums\ActivityType;
 use App\Enums\PhotoOrder;
-use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Filament\Clusters\Settings\Pages\ActivityLogSettings;
 use App\Filament\Clusters\Settings\Pages\PhotoSettings;
@@ -11,21 +10,12 @@ use App\Filament\Resources\Albums\Pages\CreateAlbum;
 use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Setting;
-use App\Models\User;
 use App\Support\SiteSettings;
 use Illuminate\Auth\Events\Login;
 use Livewire\Livewire;
 
-function settingsAdmin(): User
-{
-    $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
 it('saves the default photo order and uses it for new albums only', function () {
-    settingsAdmin();
+    actingAsRole();
     $existing = Album::factory()->create();
 
     Livewire::test(PhotoSettings::class)
@@ -47,7 +37,7 @@ it('keeps an order chosen explicitly for an album', function () {
 });
 
 it('records only what the chosen detail level includes', function (ActivityLevel $level, bool $changes, bool $logins, bool $views) {
-    $admin = settingsAdmin();
+    $admin = actingAsRole();
     config(['gallery.activity_log_level' => $level->value]);
     $before = (int) ActivityEvent::max('id');
     $album = Album::factory()->visibility(Visibility::Public)->create();
@@ -69,7 +59,7 @@ it('records only what the chosen detail level includes', function (ActivityLevel
 ]);
 
 it('saves the activity log level in Settings', function () {
-    settingsAdmin();
+    actingAsRole();
 
     Livewire::test(ActivityLogSettings::class)
         ->fillForm(['activity_level' => ActivityLevel::ChangesAndLogins->value])
@@ -91,7 +81,7 @@ it('keeps the choice of installs that only had the old on/off switch', function 
 });
 
 it('keeps activity entries for the chosen number of days', function () {
-    settingsAdmin();
+    actingAsRole();
 
     Livewire::test(ActivityLogSettings::class)
         ->fillForm(['activity_retention' => 30])
@@ -110,7 +100,7 @@ it('keeps activity entries for the chosen number of days', function () {
 });
 
 it('rejects a retention period outside the allowed range', function (mixed $days) {
-    settingsAdmin();
+    actingAsRole();
 
     Livewire::test(ActivityLogSettings::class)
         ->fillForm(['activity_retention' => $days])
@@ -128,7 +118,7 @@ describe('lightbox and download settings', function () {
     });
 
     it('saves them on the photo settings page', function () {
-        settingsAdmin();
+        actingAsRole();
 
         Livewire::test(PhotoSettings::class)
             ->assertFormSet(['downloads_enabled' => false, 'favorites_enabled' => true, 'slideshow_seconds' => 5])
@@ -150,7 +140,7 @@ describe('lightbox and download settings', function () {
     });
 
     it('rejects slideshow seconds outside the allowed range', function (int $seconds) {
-        settingsAdmin();
+        actingAsRole();
 
         Livewire::test(PhotoSettings::class)
             ->fillForm(['slideshow_enabled' => true, 'slideshow_seconds' => $seconds])
@@ -164,7 +154,7 @@ describe('lightbox and download settings', function () {
     ]);
 
     it('accepts the limits themselves', function (int $seconds) {
-        settingsAdmin();
+        actingAsRole();
 
         Livewire::test(PhotoSettings::class)
             ->fillForm(['slideshow_seconds' => $seconds])
@@ -181,7 +171,7 @@ describe('lightbox and download settings', function () {
     })->with([[1, 2], [500, 60], [0, 5]]);
 
     it('shows the seconds only with the slideshow on and the location option only with downloads on', function () {
-        settingsAdmin();
+        actingAsRole();
 
         Livewire::test(PhotoSettings::class)
             ->fillForm(['slideshow_enabled' => false, 'downloads_enabled' => false])

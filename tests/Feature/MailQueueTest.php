@@ -5,12 +5,9 @@ use App\Enums\CollaboratorRole;
 use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Filament\Clusters\Settings\Pages\EmailSettings;
-use App\Filament\Resources\Groups\Pages\EditGroup;
-use App\Filament\Resources\Groups\RelationManagers\MembersRelationManager;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Livewire\DatabaseNotifications;
 use App\Models\Album;
-use App\Models\Group;
 use App\Models\Setting;
 use App\Models\TestMail;
 use App\Models\User;
@@ -21,9 +18,7 @@ use App\Support\BackgroundJobs;
 use App\Support\Dashboard\SiteHealth;
 use App\Support\MailQueue;
 use App\Support\SecurityNotices;
-use App\Support\ShareNotices;
 use App\Support\SiteSettings;
-use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -31,36 +26,6 @@ use Livewire\Livewire;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractTransport;
-
-/** E-mail that counts as delivered, kept in memory by the mailer. */
-function deliverToMemory(): void
-{
-    config(['mail.default' => 'smtp', 'mail.mailers.smtp' => ['transport' => 'array']]);
-    Mail::purge();
-}
-
-function mailsSent(): int
-{
-    return app('mail.manager')->mailer('smtp')->getSymfonyTransport()->messages()->count();
-}
-
-function mailJobs(): int
-{
-    return DB::table('jobs')->where('queue', MailQueue::MAIL)->count();
-}
-
-/** @return array{0: User, 1: Album} */
-function restrictedAlbumBy(string $name = 'Ada'): array
-{
-    return [User::factory()->create(['name' => $name]), Album::factory()->visibility(Visibility::Restricted)->create(['title' => 'Camp'])];
-}
-
-/** @param  list<User>  $people */
-function shareWith(Album $album, array $people, User $by): void
-{
-    $album->sharedUsers()->attach(collect($people)->pluck('id')->all());
-    ShareNotices::notifyNew($album, [], $by);
-}
 
 describe('sending in portions', function () {
     it('tells people in the gallery at once and leaves the e-mail to the background jobs', function () {
@@ -230,27 +195,6 @@ describe('blocked logins', function () {
 });
 
 describe('joining a group', function () {
-    /** @return array{0: User, 1: Group, 2: Album} */
-    function groupWithAlbum(): array
-    {
-        $ada = tap(User::factory()->create(['name' => 'Ada']))->assignRole(Role::SuperAdmin->value);
-        $group = Group::factory()->create();
-        $album = Album::factory()->visibility(Visibility::Restricted)->create();
-        $album->sharedGroups()->attach($group);
-        test()->actingAs($ada);
-
-        return [$ada, $group, $album];
-    }
-
-    function addMembers(Group $group, array $people, bool $tell = true): void
-    {
-        Livewire::test(MembersRelationManager::class, ['ownerRecord' => $group, 'pageClass' => EditGroup::class])
-            ->callAction(TestAction::make('attach')->table(), data: [
-                'recordId' => collect($people)->pluck('id')->all(),
-                'notify_group_access' => $tell,
-            ])
-            ->assertHasNoFormErrors();
-    }
 
     it('tells new members once, however many albums the group gives them', function () {
         Notification::fake();

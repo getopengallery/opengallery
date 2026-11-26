@@ -22,25 +22,13 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Js;
 use Livewire\Livewire;
 
-/** A super admin, optionally with their own language. */
-function localeAdmin(?string $locale = null): User
-{
-    return tap(User::factory()->create(['locale' => $locale]))->assignRole(Role::SuperAdmin->value);
-}
-
-function useDefaultLocale(string $locale): void
-{
-    Setting::put(SiteSettings::LOCALE, $locale);
-    SiteSettings::apply();
-}
-
 it('offers English and every language core ships a translation for', function () {
     expect(Locales::available())->toHaveKeys(['en', 'de'])
         ->and(Locales::available()['de'])->toBe('Deutsch');
 });
 
 it('saves the default language in the admin settings', function () {
-    $this->actingAs(localeAdmin());
+    $this->actingAs(userWithRole(Role::SuperAdmin));
 
     Livewire::test(GeneralSettings::class)
         ->set('data.locale', 'de')
@@ -52,7 +40,7 @@ it('saves the default language in the admin settings', function () {
 });
 
 it('rejects a default language core has no translation for', function () {
-    $this->actingAs(localeAdmin());
+    $this->actingAs(userWithRole(Role::SuperAdmin));
 
     Livewire::test(GeneralSettings::class)
         ->set('data.locale', 'xx')
@@ -73,7 +61,7 @@ it('shows visitors the site in the default language', function () {
 
 it('shows a user the site and the admin in their own language, whatever the default', function () {
     useDefaultLocale('de');
-    $admin = localeAdmin('en');
+    $admin = userWithRole(Role::SuperAdmin, ['locale' => 'en']);
 
     $this->actingAs($admin)->get(route('profile.edit'))
         ->assertOk()
@@ -89,7 +77,7 @@ it('shows a user the site and the admin in their own language, whatever the defa
 it('follows the default language for users who have not chosen one', function () {
     useDefaultLocale('de');
 
-    $this->actingAs(localeAdmin())->get(GeneralSettings::getUrl())
+    $this->actingAs(userWithRole(Role::SuperAdmin))->get(GeneralSettings::getUrl())
         ->assertOk()
         ->assertSee('Standardsprache')
         ->assertSee('Benutzer &amp; Zugang', false);
@@ -141,7 +129,7 @@ it('sends e-mails in the recipient\'s language', function () {
 });
 
 it('records changes in English and shows them in the reader\'s language', function () {
-    $this->actingAs(localeAdmin('de'));
+    $this->actingAs(userWithRole(Role::SuperAdmin, ['locale' => 'de']));
     $album = Album::factory()->create(['title' => 'Sommer', 'visibility' => Visibility::Private]);
     $this->travel(1)->hour(); // past the window in which changes merge into the "created" entry
 
@@ -157,7 +145,7 @@ it('records changes in English and shows them in the reader\'s language', functi
 });
 
 it('shows a plugin\'s and a theme\'s own texts from their language files', function () {
-    $this->actingAs(localeAdmin('de'));
+    $this->actingAs(userWithRole(Role::SuperAdmin, ['locale' => 'de']));
 
     $this->get(route('filament.admin.pages.plugins'))
         ->assertOk()
@@ -196,7 +184,7 @@ it('labels admin search results in the reader\'s language', function () {
 });
 
 it('passes the photo field\'s count and remove label to the browser in the reader\'s language', function () {
-    $this->actingAs(localeAdmin('de'));
+    $this->actingAs(userWithRole(Role::SuperAdmin, ['locale' => 'de']));
 
     $this->get(AlbumResource::getUrl('create'))
         ->assertOk()

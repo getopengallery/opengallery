@@ -13,10 +13,8 @@ use App\Filament\Pages\Themes;
 use App\Filament\Resources\ActivityEvents\ActivityEventResource;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Albums\Pages\CreateAlbum;
-use App\Filament\Resources\Albums\Pages\EditAlbum;
 use App\Filament\Resources\Albums\Pages\ListAlbums;
 use App\Filament\Resources\Albums\Pages\ListTrashedAlbums;
-use App\Filament\Resources\Albums\RelationManagers\PhotosRelationManager;
 use App\Filament\Resources\Groups\GroupResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Photos\PhotoResource;
@@ -41,16 +39,6 @@ beforeEach(function () {
     Storage::fake('gallery');
     Storage::fake('local');
 });
-
-function albumPage(Album $album): mixed
-{
-    return Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()]);
-}
-
-function albumPhotosSection(Album $album): mixed
-{
-    return Livewire::test(PhotosRelationManager::class, ['ownerRecord' => $album, 'pageClass' => EditAlbum::class]);
-}
 
 describe('entering the admin', function () {
     it('takes a member with a role from the admin home to the albums list', function () {
@@ -592,12 +580,6 @@ describe('sub-albums', function () {
 });
 
 describe('deleting sub-albums you created', function () {
-    function subAlbumCreatedBy(User $creator, Album $parent): Album
-    {
-        test()->actingAs($creator);
-
-        return Album::create(['title' => 'Day 1', 'parent_id' => $parent->id, 'owner_id' => $parent->owner_id]);
-    }
 
     it('records who created a sub-album and ignores a crafted creator', function () {
         $album = Album::factory()->create();
@@ -679,8 +661,8 @@ describe('deleting sub-albums you created', function () {
         $album = Album::factory()->create();
         $creator = addCollaborator($album, CollaboratorRole::Organizer);
         $subAlbum = subAlbumCreatedBy($creator, $album);
-        $ownersPhoto = collaborationPhoto($subAlbum, $album->owner);
-        $ownUpload = collaborationPhoto($subAlbum, $creator);
+        $ownersPhoto = galleryPhoto($subAlbum, $album->owner);
+        $ownUpload = galleryPhoto($subAlbum, $creator);
         $subAlbum->delete();
         $this->actingAs($creator);
 

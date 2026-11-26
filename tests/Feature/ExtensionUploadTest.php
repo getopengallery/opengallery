@@ -29,34 +29,6 @@ beforeEach(function () {
 
 afterEach(fn () => File::deleteDirectory($this->root));
 
-/**
- * Builds a zip file from path => contents; a null content adds a symbolic link.
- *
- * @param  array<string, string|null>  $files
- * @return string the zip's path, in the test's folder
- */
-function extensionZipPath(array $files): string
-{
-    $path = test()->root.'/'.uniqid('zip');
-    $zip = new ZipArchive;
-    $zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-    foreach ($files as $file => $contents) {
-        $zip->addFromString($file, $contents ?? '/etc/passwd');
-        if ($contents === null) {
-            $zip->setExternalAttributesName($file, ZipArchive::OPSYS_UNIX, (0120777 << 16));
-        }
-    }
-    $zip->close();
-
-    return $path;
-}
-
-/** @param  array<string, string|null>  $files */
-function extensionZip(array $files, string $name = 'package.zip'): UploadedFile
-{
-    return UploadedFile::fake()->createWithContent($name, (string) file_get_contents(extensionZipPath($files)));
-}
-
 it('installs an uploaded theme folder from the Themes page and logs it', function () {
     Livewire::test(Themes::class)
         ->callAction('upload', data: ['package' => extensionZip([

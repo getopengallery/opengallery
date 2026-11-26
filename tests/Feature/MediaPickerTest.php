@@ -1,8 +1,6 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\Permission;
-use App\Enums\Role;
 use App\Livewire\MediaPicker;
 use App\Models\Album;
 use App\Models\Photo;
@@ -15,25 +13,9 @@ use Livewire\Livewire;
 
 beforeEach(fn () => Storage::fake('gallery'));
 
-function poolPhoto(Album $album, ?User $uploader = null, string $name = 'Photo.jpg'): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor(200, 150), $path);
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, $name, $uploader);
-}
-
-function pickerAdmin(): User
-{
-    $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
 it('hands back the chosen photos with their thumbnails, in several-photos mode', function () {
-    pickerAdmin();
-    [$a, $b] = [poolPhoto(Album::factory()->create(), name: 'A.jpg'), poolPhoto(Album::factory()->create(), name: 'B.jpg')];
+    actingAsRole();
+    [$a, $b] = [galleryPhoto(Album::factory()->create(), name: 'A.jpg', width: 200, height: 150), galleryPhoto(Album::factory()->create(), name: 'B.jpg', width: 200, height: 150)];
 
     Livewire::test(MediaPicker::class, ['key' => 'gallery-1'])
         ->selectTableRecords([$a->id, $b->id])
@@ -44,8 +26,8 @@ it('hands back the chosen photos with their thumbnails, in several-photos mode',
 });
 
 it('hands back one photo in single mode and has no select-all', function () {
-    pickerAdmin();
-    $photo = poolPhoto(Album::factory()->create());
+    actingAsRole();
+    $photo = galleryPhoto(Album::factory()->create(), width: 200, height: 150);
 
     Livewire::test(MediaPicker::class, ['key' => 'cover', 'multiple' => false])
         ->assertActionDoesNotExist(TestAction::make('selectAll')->table())
@@ -55,10 +37,10 @@ it('hands back one photo in single mode and has no select-all', function () {
 });
 
 it('narrows the pool to an album or leaves its photos out', function () {
-    pickerAdmin();
+    actingAsRole();
     $album = Album::factory()->create();
-    $in = poolPhoto($album);
-    $out = poolPhoto(Album::factory()->create());
+    $in = galleryPhoto($album, width: 200, height: 150);
+    $out = galleryPhoto(Album::factory()->create(), width: 200, height: 150);
 
     Livewire::test(MediaPicker::class, ['key' => 'k', 'scopeAlbumId' => $album->id, 'scope' => 'only'])
         ->assertCanSeeTableRecords([$in])->assertCanNotSeeTableRecords([$out]);
@@ -68,7 +50,7 @@ it('narrows the pool to an album or leaves its photos out', function () {
 
 it('uploads dropped photos into the configured place and selects them', function () {
     Storage::fake('local');
-    pickerAdmin();
+    actingAsRole();
     $album = Album::factory()->create();
 
     $picker = Livewire::test(MediaPicker::class, ['key' => 'cover', 'multiple' => false, 'scopeAlbumId' => $album->id, 'scope' => 'only', 'uploadTo' => 'page-images'])
@@ -91,8 +73,8 @@ it('uploads dropped photos into the configured place and selects them', function
 
 it('keeps the selection and filters while uploads arrive in batches', function () {
     Storage::fake('local');
-    $admin = pickerAdmin();
-    $earlier = poolPhoto(Album::factory()->create(), $admin);
+    $admin = actingAsRole();
+    $earlier = galleryPhoto(Album::factory()->create(), $admin, width: 200, height: 150);
 
     $picker = Livewire::test(MediaPicker::class, ['key' => 'k', 'uploadTo' => 'inbox'])
         ->filterTable('uploader', $admin->id);
@@ -113,7 +95,7 @@ it('keeps the selection and filters while uploads arrive in batches', function (
 
 it('redraws the grid only once the upload has finished', function () {
     Storage::fake('local');
-    pickerAdmin();
+    actingAsRole();
     $picker = Livewire::test(MediaPicker::class, ['key' => 'k', 'uploadTo' => 'inbox']);
     $photoId = uploadPhotoInChunks('inbox', 'lake-view.jpg')->assertOk()->json('photo');
 
@@ -126,8 +108,8 @@ it('redraws the grid only once the upload has finished', function () {
 });
 
 it('only selects uploaded photos that are the person\'s own', function () {
-    pickerAdmin();
-    $someoneElses = poolPhoto(Album::factory()->create(), User::factory()->create());
+    actingAsRole();
+    $someoneElses = galleryPhoto(Album::factory()->create(), User::factory()->create(), width: 200, height: 150);
 
     Livewire::test(MediaPicker::class, ['key' => 'k', 'uploadTo' => 'inbox'])
         ->call('addUploaded', [$someoneElses->id, 'x', 999999])
@@ -141,17 +123,17 @@ it('offers the drop zone only where the user may upload', function () {
     Livewire::test(MediaPicker::class, ['key' => 'k', 'uploadTo' => 'inbox'])
         ->assertDontSeeHtml('ogPhotoUploader');
 
-    pickerAdmin();
+    actingAsRole();
     Livewire::test(MediaPicker::class, ['key' => 'k'])
         ->assertDontSeeHtml('ogPhotoUploader');
 });
 
 it('filters by an upload date range', function () {
-    pickerAdmin();
+    actingAsRole();
     $album = Album::factory()->create();
-    $old = poolPhoto($album, name: 'Old.jpg');
+    $old = galleryPhoto($album, name: 'Old.jpg', width: 200, height: 150);
     $old->forceFill(['created_at' => now()->subMonths(2)])->saveQuietly();
-    $new = poolPhoto($album, name: 'New.jpg');
+    $new = galleryPhoto($album, name: 'New.jpg', width: 200, height: 150);
 
     Livewire::test(MediaPicker::class, ['key' => 'k'])
         ->filterTable('uploaded', ['from' => now()->subMonths(3)->toDateString(), 'until' => now()->subMonth()->toDateString()])
@@ -163,13 +145,13 @@ it('only opens for staff and keeps its settings out of reach of the browser', fu
     $this->actingAs(User::factory()->create());
     Livewire::test(MediaPicker::class, ['key' => 'k'])->assertForbidden();
 
-    pickerAdmin();
+    actingAsRole();
     Livewire::test(MediaPicker::class, ['key' => 'k', 'uploadTo' => 'inbox'])
         ->set('uploadTo', 'album:999');
 })->throws(CannotUpdateLockedPropertyException::class);
 
 it('escapes the opener\'s handler so it survives inside the HTML attribute', function () {
-    pickerAdmin();
+    actingAsRole();
 
     $html = view('filament.media-picker.modal', [
         'key' => 'album-photos-1', 'multiple' => true, 'confirmLabel' => 'Add to album',

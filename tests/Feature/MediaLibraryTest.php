@@ -1,6 +1,5 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\ActivityType;
 use App\Enums\Permission;
 use App\Enums\Role;
@@ -27,25 +26,8 @@ use Livewire\Livewire;
 
 beforeEach(fn () => Storage::fake('gallery'));
 
-/** A real photo (with media files) in $album, uploaded by $uploader. */
-function photoIn(Album $album, ?User $uploader = null, string $name = 'Lake.jpg', int $width = 300, int $height = 200): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor($width, $height), $path);
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, $name, $uploader);
-}
-
-/** Staff with admin access but without "view any album": sees only what their albums allow. */
-function helper(): User
-{
-    RoleModel::findOrCreate('helper')->syncPermissions([Permission::AccessAdmin->value, Permission::UploadPhotos->value]);
-
-    return tap(User::factory()->create())->assignRole('helper');
-}
-
 it('lists every photo for staff who may view any album', function () {
-    $photos = [photoIn(Album::factory()->create()), photoIn(Album::factory()->visibility(Visibility::Public)->create())];
+    $photos = [galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200), galleryPhoto(Album::factory()->visibility(Visibility::Public)->create(), name: 'Lake.jpg', width: 300, height: 200)];
 
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Moderator->value));
 
@@ -53,10 +35,10 @@ it('lists every photo for staff who may view any album', function () {
 });
 
 it('lists only photos from visible albums and own uploads for other staff', function () {
-    $helper = helper();
-    $public = photoIn(Album::factory()->visibility(Visibility::Public)->create());
-    $own = photoIn(Album::factory()->create(), $helper);
-    $hidden = photoIn(Album::factory()->create());
+    $helper = uploadOnlyStaff();
+    $public = galleryPhoto(Album::factory()->visibility(Visibility::Public)->create(), name: 'Lake.jpg', width: 300, height: 200);
+    $own = galleryPhoto(Album::factory()->create(), $helper, 'Lake.jpg', 300, 200);
+    $hidden = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
 
     $this->actingAs($helper);
 
@@ -97,7 +79,7 @@ it('shows where a photo is, who uploaded it and its camera data', function () {
     $admin = tap(User::factory()->create(['name' => 'Ada Admin']))->assignRole(Role::Admin->value);
     $parent = Album::factory()->create(['title' => 'Summer camp']);
     $album = Album::factory()->create(['title' => 'Day 3', 'parent_id' => $parent->id]);
-    $photo = photoIn($album, $admin, 'Hike.jpg');
+    $photo = galleryPhoto($album, $admin, 'Hike.jpg', 300, 200);
     $photo->update(['exif' => ['Model' => 'X100V', 'FNumber' => '28/10', 'ExposureTime' => '1/250']]);
 
     $this->actingAs($admin)
@@ -112,11 +94,11 @@ it('shows where a photo is, who uploaded it and its camera data', function () {
 });
 
 it('edits a photo and changes its albums only within the user\'s rights', function () {
-    $helper = helper();
+    $helper = uploadOnlyStaff();
     $from = Album::factory()->for($helper, 'owner')->create(['title' => 'Camp']);
     $to = Album::factory()->for($helper, 'owner')->create(['title' => 'Best of']);
     $foreign = Album::factory()->create(['title' => 'Not mine']);
-    $photo = photoIn($from, $helper);
+    $photo = galleryPhoto($from, $helper, 'Lake.jpg', 300, 200);
     $this->actingAs($helper);
 
     Livewire::test(EditPhoto::class, ['record' => $photo->id])
@@ -143,7 +125,7 @@ describe('photos in several albums', function () {
     it('shows a photo in every album it is in, and to everyone who can see one of them', function () {
         $private = Album::factory()->create(['title' => 'Family only']);
         $public = Album::factory()->visibility(Visibility::Public)->create(['title' => 'Best of']);
-        $photo = photoIn($private);
+        $photo = galleryPhoto($private, name: 'Lake.jpg', width: 300, height: 200);
         $public->addPhotos($photo);
         $thumb = route('media.show', [$photo->original(), 'thumb']);
 
@@ -160,7 +142,7 @@ describe('photos in several albums', function () {
         $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
         $camp = Album::factory()->create(['title' => 'Camp']);
         $best = Album::factory()->create(['title' => 'Best of']);
-        [$a, $b] = [photoIn($camp, name: 'A.jpg'), photoIn($camp, name: 'B.jpg')];
+        [$a, $b] = [galleryPhoto($camp, name: 'A.jpg', width: 300, height: 200), galleryPhoto($camp, name: 'B.jpg', width: 300, height: 200)];
 
         Livewire::test(ListPhotos::class)
             ->selectTableRecords([$a->id])
@@ -180,9 +162,9 @@ describe('photos in several albums', function () {
     });
 
     it('lets only people who manage all of a photo\'s albums move it to the trash', function () {
-        $helper = helper();
+        $helper = uploadOnlyStaff();
         $mine = Album::factory()->for($helper, 'owner')->create();
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $mine->addPhotos($photo);
 
         expect($helper->can('update', $photo))->toBeTrue()
@@ -192,7 +174,7 @@ describe('photos in several albums', function () {
     it('moves existing photos into the album they were in when upgrading', function () {
         $migration = require database_path('migrations/2026_11_14_000000_create_album_photo_table.php');
         $album = Album::factory()->create();
-        $photo = photoIn($album);
+        $photo = galleryPhoto($album, name: 'Lake.jpg', width: 300, height: 200);
 
         $migration->down();
         expect(DB::table('photos')->where('id', $photo->id)->value('album_id'))->toBe($album->id);
@@ -203,7 +185,7 @@ describe('photos in several albums', function () {
 });
 
 it('shows the media library as a grid of compact tiles and remembers a switch to the list', function () {
-    $photo = photoIn(Album::factory()->create(), name: 'Grid.jpg');
+    $photo = galleryPhoto(Album::factory()->create(), name: 'Grid.jpg', width: 300, height: 200);
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
     Livewire::test(ListPhotos::class)
@@ -219,8 +201,8 @@ it('shows the media library as a grid of compact tiles and remembers a switch to
 
 it('lays grid tiles out in each photo\'s shape, loading the first at once and offering the small size', function () {
     $album = Album::factory()->create();
-    photoIn($album, name: 'Wide.jpg');
-    $portrait = photoIn($album, name: 'Tall.jpg', width: 200, height: 300);
+    galleryPhoto($album, name: 'Wide.jpg', width: 300, height: 200);
+    $portrait = galleryPhoto($album, name: 'Tall.jpg', width: 200, height: 300);
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
     Livewire::test(ListPhotos::class)
@@ -244,7 +226,7 @@ it('loads the script that completes the rows of the photo grids on admin pages',
 
 it('moves photos to the trash, hides them from the album and passes the cover on', function () {
     $album = Album::factory()->visibility(Visibility::Public)->create();
-    [$first, $second] = [photoIn($album, name: 'One.jpg'), photoIn($album, name: 'Two.jpg')];
+    [$first, $second] = [galleryPhoto($album, name: 'One.jpg', width: 300, height: 200), galleryPhoto($album, name: 'Two.jpg', width: 300, height: 200)];
     $media = $first->original();
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
@@ -258,11 +240,11 @@ it('moves photos to the trash, hides them from the album and passes the cover on
 });
 
 it('keeps trashed photos on the trash page, counted for the person', function () {
-    $this->actingAs(helper());
+    $this->actingAs(uploadOnlyStaff());
     $mine = Album::factory()->for(auth()->user(), 'owner')->create();
-    $kept = photoIn($mine, auth()->user(), 'Kept.jpg');
-    $trashed = tap(photoIn($mine, auth()->user(), 'Gone.jpg'))->delete();
-    tap(photoIn(Album::factory()->create(), name: 'Hidden.jpg'))->delete();
+    $kept = galleryPhoto($mine, auth()->user(), 'Kept.jpg', 300, 200);
+    $trashed = tap(galleryPhoto($mine, auth()->user(), 'Gone.jpg', 300, 200))->delete();
+    tap(galleryPhoto(Album::factory()->create(), name: 'Hidden.jpg', width: 300, height: 200))->delete();
 
     Livewire::test(ListPhotos::class)
         ->assertCanSeeTableRecords([$kept])
@@ -277,7 +259,7 @@ it('keeps trashed photos on the trash page, counted for the person', function ()
 
 it('restores photos and deletes them permanently including their files', function () {
     $album = Album::factory()->create();
-    $photo = photoIn($album);
+    $photo = galleryPhoto($album, name: 'Lake.jpg', width: 300, height: 200);
     $file = $photo->original()->getPathRelativeToRoot();
     $photo->delete();
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
@@ -297,8 +279,8 @@ it('restores photos and deletes them permanently including their files', functio
 });
 
 it('does not let staff delete photos they may not manage', function () {
-    $helper = helper();
-    $photo = photoIn(Album::factory()->visibility(Visibility::Public)->create());
+    $helper = uploadOnlyStaff();
+    $photo = galleryPhoto(Album::factory()->visibility(Visibility::Public)->create(), name: 'Lake.jpg', width: 300, height: 200);
 
     $this->actingAs($helper);
 
@@ -309,9 +291,9 @@ it('does not let staff delete photos they may not manage', function () {
 it('filters the media library by upload date', function () {
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
     $album = Album::factory()->create();
-    $old = photoIn($album, name: 'Old.jpg');
+    $old = galleryPhoto($album, name: 'Old.jpg', width: 300, height: 200);
     $old->forceFill(['created_at' => now()->subYear()])->saveQuietly();
-    $new = photoIn($album, name: 'New.jpg');
+    $new = galleryPhoto($album, name: 'New.jpg', width: 300, height: 200);
 
     Livewire::test(ListPhotos::class)
         ->filterTable('uploaded', ['from' => now()->subWeek()->toDateString()])
@@ -378,7 +360,7 @@ describe('uploading from the media library', function () {
 it('creates a private album of the person\'s own from the selected photos and opens it', function () {
     $uploader = tap(User::factory()->create(['name' => 'Ada']))->assignRole(Role::Uploader->value);
     $mine = Album::factory()->for($uploader, 'owner')->create();
-    [$first, $second] = [photoIn($mine, $uploader, 'First.jpg'), photoIn($mine, $uploader, 'Second.jpg')];
+    [$first, $second] = [galleryPhoto($mine, $uploader, 'First.jpg', 300, 200), galleryPhoto($mine, $uploader, 'Second.jpg', 300, 200)];
     $this->actingAs($uploader);
 
     $page = Livewire::test(ListPhotos::class)
@@ -395,7 +377,7 @@ it('creates a private album of the person\'s own from the selected photos and op
 });
 
 it('offers a new album from the selection only to people who may create albums', function () {
-    $this->actingAs(helper());
+    $this->actingAs(uploadOnlyStaff());
 
     Livewire::test(ListPhotos::class)
         ->assertActionHidden(TestAction::make('newAlbum')->table()->bulk());
@@ -404,7 +386,7 @@ it('offers a new album from the selection only to people who may create albums',
 it('offers the original for download only to people who may download it', function () {
     RoleModel::findOrCreate('viewer-staff')->syncPermissions([Permission::AccessAdmin->value, Permission::ViewAnyAlbum->value]);
     $owner = tap(User::factory()->create())->assignRole(Role::Uploader->value);
-    $photo = photoIn(Album::factory()->for($owner, 'owner')->create());
+    $photo = galleryPhoto(Album::factory()->for($owner, 'owner')->create(), name: 'Lake.jpg', width: 300, height: 200);
     $download = route('media.show', ['media' => $photo->original(), 'download' => 1]);
 
     $this->actingAs(tap(User::factory()->create())->assignRole('viewer-staff'))
@@ -420,7 +402,7 @@ it('offers the original for download only to people who may download it', functi
 it('links the albums and the uploader in the list layout and cuts long titles and names short', function () {
     $album = Album::factory()->create(['title' => 'Summer trip']);
     $uploader = User::factory()->create(['name' => str_repeat('Long name ', 8)]);
-    $photo = photoIn($album, $uploader, name: 'Linked.jpg');
+    $photo = galleryPhoto($album, $uploader, 'Linked.jpg', 300, 200);
     $photo->update(['title' => str_repeat('Very long title ', 6)]);
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
@@ -439,7 +421,7 @@ it('links the albums and the uploader in the list layout and cuts long titles an
 it('shows the albums and the uploader as plain text to people who may not open them', function () {
     $album = Album::factory()->create(['title' => 'Summer trip', 'visibility' => Visibility::Public]);
     $uploader = tap(User::factory()->create())->assignRole(Role::Uploader->value);
-    $photo = photoIn($album, $uploader, name: 'Plain.jpg');
+    $photo = galleryPhoto($album, $uploader, 'Plain.jpg', 300, 200);
     $this->actingAs($uploader);
 
     Livewire::test(ListPhotos::class)
@@ -453,7 +435,7 @@ it('shows the albums and the uploader as plain text to people who may not open t
 it('links the albums, cover albums and uploader on the photo page for people who may open them', function () {
     $album = Album::factory()->create(['title' => 'Summer trip']);
     $uploader = User::factory()->create();
-    $photo = photoIn($album, $uploader, name: 'Detail.jpg');
+    $photo = galleryPhoto($album, $uploader, 'Detail.jpg', 300, 200);
     $album->update(['cover_photo_id' => $photo->id]);
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
@@ -466,7 +448,7 @@ it('links the albums, cover albums and uploader on the photo page for people who
 it('shows the albums and uploader on the photo page as plain text to people who may not open them', function () {
     $album = Album::factory()->create(['title' => 'Summer trip', 'visibility' => Visibility::Public]);
     $uploader = tap(User::factory()->create())->assignRole(Role::Uploader->value);
-    $photo = photoIn($album, $uploader, name: 'Plain.jpg');
+    $photo = galleryPhoto($album, $uploader, 'Plain.jpg', 300, 200);
     $this->actingAs($uploader);
 
     $this->get(PhotoResource::getUrl('edit', ['record' => $photo]))
@@ -479,7 +461,7 @@ it('shows the albums and uploader on the photo page as plain text to people who 
 it('shows the edit page like the photo page, with the taken date, albums and tags as the editable parts', function () {
     $album = Album::factory()->create(['title' => 'Summer trip']);
     $uploader = User::factory()->create();
-    $photo = photoIn($album, $uploader, name: 'Edit.jpg');
+    $photo = galleryPhoto($album, $uploader, 'Edit.jpg', 300, 200);
     $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
     Livewire::test(EditPhoto::class, ['record' => $photo->id])
@@ -497,7 +479,7 @@ it('shows the edit page like the photo page, with the taken date, albums and tag
 
 describe('the photo page for editors and everyone else', function () {
     it('sends an editor who opens the view URL to the edit page', function () {
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
 
         $this->actingAs($admin)
@@ -507,7 +489,7 @@ describe('the photo page for editors and everyone else', function () {
 
     it('keeps a person who may view but not edit the photo on the read-only page', function () {
         RoleModel::findOrCreate('viewer-staff')->syncPermissions([Permission::AccessAdmin->value, Permission::ViewAnyAlbum->value]);
-        $photo = photoIn(Album::factory()->create(['title' => 'Family only']));
+        $photo = galleryPhoto(Album::factory()->create(['title' => 'Family only']), name: 'Lake.jpg', width: 300, height: 200);
 
         $this->actingAs(tap(User::factory()->create())->assignRole('viewer-staff'))
             ->get(PhotoResource::getUrl('view', ['record' => $photo]))
@@ -516,7 +498,7 @@ describe('the photo page for editors and everyone else', function () {
     });
 
     it('sends everyone who opens the edit URL of a trashed photo to the view page', function () {
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $photo->delete();
 
         $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value))
@@ -525,7 +507,7 @@ describe('the photo page for editors and everyone else', function () {
     });
 
     it('opens editable only for people who may edit a photo that is not in the trash', function () {
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $viewer = tap(User::factory()->create())->assignRole(RoleModel::findOrCreate('viewer-staff')->syncPermissions([Permission::AccessAdmin->value, Permission::ViewAnyAlbum->value]));
 
         $this->actingAs($viewer);
@@ -543,7 +525,7 @@ describe('the photo page for editors and everyone else', function () {
 
     it('links each list row to the photo page that fits the person and has only Move to trash as a record action', function () {
         $owner = tap(User::factory()->create())->assignRole(Role::Uploader->value);
-        $mine = photoIn(Album::factory()->for($owner, 'owner')->create(), $owner);
+        $mine = galleryPhoto(Album::factory()->for($owner, 'owner')->create(), $owner, 'Lake.jpg', 300, 200);
         $this->actingAs($owner);
 
         $list = Livewire::test(ListPhotos::class)->call('setLayout', ListPhotos::LIST);
@@ -556,7 +538,7 @@ describe('the photo page for editors and everyone else', function () {
 
     it('links a list row to the read-only page for people who may not edit the photo', function () {
         RoleModel::findOrCreate('viewer-staff')->syncPermissions([Permission::AccessAdmin->value, Permission::ViewAnyAlbum->value]);
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $this->actingAs(tap(User::factory()->create())->assignRole('viewer-staff'));
 
         $list = Livewire::test(ListPhotos::class)->call('setLayout', ListPhotos::LIST);
@@ -565,7 +547,7 @@ describe('the photo page for editors and everyone else', function () {
     });
 
     it('keeps view, restore and delete permanently as the record actions of the trash list', function () {
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $photo->delete();
         $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
@@ -577,7 +559,7 @@ describe('the photo page for editors and everyone else', function () {
     });
 
     it('saves a photo and stays on the edit page', function () {
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
         Livewire::test(EditPhoto::class, ['record' => $photo->id])
@@ -590,7 +572,7 @@ describe('the photo page for editors and everyone else', function () {
     });
 
     it('restores a photo from the read-only page and sends an editor on to the edit page', function () {
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $photo->delete();
         $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
 
@@ -603,7 +585,7 @@ describe('the photo page for editors and everyone else', function () {
     });
 
     it('uses the photo page that fits the person for the activity link of a photo', function () {
-        $photo = photoIn(Album::factory()->create());
+        $photo = galleryPhoto(Album::factory()->create(), name: 'Lake.jpg', width: 300, height: 200);
         $event = ActivityEvent::factory()->make();
         $event->setRelation('subject', $photo);
         $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));

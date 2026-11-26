@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Role;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Models\Album;
@@ -11,11 +10,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Filament\Schemas\Components\Text;
 use Livewire\Livewire;
-
-function adminUser(): User
-{
-    return tap(User::factory()->create())->assignRole(Role::Admin->value);
-}
 
 it('keeps a user\'s albums when the user row is deleted directly', function () {
     $album = Album::factory()->create();
@@ -28,7 +22,7 @@ it('keeps a user\'s albums when the user row is deleted directly', function () {
 
 describe('in the admin', function () {
     it('lists the albums and gives them to the person deleting by default', function () {
-        $admin = adminUser();
+        $admin = userWithRole();
         $this->actingAs($admin);
         $user = User::factory()->create();
         $album = Album::factory()->for($user, 'owner')->create(['title' => 'Summer camp']);
@@ -58,7 +52,7 @@ describe('in the admin', function () {
     });
 
     it('gives the albums to another chosen person', function () {
-        $this->actingAs(adminUser());
+        $this->actingAs(userWithRole());
         $user = User::factory()->create();
         $heir = User::factory()->create();
         $album = Album::factory()->for($user, 'owner')->create();
@@ -71,7 +65,7 @@ describe('in the admin', function () {
     });
 
     it('deletes a person from their row in the users list, asking who gets their albums', function () {
-        $this->actingAs(adminUser());
+        $this->actingAs(userWithRole());
         $user = User::factory()->create();
         $heir = User::factory()->create();
         $album = Album::factory()->for($user, 'owner')->create();
@@ -85,7 +79,7 @@ describe('in the admin', function () {
     });
 
     it('moves the albums to the trash without a new owner, but keeps "Page images"', function () {
-        $this->actingAs(adminUser());
+        $this->actingAs(userWithRole());
         $user = User::factory()->create();
         $album = Album::factory()->for($user, 'owner')->create();
         $inbox = Album::inbox($user);
@@ -106,7 +100,7 @@ describe('in the admin', function () {
     });
 
     it('refuses someone who is being deleted as the new owner', function () {
-        $this->actingAs(adminUser());
+        $this->actingAs(userWithRole());
         $first = User::factory()->create();
         $second = User::factory()->create();
         Album::factory()->for($first, 'owner')->create();
@@ -121,7 +115,7 @@ describe('in the admin', function () {
     });
 
     it('gives the albums of everyone deleted in bulk to the new owner', function () {
-        $admin = adminUser();
+        $admin = userWithRole();
         $this->actingAs($admin);
         $first = User::factory()->create();
         $second = User::factory()->create();

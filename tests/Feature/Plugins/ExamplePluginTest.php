@@ -5,20 +5,6 @@ use App\Extensions\DashboardWidgets;
 use App\Models\User;
 use App\Support\Dashboard\DashboardLayout;
 
-/**
- * Plugins are loaded while the app boots, so these tests turn the Example
- * plugin on through GALLERY_PLUGINS and rebuild the app.
- */
-function bootWithPlugins(string $plugins): void
-{
-    foreach ([fn ($value) => putenv("GALLERY_PLUGINS={$value}"), fn ($value) => $_ENV['GALLERY_PLUGINS'] = $_SERVER['GALLERY_PLUGINS'] = $value] as $set) {
-        $set($plugins);
-    }
-
-    test()->refreshApplication();
-    test()->restoreInMemoryDatabase();
-}
-
 afterEach(function () {
     putenv('GALLERY_PLUGINS=identity-providers');
     $_ENV['GALLERY_PLUGINS'] = $_SERVER['GALLERY_PLUGINS'] = 'identity-providers';

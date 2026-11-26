@@ -13,11 +13,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
-function themeOptions(array $options): void
-{
-    app(ThemeManager::class)->saveOptions('default', $options);
-}
-
 it('applies the chosen palette, and custom colours only while they are turned on', function () {
     themeOptions(['palette' => 'moss', 'custom_colors' => false, 'colors' => ['light' => ['primary' => '#FF0000']], 'radius' => '14px']);
     $css = app(ThemeManager::class)->cssVariables();

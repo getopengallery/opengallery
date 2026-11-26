@@ -17,31 +17,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
-const UPDATE_API = 'api.github.com/repos/getopengallery/opengallery/releases*';
-
-/** @return array<string, mixed> a release as the GitHub API returns it */
-function githubRelease(string $tag, bool $prerelease = false, bool $draft = false): array
-{
-    return [
-        'tag_name' => $tag,
-        'prerelease' => $prerelease,
-        'draft' => $draft,
-        'name' => '<script>alert(1)</script>',
-        'html_url' => 'https://evil.example/download',
-    ];
-}
-
-function turnOnUpdateChecks(UpdateChannel $channel = UpdateChannel::Stable): void
-{
-    Setting::put(SiteSettings::UPDATE_CHECKS, true);
-    Setting::put(SiteSettings::UPDATE_CHANNEL, $channel->value);
-}
-
-function updateAdmin(): User
-{
-    return tap(User::factory()->create())->assignRole(Role::Admin->value);
-}
-
 beforeEach(function () {
     Http::preventStrayRequests();
     config(['gallery.update_repository' => 'getopengallery/opengallery']);
@@ -206,7 +181,7 @@ describe('the settings page', function () {
     });
 
     it('saves the choice and checks right away when turned on', function () {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
         Http::fake([UPDATE_API => Http::response([githubRelease('v1.2.0-dev.1', prerelease: true)])]);
 
         Livewire::test(UpdateSettings::class)
@@ -222,7 +197,7 @@ describe('the settings page', function () {
     });
 
     it('sends no request when saved with checks off', function () {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
         Http::fake();
 
         Livewire::test(UpdateSettings::class)
@@ -235,7 +210,7 @@ describe('the settings page', function () {
     });
 
     it('shows the update with a link to its release', function () {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
         turnOnUpdateChecks();
         Http::fake([UPDATE_API => Http::response([githubRelease('v1.1.0')])]);
         UpdateCheck::run();
@@ -249,7 +224,7 @@ describe('the settings page', function () {
     });
 
     it('shows the installed version as plain text when it has no release page', function (string $version) {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
         File::put($this->versionFile, $version);
 
         Livewire::test(UpdateSettings::class)
@@ -258,7 +233,7 @@ describe('the settings page', function () {
     })->with(['0.2.0-dev', 'dev']);
 
     it('reports the result of a manual check', function (array $response, int $status, string $title) {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
         turnOnUpdateChecks();
         Http::fake([UPDATE_API => Http::response($response, $status)]);
 
@@ -272,7 +247,7 @@ describe('the settings page', function () {
     ]);
 
     it('refuses a manual check while checks are off', function () {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
         Http::fake();
 
         Livewire::test(UpdateSettings::class)->call('checkNow')->assertForbidden();
@@ -289,7 +264,7 @@ describe('the notices in the admin', function () {
     });
 
     it('notes an update in site health', function () {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
 
         Livewire::test(SiteHealth::class)
             ->assertSee('Update available')
@@ -309,21 +284,21 @@ describe('the notices in the admin', function () {
     ]);
 
     it('links the version in the menu to the updates page while update checks are on', function () {
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
 
         $this->get('/admin')->assertOk()->assertSeeHtml('href="'.UpdateSettings::getUrl().'" class="og-link">Version 1.0.0</a>');
     });
 
     it('shows the version in the menu as plain text when update checks are off', function () {
         Setting::put(SiteSettings::UPDATE_CHECKS, false);
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
 
         $this->get('/admin')->assertOk()->assertSee('Version 1.0.0')->assertDontSeeHtml('class="og-link">Version 1.0.0</a>');
     });
 
     it('goes away once the new version is installed', function () {
         File::put($this->versionFile, '1.1.0');
-        $this->actingAs(updateAdmin());
+        $this->actingAs(userWithRole());
 
         $this->get('/admin')->assertOk()->assertDontSee('Update to 1.1.0');
     });

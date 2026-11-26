@@ -1,6 +1,5 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Extensions\ThemeManager;
@@ -11,30 +10,6 @@ use App\Models\User;
 use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
-
-/**
- * The Scrapbook theme is the standalone counterpart to the Default theme:
- * no parent, its own blocks, stylesheet, tokens, settings and wording.
- */
-function useScrapbookTheme(array $options = []): ThemeManager
-{
-    $themes = app(ThemeManager::class);
-    $themes->activate('scrapbook');
-    $themes->saveOptions('scrapbook', $options);
-    $themes->boot();
-
-    return $themes;
-}
-
-function scrapbookAlbumWithPhoto(): Album
-{
-    $album = Album::factory()->visibility(Visibility::Public)->create(['title' => 'Summer fair']);
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor(800, 600), $path);
-    app(AddPhotoToAlbum::class)->handle($album, $path, 'Candy floss.jpg');
-
-    return $album;
-}
 
 beforeEach(fn () => Storage::fake('gallery'));
 

@@ -2,23 +2,9 @@
 
 use App\Enums\Role;
 use App\Filament\Pages\Documentation as DocumentationPage;
-use App\Models\User;
 use App\Support\Documentation;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-
-function useFixtureDocs(): Documentation
-{
-    $docs = new Documentation(base_path('tests/Fixtures/docs'));
-    app()->instance(Documentation::class, $docs);
-
-    return $docs;
-}
-
-function docsUser(Role $role = Role::Admin): User
-{
-    return tap(User::factory()->create())->assignRole($role->value);
-}
 
 it('orders docs and folders by their front matter, unordered ones last by title', function () {
     $docs = useFixtureDocs();
@@ -80,7 +66,7 @@ it('rewrites relative links and images to host-relative urls and strips raw html
 it('shows the documentation page to admin users only', function () {
     useFixtureDocs();
 
-    $this->actingAs(docsUser())
+    $this->actingAs(userWithRole())
         ->get(DocumentationPage::getUrl(['doc' => 'user/albums'], isAbsolute: false))
         ->assertOk()
         ->assertSee('Albums')
@@ -88,7 +74,7 @@ it('shows the documentation page to admin users only', function () {
         ->assertSee('Extra notes')
         ->assertSee(DocumentationPage::getUrl(['doc' => 'user/basics/README']), escape: false);
 
-    $this->actingAs(docsUser(Role::User))
+    $this->actingAs(userWithRole(Role::User))
         ->get(DocumentationPage::getUrl())
         ->assertForbidden();
 });
@@ -123,7 +109,7 @@ it('lists the sections of a doc for the contents', function () {
 
 it('opens another doc in place and ignores docs that do not exist', function () {
     useFixtureDocs();
-    $this->actingAs(docsUser());
+    $this->actingAs(userWithRole());
 
     Livewire::withQueryParams(['doc' => 'user/albums'])
         ->test(DocumentationPage::class)
@@ -140,7 +126,7 @@ it('opens another doc in place and ignores docs that do not exist', function () 
 
 it('shows the folders that lead to the open doc as breadcrumbs', function () {
     useFixtureDocs();
-    $this->actingAs(docsUser());
+    $this->actingAs(userWithRole());
 
     $page = Livewire::withQueryParams(['doc' => 'user/basics/first-steps'])->test(DocumentationPage::class)->instance();
 
@@ -154,7 +140,7 @@ it('shows the folders that lead to the open doc as breadcrumbs', function () {
 it('returns 404 for docs that are not in the docs folder', function () {
     useFixtureDocs();
 
-    $this->actingAs(docsUser())
+    $this->actingAs(userWithRole())
         ->get(DocumentationPage::getUrl(['doc' => '../composer']))
         ->assertNotFound();
 });
@@ -162,13 +148,13 @@ it('returns 404 for docs that are not in the docs folder', function () {
 it('serves doc images to admin users only and nothing outside the assets folder', function () {
     useFixtureDocs();
 
-    $this->actingAs(docsUser())->get(route('docs.asset', ['path' => 'upload.png']))
+    $this->actingAs(userWithRole())->get(route('docs.asset', ['path' => 'upload.png']))
         ->assertOk()
         ->assertHeader('Content-Type', 'image/png');
-    $this->actingAs(docsUser())->get(route('docs.asset', ['path' => 'notes.txt']))->assertNotFound();
-    $this->actingAs(docsUser())->get(route('docs.asset', ['path' => '../README.md']))->assertNotFound();
+    $this->actingAs(userWithRole())->get(route('docs.asset', ['path' => 'notes.txt']))->assertNotFound();
+    $this->actingAs(userWithRole())->get(route('docs.asset', ['path' => '../README.md']))->assertNotFound();
 
-    $this->actingAs(docsUser(Role::User))->get(route('docs.asset', ['path' => 'upload.png']))->assertForbidden();
+    $this->actingAs(userWithRole(Role::User))->get(route('docs.asset', ['path' => 'upload.png']))->assertForbidden();
 });
 
 it('ships a docs index that renders', function () {

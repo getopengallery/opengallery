@@ -13,33 +13,12 @@ use App\Support\SiteSettings;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 
 beforeEach(function () {
     config(['mail.default' => 'smtp', 'gallery.registration_enabled' => true]);
     Notification::fake();
 });
-
-function signUp(string $email = 'grace@example.com'): User
-{
-    test()->post('/register', [
-        'name' => 'Grace',
-        'email' => $email,
-        'password' => 'a-long-password',
-        'password_confirmation' => 'a-long-password',
-    ]);
-
-    // While e-mail works, signing up does not log in, so the form reveals no existing accounts.
-    test()->post('/login', ['email' => $email, 'password' => 'a-long-password']);
-
-    return User::where('email', $email)->sole();
-}
-
-function confirmEmail(User $user): void
-{
-    test()->get(URL::temporarySignedRoute('verification.verify', now()->addHour(), ['id' => $user->id, 'hash' => sha1($user->email)]));
-}
 
 describe('confirming the e-mail address', function () {
     it('asks people who sign up to confirm their address before they use the gallery', function () {

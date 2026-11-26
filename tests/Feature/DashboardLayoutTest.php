@@ -11,49 +11,10 @@ use App\Models\User;
 use App\Support\Dashboard\DashboardLayout;
 use Livewire\Livewire;
 
-/** @return list<array{key: string, hidden: bool, size: string}> the signed-in user's layout without widget classes */
-function layoutOf(User $user): array
-{
-    return array_map(fn (array $entry) => ['key' => $entry['key'], 'hidden' => $entry['hidden'], 'size' => $entry['size']], app(DashboardLayout::class)->entries($user->fresh()));
-}
-
-/** @return list<string> */
-function layoutKeys(User $user): array
-{
-    return array_column(layoutOf($user), 'key');
-}
-
 beforeEach(function () {
     $this->admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
     $this->actingAs($this->admin);
 });
-
-/**
- * A user with a built-in role, or a custom role with exactly these permissions.
- *
- * @param  Role|list<Permission>  $type
- */
-function layoutUser(Role|array $type): User
-{
-    $user = User::factory()->create();
-
-    if ($type instanceof Role) {
-        return tap($user)->assignRole($type->value);
-    }
-
-    $role = RoleModel::findOrCreate('layout-'.md5(serialize($type)));
-    $role->syncPermissions(array_map(fn (Permission $permission) => $permission->value, $type));
-
-    return tap($user)->assignRole($role);
-}
-
-/** @return array<string, string> the signed-in user's default arrangement, key => size */
-function defaultsOf(User $user): array
-{
-    test()->actingAs($user);
-
-    return collect(layoutOf($user))->mapWithKeys(fn (array $entry) => [$entry['key'] => $entry['size']])->all();
-}
 
 $n = DashboardLayout::NORMAL;
 $w = DashboardLayout::WIDE;
@@ -75,7 +36,7 @@ dataset('default layouts', [
 ]);
 
 it('starts each kind of user with the preset that fits what they may see', function (Role|array $type, string $preset, array $expected) {
-    $user = layoutUser($type);
+    $user = userWithRoleOrPermissions($type);
     $this->actingAs($user);
 
     expect(DashboardLayout::presetFor(app(DashboardLayout::class)->available()))->toBe($preset)
@@ -84,7 +45,7 @@ it('starts each kind of user with the preset that fits what they may see', funct
 })->with('default layouts');
 
 it('puts the trash where the preset plans it once it holds something', function () {
-    $uploader = layoutUser(Role::Uploader);
+    $uploader = userWithRoleOrPermissions(Role::Uploader);
     $this->actingAs($uploader);
     Album::factory()->for($uploader, 'owner')->create()->delete();
 

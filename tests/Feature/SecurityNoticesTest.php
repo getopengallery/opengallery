@@ -13,16 +13,9 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Livewire\Livewire;
 
-/** E-mail that leaves the server, with notifications faked. */
-function securityMailWorks(): void
-{
-    config(['mail.default' => 'smtp']);
-    Notification::fake();
-}
-
 describe('password changes', function () {
     it('tells people when they change their password in the profile', function () {
-        securityMailWorks();
+        mailWorks();
         $grace = User::factory()->create();
 
         $this->actingAs($grace)->from('/profile')->put('/password', [
@@ -35,7 +28,7 @@ describe('password changes', function () {
     });
 
     it('tells people when their password is reset with a link', function () {
-        securityMailWorks();
+        mailWorks();
         $grace = User::factory()->create();
 
         $this->post(route('password.store'), [
@@ -49,7 +42,7 @@ describe('password changes', function () {
     });
 
     it('does not warn people who choose their first password through an invitation', function () {
-        securityMailWorks();
+        mailWorks();
         $grace = User::factory()->create(['email' => 'grace@example.com']);
         $link = Invitations::link($grace);
 
@@ -64,7 +57,7 @@ describe('password changes', function () {
     });
 
     it('names the administrator who changed someone\'s password', function () {
-        securityMailWorks();
+        mailWorks();
         $ada = tap(User::factory()->create(['name' => 'Ada']))->assignRole(Role::SuperAdmin->value);
         $grace = User::factory()->create();
         $this->actingAs($ada);
@@ -92,7 +85,7 @@ describe('password changes', function () {
 
 describe('e-mail address changes', function () {
     it('e-mails the old address and tells the account in the gallery', function () {
-        securityMailWorks();
+        mailWorks();
         $grace = User::factory()->create(['email' => 'grace@example.com']);
 
         $this->actingAs($grace)->patch('/profile', ['name' => $grace->name, 'email' => 'new@example.com', 'current_password' => 'password'])
@@ -105,7 +98,7 @@ describe('e-mail address changes', function () {
     });
 
     it('stays quiet when the address stays the same', function () {
-        securityMailWorks();
+        mailWorks();
         $grace = User::factory()->create(['email' => 'grace@example.com']);
 
         $this->actingAs($grace)->patch('/profile', ['name' => 'Grace Hopper', 'email' => 'grace@example.com']);
@@ -116,7 +109,7 @@ describe('e-mail address changes', function () {
 
 describe('blocked logins', function () {
     it('tells people once an hour when their login is blocked after wrong passwords', function () {
-        securityMailWorks();
+        mailWorks();
         $grace = User::factory()->create();
         $attempt = fn () => $this->post('/login', ['email' => $grace->email, 'password' => 'wrong-password']);
 

@@ -12,34 +12,12 @@ use App\Models\Album;
 use App\Models\Group;
 use App\Models\Role as RoleModel;
 use App\Models\User;
-use App\Support\ActivityLog;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-function actingAdmin(): User
-{
-    $admin = tap(User::factory()->create(['name' => 'Ada Admin']))->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
-/** Moves past the merge window, so the next change starts a new entry. */
-function afterMergeWindow(): void
-{
-    test()->travel(ActivityLog::MERGE_SECONDS + 1)->seconds();
-}
-
-/** @return Collection<int, ActivityEvent> */
-function changesBy(User $user): Collection
-{
-    return ActivityEvent::where('user_id', $user->id)->whereNotIn('type', [ActivityType::Login, ActivityType::AlbumView])->get();
-}
-
 it('logs a new album with its sharing as one entry', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $family = Group::factory()->create(['name' => 'Family']);
 
     Livewire::test(CreateAlbum::class)
@@ -57,7 +35,7 @@ it('logs a new album with its sharing as one entry', function () {
 });
 
 it('logs edited album fields with readable before and after values', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $album = Album::factory()->for($admin, 'owner')->create(['title' => 'Camp', 'visibility' => Visibility::Private]);
     afterMergeWindow();
 
@@ -75,7 +53,7 @@ it('logs edited album fields with readable before and after values', function ()
 });
 
 it('logs role changes and password resets without storing the password', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $anna = tap(User::factory()->create(['name' => 'Anna']))->assignRole(Role::User->value);
     $moderator = RoleModel::findByName(Role::Moderator->value);
     afterMergeWindow();
@@ -92,7 +70,7 @@ it('logs role changes and password resets without storing the password', functio
 });
 
 it('logs group membership changes', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $group = Group::factory()->create(['name' => 'Scout leaders']);
     [$anna, $ben] = User::factory()->count(2)->sequence(['name' => 'Anna'], ['name' => 'Ben'])->create();
     $group->users()->attach($ben);
@@ -105,7 +83,7 @@ it('logs group membership changes', function () {
 });
 
 it('merges quick successive changes and starts a new entry after the merge window', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $album = Album::factory()->create(['title' => 'One']);
     afterMergeWindow();
 
@@ -119,7 +97,7 @@ it('merges quick successive changes and starts a new entry after the merge windo
 });
 
 it('drops a change entry when quick changes cancel each other out', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $group = Group::factory()->create();
     $anna = User::factory()->create(['name' => 'Anna']);
     afterMergeWindow();
@@ -133,7 +111,7 @@ it('drops a change entry when quick changes cancel each other out', function () 
 it('logs a batch of photos dropped on the picker as a single upload entry', function () {
     Storage::fake('gallery');
     Storage::fake('local');
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
 
     // Chunked uploads finish one photo per request; the batch id keeps them in one entry.
     $batch = (string) Str::uuid();
@@ -149,7 +127,7 @@ it('logs a batch of photos dropped on the picker as a single upload entry', func
 });
 
 it('logs deleting an album as recoverable from the trash', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $album = Album::factory()->create(['title' => 'Old trip']);
 
     $album->delete();
@@ -168,7 +146,7 @@ it('logs a self sign-up as the new member creating an account', function () {
 });
 
 it('logs which settings changed, not their values', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
 
     Livewire::test(GeneralSettings::class)
         ->set('data.name', 'Lighthouse Photos')
@@ -182,7 +160,7 @@ it('logs which settings changed, not their values', function () {
 
 it('records no changes while the activity log is turned off', function () {
     config(['gallery.activity_log_level' => 'off']);
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
 
     Album::factory()->create()->update(['title' => 'Renamed']);
 
@@ -190,7 +168,7 @@ it('records no changes while the activity log is turned off', function () {
 });
 
 it('shows changes in the dashboard feed as plain text', function () {
-    $admin = actingAdmin();
+    $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
     $album = Album::factory()->create(['title' => 'Before']);
     afterMergeWindow();
 

@@ -1,6 +1,5 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\Permission;
 use App\Enums\Role;
 use App\Enums\Visibility;
@@ -12,7 +11,6 @@ use App\Models\User;
 use App\Notifications\SignUpAttempted;
 use App\Support\AlbumCollaboration;
 use App\Support\Invitations;
-use App\Support\PhotoLocation;
 use App\Support\SiteSettings;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Auth;
@@ -20,123 +18,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
-
-const SECRET_LATITUDE = [52, 1, 31, 1, 1234, 100];
-
-/** A TIFF block as found in EXIF: a camera make and a GPS position. */
-function exifWithPosition(bool $littleEndian = true): string
-{
-    $short = fn (int $value) => pack($littleEndian ? 'v' : 'n', $value);
-    $long = fn (int $value) => pack($littleEndian ? 'V' : 'N', $value);
-    $entry = fn (int $tag, int $type, int $count, string $value) => $short($tag).$short($type).$long($count).$value;
-    $rationals = fn (array $values) => implode('', array_map($long, $values));
-
-    return ($littleEndian ? "II\x2A\0" : "MM\0\x2A").$long(8)
-        // First directory: make, pointer to the GPS block.
-        .$short(2)
-        .$entry(0x010F, 2, 5, $long(38))
-        .$entry(0x8825, 4, 1, $long(44))
-        .$long(0)
-        ."Acme\0\0"
-        // GPS block: latitude and longitude with their references.
-        .$short(4)
-        .$entry(1, 2, 2, "N\0\0\0")
-        .$entry(2, 5, 3, $long(98))
-        .$entry(3, 2, 2, "E\0\0\0")
-        .$entry(4, 5, 3, $long(122))
-        .$long(0)
-        .$rationals(SECRET_LATITUDE)
-        .$rationals([13, 1, 24, 1, 5678, 100]);
-}
-
-function secretLatitudeBytes(bool $littleEndian = true): string
-{
-    return implode('', array_map(fn (int $value) => pack($littleEndian ? 'V' : 'N', $value), SECRET_LATITUDE));
-}
-
-function testImage(string $format): string
-{
-    $image = imagecreatetruecolor(32, 24);
-    ob_start();
-    match ($format) {
-        'jpeg' => imagejpeg($image),
-        'png' => imagepng($image),
-        'webp' => imagewebp($image),
-    };
-
-    return (string) ob_get_clean();
-}
-
-function jpegWithPosition(bool $littleEndian = true, string $extraSegment = ''): string
-{
-    $payload = "Exif\0\0".exifWithPosition($littleEndian);
-
-    return "\xFF\xD8\xFF\xE1".pack('n', strlen($payload) + 2).$payload.$extraSegment.substr(testImage('jpeg'), 2);
-}
-
-function pngChunk(string $type, string $data): string
-{
-    return pack('N', strlen($data)).$type.$data.pack('N', crc32($type.$data));
-}
-
-function pngWithChunk(string $chunk): string
-{
-    $png = testImage('png');
-
-    return substr($png, 0, 33).$chunk.substr($png, 33);
-}
-
-function webpWithPosition(): string
-{
-    $webp = testImage('webp').'';
-    $exif = exifWithPosition();
-    $body = substr($webp, 8).'EXIF'.pack('V', strlen($exif)).$exif;
-
-    return 'RIFF'.pack('V', strlen($body)).$body;
-}
-
-function withoutLocation(string $bytes): string
-{
-    $source = fopen('php://temp', 'w+b');
-    fwrite($source, $bytes);
-    rewind($source);
-    $result = PhotoLocation::withoutLocation($source);
-    $clean = (string) stream_get_contents($result);
-    fclose($result);
-
-    return $clean;
-}
-
-function pngChecksumsAreValid(string $png): bool
-{
-    for ($position = 8; $position + 12 <= strlen($png);) {
-        $length = unpack('N', substr($png, $position, 4))[1];
-        $stored = unpack('N', substr($png, $position + 8 + $length, 4))[1];
-
-        if (crc32(substr($png, $position + 4, 4 + $length)) !== $stored) {
-            return false;
-        }
-
-        $position += 12 + $length;
-    }
-
-    return true;
-}
-
-function photoWithPosition(Album $album, ?User $uploader = null): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    file_put_contents($path, jpegWithPosition());
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, 'Lake.jpg', $uploader);
-}
-
-/** Forgets who is logged in between requests, as a new request from that browser would. */
-function nextRequest(): void
-{
-    Auth::forgetGuards();
-    app()->forgetScopedInstances();
-}
 
 describe('links in e-mails', function () {
     it('builds the reset link from the site address when the Host header is forged', function () {
@@ -164,7 +45,7 @@ describe('reusing photos', function () {
         $viewer = tap(User::factory()->create())->assignRole(Role::Uploader->value);
         $restricted = Album::factory()->create(['owner_id' => $owner->id, 'visibility' => Visibility::Restricted]);
         $restricted->sharedUsers()->attach($viewer);
-        $photo = collaborationPhoto($restricted, $owner);
+        $photo = galleryPhoto($restricted, $owner);
         $own = Album::factory()->create(['owner_id' => $viewer->id, 'visibility' => Visibility::Public, 'allow_downloads' => true]);
 
         $this->actingAs($viewer);
@@ -182,7 +63,7 @@ describe('reusing photos', function () {
     it('matches who may edit a photo', function (Closure $person, bool $reusable) {
         $owner = User::factory()->create();
         $album = Album::factory()->create(['owner_id' => $owner->id, 'visibility' => Visibility::Public]);
-        $photo = collaborationPhoto($album, User::factory()->create());
+        $photo = galleryPhoto($album, User::factory()->create());
         $user = $person($album, $photo, $owner);
 
         expect(Photo::reusableBy($user)->whereKey($photo->id)->exists())->toBe($reusable)
@@ -197,9 +78,9 @@ describe('reusing photos', function () {
     it('leaves photos the person cannot edit out when adding to their own album', function () {
         $viewer = tap(User::factory()->create())->assignRole(Role::Uploader->value);
         $public = Album::factory()->create(['owner_id' => User::factory()->create()->id, 'visibility' => Visibility::Public]);
-        $foreign = collaborationPhoto($public, $public->owner);
+        $foreign = galleryPhoto($public, $public->owner);
         $own = Album::factory()->create(['owner_id' => $viewer->id]);
-        $mine = collaborationPhoto($own, $viewer);
+        $mine = galleryPhoto($own, $viewer);
 
         expect(AlbumCollaboration::addablePhotoIds($own, $viewer, [$foreign->id, $mine->id]))->toBe([$mine->id]);
     });
@@ -235,8 +116,8 @@ describe('sessions and e-mail changes', function () {
         $user = User::factory()->create(['password' => 'old-password-123']);
         $private = Album::factory()->create(['owner_id' => $user->id, 'visibility' => Visibility::Private]);
         $public = Album::factory()->create(['owner_id' => $user->id, 'visibility' => Visibility::Public]);
-        $hidden = collaborationPhoto($private, $user)->original();
-        $open = collaborationPhoto($public, $user)->original();
+        $hidden = galleryPhoto($private, $user)->original();
+        $open = galleryPhoto($public, $user)->original();
         $this->post('/login', ['email' => $user->email, 'password' => 'old-password-123']);
         $this->get('/profile')->assertOk();
 
@@ -474,7 +355,7 @@ describe('location in photo files', function () {
     });
 
     it('leaves a file without a position untouched', function () {
-        $image = testImage('jpeg');
+        $image = imageBytes('jpeg');
 
         expect(withoutLocation($image))->toBe($image);
     });

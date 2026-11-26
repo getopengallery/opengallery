@@ -7,14 +7,6 @@ use App\Models\Album;
 use App\Models\User;
 use App\Support\AdminTheme;
 
-function useFixtureThemes(): ThemeManager
-{
-    $themes = new ThemeManager(base_path('tests/Fixtures/themes'), 'plain');
-    app()->instance(ThemeManager::class, $themes);
-
-    return $themes;
-}
-
 it('ships a default theme with light and dark tokens', function () {
     $themes = app(ThemeManager::class);
 

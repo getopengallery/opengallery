@@ -5,14 +5,12 @@ use App\Enums\Role;
 use App\Models\Album;
 use App\Models\Photo;
 use App\Models\Pivots\AlbumPhoto;
-use App\Models\User;
 use App\Support\PhotoUploads;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Testing\TestResponse;
 use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAddedEvent;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -21,31 +19,8 @@ beforeEach(function () {
     Storage::fake('local');
 });
 
-function uploaderUser(Role $role = Role::Admin): User
-{
-    $user = tap(User::factory()->create())->assignRole($role->value);
-    test()->actingAs($user);
-
-    return $user;
-}
-
-/** @param array<string, mixed> $fields */
-function postChunk(array $fields, string $content): TestResponse
-{
-    return test()->postJson(route('uploads.photos'), [
-        'upload' => (string) Str::uuid(),
-        'batch' => (string) Str::uuid(),
-        'target' => 'inbox',
-        'name' => 'photo.jpg',
-        'size' => strlen($content),
-        'offset' => 0,
-        ...$fields,
-        'chunk' => UploadedFile::fake()->createWithContent('chunk', $content),
-    ]);
-}
-
 it('puts a photo uploaded in chunks into the target album', function () {
-    $admin = uploaderUser();
+    $admin = actingAsRole();
     $album = Album::factory()->create();
 
     $photoId = uploadPhotoInChunks("album:{$album->id}", 'Lake view.jpg', chunkSize: 1024)
@@ -62,7 +37,7 @@ it('puts a photo uploaded in chunks into the target album', function () {
 });
 
 it('reports what it has when a chunk arrives at the wrong offset, so the browser can resume', function () {
-    uploaderUser();
+    actingAsRole();
     $upload = (string) Str::uuid();
 
     postChunk(['upload' => $upload, 'size' => 10], 'abcd')->assertOk()->assertExactJson(['received' => 4]);
@@ -72,7 +47,7 @@ it('reports what it has when a chunk arrives at the wrong offset, so the browser
 });
 
 it('answers a repeated last chunk with the same photo instead of a duplicate', function () {
-    uploaderUser();
+    actingAsRole();
     $upload = (string) Str::uuid();
     $image = UploadedFile::fake()->image('x.jpg', 40, 30)->getContent();
 
@@ -83,7 +58,7 @@ it('answers a repeated last chunk with the same photo instead of a duplicate', f
 });
 
 it('finishes the file when the last chunk is sent again after a failed attempt', function () {
-    uploaderUser();
+    actingAsRole();
     $album = Album::factory()->create();
     $upload = (string) Str::uuid();
     $image = UploadedFile::fake()->image('x.jpg', 40, 30)->getContent();
@@ -107,7 +82,7 @@ it('finishes the file when the last chunk is sent again after a failed attempt',
 });
 
 it('leaves no photo behind when its images cannot be stored', function () {
-    uploaderUser();
+    actingAsRole();
     $album = Album::factory()->create();
     $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
     file_put_contents($path, UploadedFile::fake()->image('x.jpg', 40, 30)->getContent());
@@ -122,7 +97,7 @@ it('leaves no photo behind when its images cannot be stored', function () {
 });
 
 it('keeps a photo out of the library until its images are ready', function () {
-    uploaderUser();
+    actingAsRole();
     $album = Album::factory()->create();
     $visibleWhileProcessing = null;
     Event::listen(MediaHasBeenAddedEvent::class, function () use (&$visibleWhileProcessing) {
@@ -136,7 +111,7 @@ it('keeps a photo out of the library until its images are ready', function () {
 });
 
 it('refuses a file that is not an image once it is complete', function () {
-    uploaderUser();
+    actingAsRole();
 
     postChunk(['name' => 'fake.jpg'], 'just some text, not a photo')
         ->assertUnprocessable()
@@ -147,7 +122,7 @@ it('refuses a file that is not an image once it is complete', function () {
 });
 
 it('refuses unsupported file types and files over the limit before anything is stored', function () {
-    uploaderUser();
+    actingAsRole();
     config(['gallery.max_upload_kb' => 1]);
 
     postChunk(['name' => 'movie.mp4'], 'abc')
@@ -159,7 +134,7 @@ it('refuses unsupported file types and files over the limit before anything is s
 });
 
 it('only accepts uploads into places the person may upload to', function () {
-    uploaderUser(Role::Uploader);
+    actingAsRole(Role::Uploader);
     $someoneElses = Album::factory()->create();
 
     postChunk(['target' => "album:{$someoneElses->id}"], 'abc')->assertForbidden();
@@ -181,7 +156,7 @@ it('removes unfinished uploads after a day', function () {
 });
 
 it('keeps an empty upload folder that a running upload has just made', function () {
-    $part = PhotoUploads::partPath(uploaderUser(), (string) Str::uuid());
+    $part = PhotoUploads::partPath(actingAsRole(), (string) Str::uuid());
 
     PhotoUploads::prune();
 
@@ -189,7 +164,7 @@ it('keeps an empty upload folder that a running upload has just made', function 
 });
 
 it('removes an upload folder that has been empty for a day', function () {
-    $folder = dirname(PhotoUploads::partPath(uploaderUser(), (string) Str::uuid()));
+    $folder = dirname(PhotoUploads::partPath(actingAsRole(), (string) Str::uuid()));
     touch($folder, now()->subHours(25)->getTimestamp());
 
     PhotoUploads::prune();

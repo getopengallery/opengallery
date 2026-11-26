@@ -3,11 +3,8 @@
 use App\Enums\Role;
 use App\Enums\UpdateChannel;
 use App\Filament\Clusters\Settings\Pages\UpdateSettings;
-use App\Models\Setting;
 use App\Models\User;
 use App\Support\AppVersion;
-use App\Support\SiteSettings;
-use App\Support\UpdateCheck;
 use App\Support\Updates\ReleaseManifest;
 use App\Support\Updates\ReleasePlan;
 use App\Support\Updates\UpdateFailed;
@@ -20,93 +17,6 @@ use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 require_once __DIR__.'/../../resources/updater/runner.php';
-
-/**
- * A zip with the files every release needs, plus $files.
- *
- * @param  array<string, string>  $files  path inside the release => contents
- * @return array{path: string, files: int, bytes: int}
- */
-function releaseZip(string $folder, string $version, array $files = []): array
-{
-    $contents = [
-        'VERSION' => "{$version}\n",
-        'artisan' => '<?php',
-        'bootstrap/app.php' => '<?php',
-        'public/index.php' => '<?php',
-        'public/build/manifest.json' => '{}',
-        'vendor/autoload.php' => '<?php',
-        ...$files,
-    ];
-    $path = "{$folder}/opengallery-v{$version}.zip";
-    $zip = new ZipArchive;
-    $zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-
-    foreach ($contents as $name => $body) {
-        $zip->addFromString("opengallery/{$name}", $body);
-    }
-
-    $zip->close();
-
-    return ['path' => $path, 'files' => count($contents), 'bytes' => array_sum(array_map('strlen', $contents))];
-}
-
-/** @param  array{path: string, files: int, bytes: int}  $zip */
-function signedManifest(array $zip, string $version, string $secret, array $overrides = []): ReleaseManifest
-{
-    return (new ReleaseManifest(...[
-        'version' => $version,
-        'channel' => ReleaseManifest::channelOf($version),
-        'file' => "opengallery-v{$version}.zip",
-        'size' => (int) filesize($zip['path']),
-        'unpackedSize' => $zip['bytes'],
-        'files' => $zip['files'],
-        'sha256' => hash_file('sha256', $zip['path']),
-        'requiresPhp' => '8.3.0',
-        ...$overrides,
-    ]))->signedWith($secret);
-}
-
-function fakeReleaseHost(string $zipPath, ReleaseManifest $manifest): void
-{
-    $bytes = (string) file_get_contents($zipPath);
-
-    Http::fake(function (Request $request) use ($bytes, $manifest) {
-        if (str_ends_with($request->url(), '.update.json')) {
-            return Http::response(json_encode($manifest->toArray()));
-        }
-
-        preg_match('/bytes=(\d+)-(\d+)/', (string) ($request->header('Range')[0] ?? ''), $range);
-
-        return Http::response(substr($bytes, (int) $range[1], (int) $range[2] - (int) $range[1] + 1), 206);
-    });
-}
-
-function offerRelease(string $version, UpdateChannel $channel = UpdateChannel::Stable): void
-{
-    Setting::put(SiteSettings::UPDATE_CHECKS, true);
-    Setting::put(SiteSettings::UPDATE_CHANNEL, $channel->value);
-    Setting::put(UpdateCheck::STATUS, [
-        'attempted_at' => now()->getTimestamp(),
-        'checked_at' => now()->getTimestamp(),
-        'failed' => false,
-        $channel->value => ['version' => $version, 'url' => "https://github.com/getopengallery/opengallery/releases/tag/v{$version}"],
-    ]);
-}
-
-function updateSuperAdmin(): User
-{
-    return tap(User::factory()->create())->assignRole(Role::SuperAdmin->value);
-}
-
-function prepareRelease(User $user): void
-{
-    UpdateInstaller::start($user);
-
-    do {
-        $progress = UpdateInstaller::advance();
-    } while ($progress['phase'] !== UpdateInstaller::PHASE_READY);
-}
 
 beforeEach(function () {
     Http::preventStrayRequests();
@@ -203,7 +113,7 @@ describe('preparing an update', function () {
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', $this->stableSecret));
         offerRelease('1.1.0');
 
-        prepareRelease(updateSuperAdmin());
+        prepareRelease(userWithRole(Role::SuperAdmin));
 
         expect(UpdateInstaller::preparing()['phase'])->toBe(UpdateInstaller::PHASE_READY)
             ->and(file_get_contents("{$this->root}/updates/staging/vendor/large.bin"))->toBe($body)
@@ -216,7 +126,7 @@ describe('preparing an update', function () {
         $manifest = signedManifest($zip, '1.1.0', $this->stableSecret, ['sha256' => str_repeat('a', 64)]);
         fakeReleaseHost($zip['path'], $manifest);
         offerRelease('1.1.0');
-        UpdateInstaller::start(updateSuperAdmin());
+        UpdateInstaller::start(userWithRole(Role::SuperAdmin));
 
         expect(fn () => UpdateInstaller::advance())->toThrow(UpdateFailed::class, 'not valid')
             ->and(File::exists("{$this->root}/updates"))->toBeFalse();
@@ -231,7 +141,7 @@ describe('preparing an update', function () {
         $zip = ['path' => $zip['path'], 'files' => $zip['files'] + 1, 'bytes' => $zip['bytes'] + 1];
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', $this->stableSecret));
         offerRelease('1.1.0');
-        UpdateInstaller::start(updateSuperAdmin());
+        UpdateInstaller::start(userWithRole(Role::SuperAdmin));
 
         expect(fn () => UpdateInstaller::advance())->toThrow(UpdateFailed::class, 'not valid')
             ->and(File::exists(dirname($this->root).'/evil.php'))->toBeFalse();
@@ -245,7 +155,7 @@ describe('preparing an update', function () {
         $archive->close();
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', $this->stableSecret));
         offerRelease('1.1.0');
-        UpdateInstaller::start(updateSuperAdmin());
+        UpdateInstaller::start(userWithRole(Role::SuperAdmin));
 
         UpdateInstaller::advance();
     })->throws(UpdateFailed::class, 'not valid');
@@ -255,7 +165,7 @@ describe('preparing an update', function () {
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', sodium_crypto_sign_secretkey(sodium_crypto_sign_keypair())));
         offerRelease('1.1.0');
 
-        expect(fn () => UpdateInstaller::start(updateSuperAdmin()))->toThrow(UpdateFailed::class, 'signature')
+        expect(fn () => UpdateInstaller::start(userWithRole(Role::SuperAdmin)))->toThrow(UpdateFailed::class, 'signature')
             ->and(UpdateInstaller::isRunning())->toBeFalse();
         Http::assertNotSent(fn (Request $request) => str_ends_with($request->url(), '.zip'));
     });
@@ -264,7 +174,7 @@ describe('preparing an update', function () {
         Http::fake(['*' => Http::response('', 404)]);
         offerRelease('1.1.0');
 
-        UpdateInstaller::start(updateSuperAdmin());
+        UpdateInstaller::start(userWithRole(Role::SuperAdmin));
     })->throws(UpdateFailed::class, 'by hand');
 
     it('refuses a release this server or version cannot take', function (array $overrides, string $message) {
@@ -272,7 +182,7 @@ describe('preparing an update', function () {
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', $this->stableSecret, $overrides));
         offerRelease('1.1.0');
 
-        expect(fn () => UpdateInstaller::start(updateSuperAdmin()))->toThrow(UpdateFailed::class, $message);
+        expect(fn () => UpdateInstaller::start(userWithRole(Role::SuperAdmin)))->toThrow(UpdateFailed::class, $message);
     })->with([
         'newer PHP' => [['requiresPhp' => '99.0.0'], 'needs PHP'],
         'must update in between' => [['requiresFrom' => '1.0.5'], 'Update to version 1.0.5 first'],
@@ -284,7 +194,7 @@ describe('preparing an update', function () {
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', $this->stableSecret));
         offerRelease('1.1.0');
 
-        UpdateInstaller::start(updateSuperAdmin());
+        UpdateInstaller::start(userWithRole(Role::SuperAdmin));
     })->throws(UpdateFailed::class, 'maintenance');
 
     it('only lets super administrators install, and only while the server allows it', function (Role $role, bool $serverAllows, bool $allowed) {
@@ -304,7 +214,7 @@ describe('handing over to the updater', function () {
         $zip = releaseZip($this->root, '1.1.0');
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', $this->stableSecret));
         offerRelease('1.1.0');
-        $admin = updateSuperAdmin();
+        $admin = userWithRole(Role::SuperAdmin);
         prepareRelease($admin);
 
         $token = UpdateInstaller::handOver($admin);
@@ -320,9 +230,9 @@ describe('handing over to the updater', function () {
         $zip = releaseZip($this->root, '1.1.0');
         fakeReleaseHost($zip['path'], signedManifest($zip, '1.1.0', $this->stableSecret));
         offerRelease('1.1.0');
-        prepareRelease(updateSuperAdmin());
+        prepareRelease(userWithRole(Role::SuperAdmin));
 
-        expect(fn () => UpdateInstaller::handOver(updateSuperAdmin()))->toThrow(UpdateFailed::class)
+        expect(fn () => UpdateInstaller::handOver(userWithRole(Role::SuperAdmin)))->toThrow(UpdateFailed::class)
             ->and(File::exists($this->entry))->toBeFalse();
     });
 });
@@ -496,7 +406,7 @@ describe('the settings page', function () {
     })->with(['startInstall', 'advanceInstall', 'handOverInstall']);
 
     it('needs the current password and limits wrong attempts', function () {
-        $admin = updateSuperAdmin();
+        $admin = userWithRole(Role::SuperAdmin);
         $this->actingAs($admin);
         offerRelease('1.1.0');
         Http::fake();
@@ -515,7 +425,7 @@ describe('the settings page', function () {
     });
 
     it('shows how the last update ended', function (string $status, string $text) {
-        $this->actingAs(updateSuperAdmin());
+        $this->actingAs(userWithRole(Role::SuperAdmin));
         File::put("{$this->root}/update-result.json", json_encode([
             'status' => $status, 'version' => '1.1.0', 'from' => '1.0.0', 'at' => now()->getTimestamp(), 'detail' => null,
         ]));
@@ -526,17 +436,3 @@ describe('the settings page', function () {
         'restored' => ['restored', 'The update to version 1.1.0 failed'],
     ]);
 });
-
-/** @return array<string, string> relative path => contents of every file under $base */
-function siteFiles(string $base): array
-{
-    $files = [];
-
-    foreach (File::allFiles($base, true) as $file) {
-        $files[$file->getRelativePathname()] = $file->getContents();
-    }
-
-    ksort($files);
-
-    return $files;
-}

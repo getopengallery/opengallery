@@ -1,11 +1,9 @@
 <?php
 
 use App\Enums\BackgroundJobMode;
-use App\Enums\Role;
 use App\Filament\Clusters\Settings\Pages\BackgroundJobSettings;
 use App\Models\ActivityEvent;
 use App\Models\Setting;
-use App\Models\User;
 use App\Support\BackgroundJobs;
 use App\Support\Dashboard\SiteHealth as SiteHealthChecks;
 use App\Support\SiteSettings;
@@ -13,21 +11,6 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-
-function chooseBackgroundJobs(BackgroundJobMode $mode): void
-{
-    Setting::put(SiteSettings::BACKGROUND_JOBS, $mode->value);
-}
-
-function backgroundJobsAdmin(): User
-{
-    return tap(User::factory()->create())->assignRole(Role::Admin->value);
-}
-
-function staleActivityEvent(): ActivityEvent
-{
-    return ActivityEvent::factory()->create(['created_at' => now()->subDays(40)]);
-}
 
 beforeEach(function () {
     config(['gallery.activity_retention_days' => 30]);
@@ -125,7 +108,7 @@ describe('webcron', function () {
 
 describe('settings page', function () {
     it('saves what starts the background jobs', function () {
-        $this->actingAs(backgroundJobsAdmin());
+        $this->actingAs(userWithRole());
 
         Livewire::test(BackgroundJobSettings::class)
             ->set('data.background_jobs', BackgroundJobMode::Webcron->value)
@@ -136,7 +119,7 @@ describe('settings page', function () {
     });
 
     it('shows the cron line of this installation and warns until the cron job runs', function () {
-        $this->actingAs(backgroundJobsAdmin());
+        $this->actingAs(userWithRole());
 
         Livewire::test(BackgroundJobSettings::class)
             ->set('data.background_jobs', BackgroundJobMode::Cron->value)
@@ -152,7 +135,7 @@ describe('settings page', function () {
 
     it('replaces the webcron address, so the old one stops working', function () {
         chooseBackgroundJobs(BackgroundJobMode::Webcron);
-        $this->actingAs(backgroundJobsAdmin());
+        $this->actingAs(userWithRole());
         $old = BackgroundJobs::webcronUrl();
 
         Livewire::test(BackgroundJobSettings::class)

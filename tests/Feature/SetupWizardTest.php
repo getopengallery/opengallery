@@ -25,17 +25,6 @@ beforeEach(function () {
     Installation::flush();
 });
 
-/** @return array<string, mixed> session of someone who created (or unlocked with) $admin */
-function setupWizardSession(?User $admin = null, array $extra = []): array
-{
-    return ['setup.started' => true, 'setup.locale' => 'en', ...($admin ? ['setup.admin' => $admin->id] : []), ...$extra];
-}
-
-function setupOwner(string $email = 'owner@example.org'): User
-{
-    return Installation::createSuperAdmin(['name' => 'Owner', 'email' => $email, 'password' => 'a-long-password-1']);
-}
-
 it('sends every page to the setup until the installation is finished', function () {
     $this->get('/')->assertRedirect(url('setup'));
     $this->get('/admin')->assertRedirect(url('setup'));

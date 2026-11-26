@@ -14,25 +14,15 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Testing\TestResponse;
 use Spatie\MediaLibrary\Conversions\Conversion;
 use Spatie\MediaLibrary\Conversions\ConversionCollection;
-
-function addTestPhoto(Album $album): Photo
-{
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    $image = imagecreatetruecolor(800, 600);
-    imagejpeg($image, $path);
-
-    return app(AddPhotoToAlbum::class)->handle($album, $path, 'Holiday Beach.jpg');
-}
 
 beforeEach(fn () => Storage::fake('gallery'));
 
 it('stores the original, generates conversions and sets the album cover', function () {
     $album = Album::factory()->create();
 
-    $photo = addTestPhoto($album);
+    $photo = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600);
     $media = $photo->getFirstMedia(Photo::COLLECTION);
 
     expect($photo->title)->toBe('Holiday Beach')
@@ -46,8 +36,8 @@ it('serves media only to visitors who can see the album', function () {
     $private = Album::factory()->visibility(Visibility::Private)->create();
     $public = Album::factory()->visibility(Visibility::Public)->create();
 
-    $hidden = addTestPhoto($private)->getFirstMedia(Photo::COLLECTION);
-    $shown = addTestPhoto($public)->getFirstMedia(Photo::COLLECTION);
+    $hidden = galleryPhoto($private, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
+    $shown = galleryPhoto($public, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
     $this->get(route('media.show', [$hidden, 'thumb']))->assertNotFound();
     $this->get(route('media.show', [$shown, 'thumb']))->assertOk();
@@ -56,14 +46,14 @@ it('serves media only to visitors who can see the album', function () {
 
 it('rejects unknown conversion names', function () {
     $album = Album::factory()->visibility(Visibility::Public)->create();
-    $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+    $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
     $this->get(route('media.show', [$media, '../../etc']))->assertNotFound();
 });
 
 it('renders album photos in the justified grid at their real aspect ratio', function () {
     $album = Album::factory()->visibility(Visibility::Public)->create();
-    addTestPhoto($album);
+    galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600);
 
     $this->get(route('albums.show', $album))
         ->assertOk()
@@ -74,7 +64,7 @@ it('renders album photos in the justified grid at their real aspect ratio', func
 describe('downloading originals', function () {
     it('gives visitors only screen-size photos unless the album allows downloads', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
         $this->get(route('media.show', [$media, 'preview']))->assertOk();
         $this->get(route('media.show', ['media' => $media, 'download' => 1]))->assertNotFound();
@@ -84,7 +74,7 @@ describe('downloading originals', function () {
     it('lets visitors download the original from an album that allows it', function () {
         Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true]);
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
         $url = route('media.show', ['media' => $media, 'download' => 1]);
 
         $this->get(route('albums.show', $album))->assertOk()->assertSee("{$media->id}?download=1", false);
@@ -96,7 +86,7 @@ describe('downloading originals', function () {
     it('still needs the album password before downloading', function () {
         Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true, 'password' => 'lake-2026']);
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
         $url = route('media.show', ['media' => $media, 'download' => 1]);
 
         $this->get($url)->assertNotFound();
@@ -107,7 +97,7 @@ describe('downloading originals', function () {
 
     it('always lets people who may edit the photo download it', function () {
         $album = Album::factory()->create();
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
         $this->actingAs($album->owner)
             ->get(route('media.show', ['media' => $media, 'download' => 1]))
@@ -115,25 +105,12 @@ describe('downloading originals', function () {
     });
 });
 
-/** File names inside a streamed zip response. */
-function zipEntries(TestResponse $response): array
-{
-    $path = tempnam(sys_get_temp_dir(), 'og-zip');
-    file_put_contents($path, $response->streamedContent());
-    $zip = new ZipArchive;
-    $zip->open($path);
-    $names = collect(range(0, $zip->numFiles - 1))->map(fn (int $i) => $zip->getNameIndex($i))->sort()->values()->all();
-    $zip->close();
-
-    return $names;
-}
-
 describe('zip downloads', function () {
     it('downloads a whole album as a zip when the album allows downloads', function () {
         Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Public)->create(['title' => 'Summer camp', 'allow_downloads' => true]);
-        addTestPhoto($album);
-        addTestPhoto($album);
+        galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600);
+        galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600);
 
         $this->get(route('albums.show', $album))->assertSee(route('albums.download', $album));
         $response = $this->get(route('albums.download', $album));
@@ -145,9 +122,9 @@ describe('zip downloads', function () {
     it('keeps the zip from visitors while downloads are off or the password is missing', function () {
         Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $closed = Album::factory()->visibility(Visibility::Public)->create();
-        addTestPhoto($closed);
+        galleryPhoto($closed, name: 'Holiday Beach.jpg', width: 800, height: 600);
         $locked = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true, 'password' => 'lake-2026']);
-        addTestPhoto($locked);
+        galleryPhoto($locked, name: 'Holiday Beach.jpg', width: 800, height: 600);
 
         $this->get(route('albums.show', $closed))->assertDontSee(route('albums.download', $closed));
         $this->get(route('albums.download', $closed))->assertNotFound();
@@ -158,11 +135,11 @@ describe('zip downloads', function () {
         $owner = User::factory()->create();
         $camp = Album::factory()->for($owner, 'owner')->create(['title' => 'Camp']);
         $day = Album::factory()->for($owner, 'owner')->create(['title' => 'Day 3', 'parent_id' => $camp->id]);
-        $mine = addTestPhoto($camp);
+        $mine = galleryPhoto($camp, name: 'Holiday Beach.jpg', width: 800, height: 600);
         $mine->update(['uploader_id' => $owner->id]);
-        $nested = addTestPhoto($day);
+        $nested = galleryPhoto($day, name: 'Holiday Beach.jpg', width: 800, height: 600);
         $nested->update(['uploader_id' => $owner->id]);
-        addTestPhoto($camp); // someone else's upload
+        galleryPhoto($camp, name: 'Holiday Beach.jpg', width: 800, height: 600); // someone else's upload
 
         $this->actingAs($owner)->get(route('profile.edit'))->assertSee('Download my photos');
         $response = $this->actingAs($owner)->get(route('profile.photos.download'));
@@ -173,7 +150,7 @@ describe('zip downloads', function () {
 });
 
 it('gives the address of a generated conversion and none before it exists', function () {
-    $uploaded = addTestPhoto(Album::factory()->create());
+    $uploaded = galleryPhoto(Album::factory()->create(), name: 'Holiday Beach.jpg', width: 800, height: 600);
     $withoutFile = Photo::factory()->create();
 
     expect($uploaded->mediaUrl('thumb'))->toBe(route('media.show', [$uploaded->original(), 'thumb']))
@@ -183,7 +160,7 @@ it('gives the address of a generated conversion and none before it exists', func
 describe('browser caching of photo files', function () {
     it('lets only the visitor\'s browser keep a photo, and answers an unchanged one with "not modified"', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $url = route('media.show', [addTestPhoto($album)->getFirstMedia(Photo::COLLECTION), 'thumb']);
+        $url = route('media.show', [galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION), 'thumb']);
         $first = $this->get($url)->assertOk()->assertHeader('Cache-Control', 'max-age=86400, private');
 
         $byEtag = $this->get($url, ['If-None-Match' => $first->headers->get('ETag')]);
@@ -195,7 +172,7 @@ describe('browser caching of photo files', function () {
 
     it('sends a photo again once its file was made anew', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
         $url = route('media.show', [$media, 'thumb']);
         $etag = $this->get($url)->headers->get('ETag');
 
@@ -206,7 +183,7 @@ describe('browser caching of photo files', function () {
 
     it('never answers "not modified" to a visitor who may no longer see the photo', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $url = route('media.show', [addTestPhoto($album)->getFirstMedia(Photo::COLLECTION), 'thumb']);
+        $url = route('media.show', [galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION), 'thumb']);
         $etag = $this->get($url)->headers->get('ETag');
 
         $album->update(['visibility' => Visibility::Private]);
@@ -218,9 +195,9 @@ describe('browser caching of photo files', function () {
 it('loads the first photos of a page at once and the rest when scrolled to', function () {
     $album = Album::factory()->visibility(Visibility::Public)->create();
     $subAlbum = Album::factory()->visibility(Visibility::Public)->create(['parent_id' => $album->id]);
-    addTestPhoto($subAlbum);
+    galleryPhoto($subAlbum, name: 'Holiday Beach.jpg', width: 800, height: 600);
     foreach (range(1, 6) as $i) {
-        addTestPhoto($album);
+        galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600);
     }
 
     $response = $this->get(route('albums.show', $album));
@@ -234,7 +211,7 @@ it('loads the first photos of a page at once and the rest when scrolled to', fun
 
 it('makes thumbnails and previews without the image optimizers, at a fixed quality', function (string $conversion) {
     $album = Album::factory()->visibility(Visibility::Public)->create();
-    $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+    $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
     $manipulations = ConversionCollection::createForMedia($media)->getByName($conversion)->getManipulations();
 
@@ -248,7 +225,7 @@ describe('photo requests and the session', function () {
     it('sends photos without writing a session or setting cookies', function () {
         config(['session.driver' => 'database']);
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $url = route('media.show', [addTestPhoto($album)->getFirstMedia(Photo::COLLECTION), 'thumb']);
+        $url = route('media.show', [galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION), 'thumb']);
 
         $response = $this->get($url);
 
@@ -260,7 +237,7 @@ describe('photo requests and the session', function () {
 
     it('still knows who logged in on a page', function () {
         $album = Album::factory()->visibility(Visibility::Private)->create();
-        $url = route('media.show', [addTestPhoto($album)->getFirstMedia(Photo::COLLECTION), 'thumb']);
+        $url = route('media.show', [galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION), 'thumb']);
         $this->post('/login', ['email' => $album->owner->email, 'password' => 'password']);
 
         $this->get($url)->assertOk();
@@ -268,7 +245,7 @@ describe('photo requests and the session', function () {
 
     it('still knows the albums unlocked with a share link', function () {
         $album = Album::factory()->visibility(Visibility::Unlisted)->create();
-        $url = route('media.show', [addTestPhoto($album)->getFirstMedia(Photo::COLLECTION), 'thumb']);
+        $url = route('media.show', [galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION), 'thumb']);
         $this->get($url)->assertNotFound();
 
         $this->get(route('albums.shared', $album->share_token));
@@ -279,7 +256,7 @@ describe('photo requests and the session', function () {
     it('does not sign anyone in from a "remember me" cookie, once per photo', function () {
         Event::fake([Login::class]);
         $album = Album::factory()->visibility(Visibility::Private)->create();
-        $url = route('media.show', [addTestPhoto($album)->getFirstMedia(Photo::COLLECTION), 'thumb']);
+        $url = route('media.show', [galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION), 'thumb']);
         $owner = $album->owner;
         $owner->forceFill(['remember_token' => 'remembered'])->save();
         $recaller = auth()->guard()->getRecallerName();
@@ -294,7 +271,7 @@ describe('photo requests and the session', function () {
 describe('photo sizes', function () {
     it('makes the three sizes of a new photo, each fitting its longest side', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
         $sizes = collect(['preview', 'thumb', 'small'])->mapWithKeys(fn (string $conversion) => [
             $conversion => getimagesizefromstring(Storage::disk('gallery')->get($media->getPathRelativeToRoot($conversion)))[0],
@@ -342,7 +319,7 @@ describe('photo sizes', function () {
 
     it('offers only the large thumbnail while the small one is not made yet', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
         $media->markAsConversionNotGenerated('small');
 
         $response = $this->get(route('albums.show', $album));
@@ -352,7 +329,7 @@ describe('photo sizes', function () {
 
     it('makes the small size of older photos from their thumbnail in the background', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
         Storage::disk('gallery')->delete($media->getPathRelativeToRoot('small'));
         $media->markAsConversionNotGenerated('small');
 
@@ -368,7 +345,7 @@ describe('sending photos through the web server', function () {
     it('names the file to the web server instead of sending it, once access is checked', function (string $mode, string $header, string $expected) {
         config(['gallery.sendfile' => $mode]);
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $media = addTestPhoto($album)->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto($album, name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
         $file = realpath(Storage::disk('gallery')->path($media->getPathRelativeToRoot('thumb')));
 
         $response = $this->get(route('media.show', [$media, 'thumb']));
@@ -383,30 +360,17 @@ describe('sending photos through the web server', function () {
 
     it('still refuses visitors who may not see the photo', function () {
         config(['gallery.sendfile' => 'apache']);
-        $media = addTestPhoto(Album::factory()->visibility(Visibility::Private)->create())->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto(Album::factory()->visibility(Visibility::Private)->create(), name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
         $this->get(route('media.show', [$media, 'thumb']))->assertNotFound()->assertHeaderMissing('X-Sendfile');
     });
 
     it('sends files itself unless it is turned on', function () {
-        $media = addTestPhoto(Album::factory()->visibility(Visibility::Public)->create())->getFirstMedia(Photo::COLLECTION);
+        $media = galleryPhoto(Album::factory()->visibility(Visibility::Public)->create(), name: 'Holiday Beach.jpg', width: 800, height: 600)->getFirstMedia(Photo::COLLECTION);
 
         $this->get(route('media.show', [$media, 'thumb']))->assertOk()->assertHeaderMissing('X-Sendfile')->assertHeaderMissing('X-Accel-Redirect');
     });
 });
-
-/** A JPEG of $width x $height pixels stored with EXIF orientation $orientation, as phones save photos taken upright. */
-function turnedJpeg(int $width, int $height, int $orientation): string
-{
-    ob_start();
-    imagejpeg(imagecreatetruecolor($width, $height));
-    $jpeg = (string) ob_get_clean();
-    $exif = "Exif\x00\x00II*\x00".pack('V', 8).pack('v', 1).pack('vvVvv', 0x0112, 3, 1, $orientation, 0).pack('V', 0);
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    file_put_contents($path, "\xFF\xD8\xFF\xE1".pack('n', strlen($exif) + 2).$exif.substr($jpeg, 2));
-
-    return $path;
-}
 
 describe('photos taken upright', function () {
     it('stores the size of photos taken upright as they are seen, and keeps their files upright', function () {

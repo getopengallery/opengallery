@@ -1,35 +1,16 @@
 <?php
 
-use App\Actions\AddPhotoToAlbum;
 use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Albums\RelationManagers\PhotosRelationManager;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\Album;
-use App\Models\Photo;
-use App\Models\User;
 use App\Support\PhotoGridItems;
-use Illuminate\Support\Facades\Storage;
-
-/** A real photo (with its image files) in $album. */
-function sitePhoto(Album $album, array $attributes = []): Photo
-{
-    Storage::fake('gallery');
-    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
-    imagejpeg(imagecreatetruecolor(160, 120), $path);
-
-    return tap(app(AddPhotoToAlbum::class)->handle($album, $path, 'photo.jpg'))->update($attributes);
-}
-
-function withRole(Role $role): User
-{
-    return tap(User::factory()->create())->assignRole($role->value);
-}
 
 describe('my albums', function () {
     it('tells people who cannot create albums that shared albums will appear there', function () {
-        $this->actingAs(withRole(Role::User))
+        $this->actingAs(userWithRole(Role::User))
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Albums that are shared with you will appear here.')
@@ -38,7 +19,7 @@ describe('my albums', function () {
     });
 
     it('offers people who create albums a New album button when they have none', function () {
-        $this->actingAs(withRole(Role::Uploader))
+        $this->actingAs(userWithRole(Role::Uploader))
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee("You don't have any albums of your own yet.")
@@ -46,7 +27,7 @@ describe('my albums', function () {
     });
 
     it('lists albums without an owner that are shared with the person', function () {
-        $member = withRole(Role::User);
+        $member = userWithRole(Role::User);
         $album = Album::factory()->visibility(Visibility::Restricted)->create(['title' => 'Orphaned camp', 'owner_id' => null]);
         $album->sharedUsers()->attach($member);
 
@@ -59,7 +40,7 @@ describe('my albums', function () {
     });
 
     it('splits a long list of own albums into pages', function () {
-        $uploader = withRole(Role::Uploader);
+        $uploader = userWithRole(Role::Uploader);
         foreach (range(1, 25) as $i) {
             Album::factory()->for($uploader, 'owner')->create([
                 'title' => sprintf('Album %02d', $i),
@@ -76,12 +57,12 @@ describe('my albums', function () {
 
 describe('album list', function () {
     it('offers people who create albums a New album button when they see no albums', function () {
-        $this->actingAs(withRole(Role::Uploader))
+        $this->actingAs(userWithRole(Role::Uploader))
             ->get(route('home'))
             ->assertOk()
             ->assertSee(AlbumResource::getUrl('create'));
 
-        $this->actingAs(withRole(Role::User))
+        $this->actingAs(userWithRole(Role::User))
             ->get(route('home'))
             ->assertOk()
             ->assertDontSee(AlbumResource::getUrl('create'));
@@ -90,7 +71,7 @@ describe('album list', function () {
 
 describe('album page', function () {
     it('gives the owner buttons to add photos and edit the album', function () {
-        $uploader = withRole(Role::Uploader);
+        $uploader = userWithRole(Role::Uploader);
         $album = Album::factory()->for($uploader, 'owner')->create();
 
         $this->actingAs($uploader)
@@ -103,7 +84,7 @@ describe('album page', function () {
     it('gives staff who may edit every album the same buttons on other people\'s albums', function () {
         $album = Album::factory()->visibility(Visibility::Registered)->create();
 
-        $this->actingAs(withRole(Role::Moderator))
+        $this->actingAs(userWithRole(Role::Moderator))
             ->get(route('albums.show', $album))
             ->assertOk()
             ->assertSee(PhotosRelationManager::addPhotosUrl($album))
@@ -111,7 +92,7 @@ describe('album page', function () {
     });
 
     it('shows no admin buttons to people who only see the album', function () {
-        $member = withRole(Role::User);
+        $member = userWithRole(Role::User);
         $album = Album::factory()->visibility(Visibility::Restricted)->create();
         $album->sharedUsers()->attach($member);
 
@@ -123,7 +104,7 @@ describe('album page', function () {
     });
 
     it('lets the owner copy the share link of an unlisted album, but not its visitors', function () {
-        $uploader = withRole(Role::Uploader);
+        $uploader = userWithRole(Role::Uploader);
         $album = Album::factory()->for($uploader, 'owner')->visibility(Visibility::Unlisted)->create();
         $shareUrl = route('albums.shared', $album->share_token);
 
@@ -160,7 +141,7 @@ describe('album page', function () {
 describe('photo viewer', function () {
     it('shows each photo\'s description and date taken in the viewer', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        sitePhoto($album, ['description' => 'Sunset over the lake', 'taken_at' => '2026-07-14 20:30:00']);
+        photoOnFreshDisk($album, ['description' => 'Sunset over the lake', 'taken_at' => '2026-07-14 20:30:00']);
 
         $this->get(route('albums.show', $album))
             ->assertOk()
@@ -170,7 +151,7 @@ describe('photo viewer', function () {
 
     it('numbers photos across pages and links the first and last photo of a page to the neighbouring pages', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        $photos = collect(range(1, 3))->map(fn () => sitePhoto($album));
+        $photos = collect(range(1, 3))->map(fn () => photoOnFreshDisk($album));
 
         $first = PhotoGridItems::from($album->photos()->paginate(2, page: 1))->pluck('lightbox');
         $second = PhotoGridItems::from($album->photos()->paginate(2, page: 2))->pluck('lightbox');
@@ -187,7 +168,7 @@ describe('photo viewer', function () {
 
     it('lets the viewer load the neighbouring page\'s photos instead of opening that page', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
-        collect(range(1, 3))->each(fn () => sitePhoto($album));
+        collect(range(1, 3))->each(fn () => photoOnFreshDisk($album));
 
         $first = PhotoGridItems::from($album->photos()->paginate(2, page: 1))->pluck('lightbox');
         $second = PhotoGridItems::from($album->photos()->paginate(2, page: 2))->pluck('lightbox');
@@ -222,7 +203,7 @@ describe('no access', function () {
     it('tells members who may not see an album what to do, without showing the album', function () {
         $album = Album::factory()->create(['title' => 'Secret plans']);
 
-        $this->actingAs(withRole(Role::User))
+        $this->actingAs(userWithRole(Role::User))
             ->get(route('albums.show', $album))
             ->assertForbidden()
             ->assertSee("You can't open this album")
@@ -237,7 +218,7 @@ describe('no access', function () {
     });
 
     it('shows other refusals in the site\'s look with a way back', function () {
-        $this->actingAs(withRole(Role::Moderator))
+        $this->actingAs(userWithRole(Role::Moderator))
             ->get(UserResource::getUrl())
             ->assertForbidden()
             ->assertSee("You don't have access to this page")

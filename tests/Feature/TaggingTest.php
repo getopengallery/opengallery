@@ -1,8 +1,6 @@
 <?php
 
 use App\Enums\CollaboratorRole;
-use App\Enums\Permission;
-use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Filament\Clusters\Settings\Pages\TagSettings;
 use App\Filament\Resources\Albums\Pages\CreateAlbum;
@@ -16,54 +14,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Support\SiteSettings;
 use App\Support\Tagging;
-use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
-
-function tagAdmin(): User
-{
-    $admin = tap(User::factory()->create())->assignRole(Role::Admin->value);
-    test()->actingAs($admin);
-
-    return $admin;
-}
-
-/** Someone who can open the admin but has no rights on other people's albums. */
-function tagMember(): User
-{
-    return tap(User::factory()->create())->givePermissionTo(Permission::AccessAdmin->value);
-}
-
-function tagged(Album|Photo $record, string ...$names): Album|Photo
-{
-    $record->tags()->syncWithoutDetaching(array_map(fn (string $name) => Tag::firstOrCreate(['normalized' => Tag::normalize($name)], ['name' => $name])->id, $names));
-
-    return $record;
-}
-
-/** @return list<int> */
-function foundAlbums(TestResponse $response): array
-{
-    return collect($response->viewData('albums')->items())->pluck('id')->all();
-}
-
-/** @return list<int> */
-function foundPhotos(TestResponse $response): array
-{
-    return collect($response->viewData('photos')?->items() ?? [])->pluck('id')->all();
-}
-
-/**
- * @param  array<string, mixed>  $parent
- * @return array{0: Album, 1: Album, 2: Photo} a tagged parent, an album two levels below it and a photo there
- */
-function albumTree(bool $passesOn, array $parent = []): array
-{
-    $top = tagged(Album::factory()->visibility(Visibility::Public)->create([...$parent, 'tags_apply_to_sub_albums' => $passesOn]), 'Family');
-    $middle = Album::factory()->visibility(Visibility::Public)->create(['parent_id' => $top->id]);
-    $bottom = Album::factory()->visibility(Visibility::Public)->create(['parent_id' => $middle->id]);
-
-    return [$top, $bottom, Photo::factory()->inAlbum($bottom)->create()];
-}
 
 describe('tag names', function () {
     it('treats case and extra spaces as the same tag and keeps other spellings apart', function () {
@@ -105,7 +56,7 @@ describe('tag names', function () {
 
 describe('editing tags', function () {
     it('adds tags when an album is created and removes them when it is edited', function () {
-        tagAdmin();
+        actingAsRole();
 
         Livewire::test(CreateAlbum::class)
             ->fillForm(['title' => 'Holiday', 'tag_names' => ['Beach', 'Family']])
@@ -125,7 +76,7 @@ describe('editing tags', function () {
     });
 
     it('lets the uploader tag a photo', function () {
-        $uploader = tagMember();
+        $uploader = adminAccessUser();
         $photo = Photo::factory()->inAlbum(Album::factory()->for($uploader, 'owner')->create())->create(['uploader_id' => $uploader->id]);
         $this->actingAs($uploader);
 
@@ -139,7 +90,7 @@ describe('editing tags', function () {
 
     it('does not let a contributor change an album\'s tags', function () {
         $album = tagged(Album::factory()->create(), 'Original');
-        $contributor = addCollaborator($album, CollaboratorRole::Contributor, tagMember());
+        $contributor = addCollaborator($album, CollaboratorRole::Contributor, adminAccessUser());
         $this->actingAs($contributor);
 
         Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
@@ -151,7 +102,7 @@ describe('editing tags', function () {
     });
 
     it('records tag changes in the activity log', function () {
-        tagAdmin();
+        actingAsRole();
         $album = Album::factory()->create();
 
         Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
@@ -207,7 +158,7 @@ describe('suggestions', function () {
     });
 
     it('shows the existing tags in the tag field', function () {
-        tagAdmin();
+        actingAsRole();
         Setting::put(SiteSettings::TAGS_PREDEFINED, ['Predefined one']);
 
         Livewire::test(CreateAlbum::class)
@@ -218,7 +169,7 @@ describe('suggestions', function () {
 
 describe('tags passed on to sub-albums', function () {
     it('is saved with the album form', function () {
-        tagAdmin();
+        actingAsRole();
         $album = Album::factory()->create();
 
         Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
@@ -231,7 +182,7 @@ describe('tags passed on to sub-albums', function () {
 
     it('can be changed by an Editor', function () {
         $album = Album::factory()->create();
-        $this->actingAs(addCollaborator($album, CollaboratorRole::Editor, tagMember()));
+        $this->actingAs(addCollaborator($album, CollaboratorRole::Editor, adminAccessUser()));
 
         Livewire::test(EditAlbum::class, ['record' => $album->getRouteKey()])
             ->fillForm(['tags_apply_to_sub_albums' => true])
@@ -294,7 +245,7 @@ describe('settings', function () {
     });
 
     it('saves the settings and the predefined tags without duplicates', function () {
-        tagAdmin();
+        actingAsRole();
         $existing = Tag::factory()->create(['name' => 'pet 1']);
 
         Livewire::test(TagSettings::class)
@@ -312,7 +263,7 @@ describe('settings', function () {
     });
 
     it('rejects an invalid predefined tag', function () {
-        tagAdmin();
+        actingAsRole();
 
         Livewire::test(TagSettings::class)
             ->fillForm(['predefined_tags' => ['!!!']])
@@ -321,13 +272,13 @@ describe('settings', function () {
     });
 
     it('is only for people who manage settings', function () {
-        $this->actingAs(tagMember());
+        $this->actingAs(adminAccessUser());
 
         Livewire::test(TagSettings::class)->assertForbidden();
     });
 
     it('allows only predefined tags while new tags are off, and keeps tags already there', function () {
-        tagAdmin();
+        actingAsRole();
         Setting::put(SiteSettings::TAGS_ALLOW_CUSTOM, false);
         Setting::put(SiteSettings::TAGS_PREDEFINED, ['Nature']);
         $album = tagged(Album::factory()->create(), 'Older tag');
@@ -348,7 +299,7 @@ describe('settings', function () {
     });
 
     it('hides the field and ignores tags in the search while tagging is off, and keeps them', function () {
-        tagAdmin();
+        actingAsRole();
         $album = tagged(Album::factory()->visibility(Visibility::Public)->create(['title' => 'Holiday']), 'Beach');
         Setting::put(SiteSettings::TAGGING, false);
 

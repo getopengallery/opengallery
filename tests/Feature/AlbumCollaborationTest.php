@@ -35,11 +35,6 @@ use Livewire\Livewire;
 
 beforeEach(fn () => Storage::fake('gallery'));
 
-function uploaderAccount(): User
-{
-    return tap(User::factory()->create())->assignRole(Role::Uploader->value);
-}
-
 describe('what each role may do', function () {
     it('gives each role exactly its abilities', function (CollaboratorRole $role, array $allowed) {
         $album = Album::factory()->create();
@@ -86,7 +81,7 @@ describe('what each role may do', function () {
     });
 
     it('lets only owners with the permission and staff manage collaborators', function () {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $plainOwnerAlbum = Album::factory()->create();
         $moderator = tap(User::factory()->create())->assignRole(Role::Moderator->value);
@@ -196,7 +191,7 @@ describe('working out a role', function () {
     });
 
     it('keeps the number of queries flat across many albums and groups', function () {
-        $user = uploaderAccount();
+        $user = userWithRole(Role::Uploader);
         $root = Album::factory()->create();
         Album::factory()->for($root->owner, 'owner')->create(['parent_id' => $root->id]);
         addCollaborator($root, CollaboratorRole::Editor, $user);
@@ -255,7 +250,7 @@ describe('access', function () {
     it('serves previews but not originals through a role until downloads are on', function () {
         Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
         $album = Album::factory()->visibility(Visibility::Registered)->create();
-        $media = collaborationPhoto($album, $album->owner)->original();
+        $media = galleryPhoto($album, $album->owner)->original();
         $this->actingAs(addCollaborator($album, CollaboratorRole::Editor));
 
         $this->get(route('media.show', [$media, 'thumb']))->assertOk();
@@ -269,7 +264,7 @@ describe('access', function () {
 
     it('serves no trashed photo through a role', function () {
         $album = Album::factory()->create();
-        $photo = collaborationPhoto($album, $album->owner);
+        $photo = galleryPhoto($album, $album->owner);
         $media = $photo->original();
         $this->actingAs(addCollaborator($album, CollaboratorRole::Editor));
 
@@ -280,7 +275,7 @@ describe('access', function () {
 
     it('does not let a role edit or trash someone else\'s photo', function () {
         $album = Album::factory()->create();
-        $photo = collaborationPhoto($album, $album->owner);
+        $photo = galleryPhoto($album, $album->owner);
         $editor = addCollaborator($album, CollaboratorRole::Editor);
 
         expect($editor->can('update', $photo))->toBeFalse()
@@ -290,7 +285,7 @@ describe('access', function () {
 
     it('keeps the admin edit page closed to people without a role', function () {
         $album = Album::factory()->create();
-        $this->actingAs(uploaderAccount());
+        $this->actingAs(userWithRole(Role::Uploader));
 
         $this->get(AlbumResource::getUrl('edit', ['record' => $album]))->assertNotFound();
     });
@@ -298,7 +293,7 @@ describe('access', function () {
     it('leaves collaboration out of the photos someone may reuse in the admin', function () {
         $album = Album::factory()->create();
         $others = Photo::factory()->inAlbum($album)->create(['uploader_id' => $album->owner_id]);
-        $user = addCollaborator($album, CollaboratorRole::Editor, uploaderAccount());
+        $user = addCollaborator($album, CollaboratorRole::Editor, userWithRole(Role::Uploader));
         $own = Photo::factory()->inAlbum($album)->create(['uploader_id' => $user->id]);
 
         expect(Photo::visibleTo($user)->pluck('photos.id')->all())->toBe([$own->id])
@@ -410,8 +405,8 @@ describe('removing photos and deleting albums', function () {
     it('keeps collaborators\' uploads when the owner deletes their account with all data', function () {
         $album = Album::factory()->create();
         $collaborator = addCollaborator($album, CollaboratorRole::Contributor);
-        $theirs = collaborationPhoto($album, $collaborator);
-        $ownersPhoto = collaborationPhoto($album, $album->owner);
+        $theirs = galleryPhoto($album, $collaborator);
+        $ownersPhoto = galleryPhoto($album, $album->owner);
 
         AccountDeletion::deleteWithAllData($album->owner);
 
@@ -423,7 +418,7 @@ describe('removing photos and deleting albums', function () {
         $album = Album::factory()->create();
         $child = Album::factory()->for($album->owner, 'owner')->create(['parent_id' => $album->id]);
         $collaborator = addCollaborator($album, CollaboratorRole::Contributor);
-        $inChild = collaborationPhoto($child, $collaborator);
+        $inChild = galleryPhoto($child, $collaborator);
         $album->delete();
 
         AlbumDeletion::forceDelete($child->fresh(), true, $album->owner);
@@ -435,7 +430,7 @@ describe('removing photos and deleting albums', function () {
         $album = Album::factory()->create();
         $collaborator = addCollaborator($album, CollaboratorRole::Organizer);
         $subAlbum = Album::factory()->for($album->owner, 'owner')->create(['parent_id' => $album->id]);
-        $upload = collaborationPhoto($subAlbum, $collaborator);
+        $upload = galleryPhoto($subAlbum, $collaborator);
 
         AccountDeletion::deleteWithAllData($collaborator);
 
@@ -449,7 +444,7 @@ describe('removing photos and deleting albums', function () {
 
 describe('adding existing photos', function () {
     it('adds only own uploads from the media library to an album reached through a role', function () {
-        $user = addCollaborator($target = Album::factory()->create(), CollaboratorRole::Editor, uploaderAccount());
+        $user = addCollaborator($target = Album::factory()->create(), CollaboratorRole::Editor, userWithRole(Role::Uploader));
         $own = Album::factory()->for($user, 'owner')->create();
         $mine = Photo::factory()->inAlbum($own)->create(['uploader_id' => $user->id]);
         $notMine = Photo::factory()->inAlbum($own)->create(['uploader_id' => User::factory()]);
@@ -463,7 +458,7 @@ describe('adding existing photos', function () {
     });
 
     it('adds only own uploads through the picker path', function () {
-        $user = addCollaborator($target = Album::factory()->create(), CollaboratorRole::Editor, uploaderAccount());
+        $user = addCollaborator($target = Album::factory()->create(), CollaboratorRole::Editor, userWithRole(Role::Uploader));
         $own = Album::factory()->for($user, 'owner')->create();
         $mine = Photo::factory()->inAlbum($own)->create(['uploader_id' => $user->id]);
         $notMine = Photo::factory()->inAlbum($own)->create(['uploader_id' => User::factory()]);
@@ -476,7 +471,7 @@ describe('adding existing photos', function () {
     });
 
     it('refuses someone else\'s photo in the photo form', function () {
-        $user = addCollaborator($target = Album::factory()->create(), CollaboratorRole::Editor, uploaderAccount());
+        $user = addCollaborator($target = Album::factory()->create(), CollaboratorRole::Editor, userWithRole(Role::Uploader));
         $own = Album::factory()->for($user, 'owner')->create();
         $notMine = Photo::factory()->inAlbum($own)->create(['uploader_id' => User::factory()]);
         $this->actingAs($user);
@@ -493,7 +488,7 @@ describe('adding existing photos', function () {
 describe('the Collaborators card', function () {
     it('lets the owner add a person with a role and tells them', function () {
         Notification::fake();
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $person = User::factory()->create();
         $this->actingAs($owner);
@@ -509,7 +504,7 @@ describe('the Collaborators card', function () {
 
     it('adds people and groups in one step and tells members, except those who already had that access', function () {
         Notification::fake();
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $person = User::factory()->create();
         $new = User::factory()->create();
@@ -529,7 +524,7 @@ describe('the Collaborators card', function () {
 
     it('logs a role change and tells the person when it goes up', function () {
         Notification::fake();
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $person = addCollaborator($album, CollaboratorRole::Contributor, User::factory()->create(['name' => 'Anna']));
         ActivityEvent::query()->delete();
@@ -545,7 +540,7 @@ describe('the Collaborators card', function () {
     });
 
     it('removes a person or a group', function (string $type) {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $key = $type === 'user'
             ? 'user:'.addCollaborator($album, CollaboratorRole::Contributor)->id
@@ -559,7 +554,7 @@ describe('the Collaborators card', function () {
     })->with(['user', 'group']);
 
     it('keeps unsaved form edits when a collaborator is changed', function () {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create(['title' => 'Saved']);
         $person = addCollaborator($album, CollaboratorRole::Contributor);
         $this->actingAs($owner);
@@ -573,7 +568,7 @@ describe('the Collaborators card', function () {
     });
 
     it('rejects an unknown role', function () {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $person = addCollaborator($album, CollaboratorRole::Contributor);
         $this->actingAs($owner);
@@ -586,7 +581,7 @@ describe('the Collaborators card', function () {
     });
 
     it('ignores keys that do not exist or are not people or groups', function () {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $this->actingAs($owner);
 
@@ -597,7 +592,7 @@ describe('the Collaborators card', function () {
     });
 
     it('lists people and groups together, by page and by search', function () {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         foreach (range(1, 9) as $number) {
             addCollaborator($album, CollaboratorRole::Contributor, User::factory()->create(['name' => 'Person '.$number]));
@@ -618,7 +613,7 @@ describe('the Collaborators card', function () {
     });
 
     it('states on the card that Editors can publish and reach originals', function () {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $album = Album::factory()->for($owner, 'owner')->create();
         $this->actingAs($owner);
 
@@ -645,7 +640,7 @@ describe('the Collaborators card', function () {
     });
 
     it('is hidden for system albums', function () {
-        $owner = uploaderAccount();
+        $owner = userWithRole(Role::Uploader);
         $inbox = Album::inbox($owner);
         $this->actingAs($owner);
 
@@ -655,7 +650,7 @@ describe('the Collaborators card', function () {
     });
 
     it('is on the create page too, for people who may invite', function () {
-        $this->actingAs(uploaderAccount());
+        $this->actingAs(userWithRole(Role::Uploader));
 
         $this->get(AlbumResource::getUrl('create'))
             ->assertOk()
