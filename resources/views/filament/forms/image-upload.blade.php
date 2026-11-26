@@ -14,6 +14,7 @@
     $chip = $config['chip'];
     $browsePrompt = __('Drop an image or :browse');
     $isWide = $preview === \App\Enums\ImagePreview::Wide;
+    $isSquare = $preview === \App\Enums\ImagePreview::Square;
 @endphp
 
 <div
@@ -46,13 +47,13 @@
         x-on:drop.prevent="dropped($event)"
     >
         @if ($isDisabled)
-            <div class="og-iu-stage og-iu-drop {{ $isWide ? 'is-wide' : '' }}" x-show="! hasImage" @if ($firstFile) style="display: none" @endif>
+            <div class="og-iu-stage og-iu-drop {{ $isWide ? 'is-wide' : '' }} {{ $isSquare ? 'is-square' : '' }}" x-show="! hasImage" @if ($firstFile) style="display: none" @endif>
                 <span class="og-iu-prompt">{{ __('No image') }}</span>
             </div>
         @else
             <button
                 type="button"
-                class="og-iu-stage og-iu-drop {{ $isWide ? 'is-wide' : '' }}"
+                class="og-iu-stage og-iu-drop {{ $isWide ? 'is-wide' : '' }} {{ $isSquare ? 'is-square' : '' }}"
                 aria-label="{{ __('Upload :title', ['title' => $title]) }}"
                 x-show="! hasImage"
                 x-on:click="$refs.input.click()"

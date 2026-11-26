@@ -78,6 +78,7 @@ The root `VERSION` file is the only source of the version, read through `App\Sup
 - The newest release of both channels is stored in the setting `updates.status`, so changing the channel or installing a version needs no new request. A failed request keeps the last result.
 - Only `tag_name`, `draft` and `prerelease` are used, and the release link is built from the repository and tag. Release titles and notes never reach the admin.
 - The request has a generic user agent and carries nothing about the gallery.
+- `AppVersion::releaseUrl()` builds the link to the installed version's release page (`https://github.com/{repository}/releases/tag/v{version}`). It returns `null` for the repository's development marker (`0.2.0-dev`, `dev`), for a bare `-dev`, `-alpha`, `-beta` or `-rc` suffix without a number (`1.3.0-dev.4` does have a release), for an unrecognised version, and when the repository is empty. `UpdateSettings::installedVersionText()` uses it to link the version on the Updates page and falls back to plain text on `null`.
 
 To publish a version for the dev channel, push a tag such as `v1.3.0-dev.1` and publish its draft release. Drafts are invisible to the check. Installing a release is described in [One-click updates](../internals/updates.md).
 

@@ -40,7 +40,7 @@ Rows, headers and empty lists follow the same rules everywhere:
 - **Tooltips**: `AppServiceProvider` gives every icon-only `Action` its label as a tooltip (`Action::configureUsing()`), so set a clear `label()` and do not repeat it with `tooltip()`. An explicit `tooltip()` still wins.
 - **Open on the site**: `App\Filament\Actions\OpenOnSiteAction` (name `open`, gray, new tab). Set `->url()`; add `->iconButton()` in tables. Albums and pages use it in the list and in the record's header.
 - **Remove vs. delete**: actions that only unlink (detach a user from a group or role, remove photos from an album) are gray with `Heroicon::OutlinedMinusCircle`; red is for deleting and the trash.
-- **Header actions**: secondary actions are gray and come first; the main action (create, upload) is the last one, in the primary colour. `ListPhotos`: Trash, List, Grid, Upload photos.
+- **Header actions**: secondary actions are gray and come first; the main action (create, upload) is the last one, in the primary colour. `ListPhotos`: Trash, Upload photos. Switches that change how the table looks (the media library's List / Grid) are not header actions: they are the table's `headerActions()`, in the toolbar next to search and filters, like "Change order" in the albums list.
 - **Empty states**: every table calls `App\Filament\Tables\EmptyState::apply()` (via `->tap()`) with a heading ("No groups yet"), a sentence on what the list is for, an icon and the action that fills it (`CreateAction::make()->url(...)`). While a search or filter is on, it shows "Nothing matches" and hides the action. Relation managers and the trash pages use it too.
 - **Deleting users**: `UserDeletionForm::deleteAction()` is the one `DeleteAction` for a person (row and edit page); it asks who gets their albums.
 
@@ -164,7 +164,7 @@ ImageUpload::make('icon')
     ->visibility('private');
 ```
 
-- **Preview**: `App\Enums\ImagePreview` has `Logo`, `DarkLogo`, `Icon`, `Wide` (the default) and `Round`.
+- **Preview**: `App\Enums\ImagePreview` has `Logo`, `DarkLogo`, `Icon`, `Wide` (the default) and `Square` (a square upload box with the picture shown as a circle inside it, for profile pictures).
 - **Sample**: `previewChip()` shows an `Icon` next to a text at its real size. `:name` follows the given field of the same form, with the third argument as a fallback.
 - **Files**: the view is `filament.forms.image-upload`, the Alpine component `ogImageUpload` is in `filament.partials.image-upload-script`, and the `og-iu-*` styles are in `filament.partials.theme-styles`. All are inline, so no frontend build is needed.
 - **Saving**: uploads stay temporary until the form saves. `ImageUpload::saveUploadedFiles()` then dispatches the browser event `og-image-upload-saved`, which clears the "Not saved yet" notice. A page that replaces or removes a stored image still deletes the old file itself on save, as `SettingsPage::save()` does.

@@ -30,6 +30,17 @@
      * Filament ships precompiled CSS, so these are plain rules.
      */
 
+    /*
+     * Trash button in list headers: a regular gray Filament button showing only
+     * the icon, kept square. Its count sits on the corner border (Filament's
+     * badge) and the margin keeps that badge clear of the neighbouring
+     * "Create" button.
+     */
+    .fi-btn.og-trash-button { padding: 0.5rem; margin-inline-end: 0.75rem; }
+
+    /* Sections side by side (photo page) grow to the height of their row. */
+    .fi-sc-component:has(> .og-fill), .og-fill, .og-fill > .fi-section, .og-fill > .fi-grid { height: 100%; }
+
     .og-muted { color: rgb(var(--og-muted, 107 107 107)); font-size: 0.875rem; }
     .og-note { margin-top: 1rem; font-size: 0.875rem; color: rgb(var(--og-muted, 107 107 107)); }
     .og-num { font-variant-numeric: tabular-nums; }
@@ -382,7 +393,7 @@
     /* ---- Standalone images (ImageUpload): one box that keeps its size in every state ---- */
     .og-iu { display: flex; flex-direction: column; gap: 0.375rem; width: 100%; min-width: 0; container-type: inline-size; }
     .og-iu.is-wide { max-width: 40rem; }
-    .og-iu.is-round { width: min(100vw - 6rem, 19rem); }
+    .og-iu.is-square { width: min(100vw - 6rem, 14rem); }
     .og-iu-frame { position: relative; display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgb(var(--og-line, 227 227 227)); border-radius: var(--radius-lg); transition: border-color 0.12s ease, box-shadow 0.12s ease; }
     .og-iu-frame.is-empty { border-style: dashed; border-color: var(--gray-300); }
     .dark .og-iu-frame.is-empty { border-color: var(--gray-600); }
@@ -397,7 +408,8 @@
     .og-iu-stage.is-contain .og-iu-img { max-width: 100%; max-height: 100%; object-fit: contain; }
     .og-iu-stage.is-wide .og-iu-img { width: 100%; height: 100%; object-fit: cover; }
     .og-iu-stage.is-icon .og-iu-img { flex-shrink: 0; width: 3.5rem; height: 3.5rem; object-fit: contain; }
-    .og-iu-stage.is-round .og-iu-img { width: 5.75rem; height: 5.75rem; border-radius: 9999px; object-fit: cover; }
+    .og-iu-stage.is-square { height: auto; aspect-ratio: 1 / 1; }
+    .og-iu-stage.is-square .og-iu-img { width: 100%; height: 100%; border-radius: 9999px; object-fit: cover; }
     /* A logo is judged against the background it appears on, whatever mode the admin is in. */
     .og-iu-stage.is-on-light { --og-iu-paper: #fff; --og-iu-tile: var(--gray-100); }
     .og-iu-stage.is-on-dark { --og-iu-paper: var(--gray-900); --og-iu-tile: var(--gray-800); }

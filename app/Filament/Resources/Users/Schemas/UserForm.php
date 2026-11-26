@@ -113,7 +113,7 @@ class UserForm
         return ImageUpload::make('avatar_path')
             ->label(__('Picture'))
             // Any shape is fine: the server crops it to a square.
-            ->previewAs(ImagePreview::Round)
+            ->previewAs(ImagePreview::Square)
             ->disk(Avatars::DISK)
             ->directory(Avatars::DIRECTORY)
             ->visibility('private')

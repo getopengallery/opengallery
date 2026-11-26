@@ -37,7 +37,7 @@ trait HasMediaLayout
     }
 
     /** @return list<Action> */
-    protected function mediaLayoutActions(): array
+    public function mediaLayoutActions(): array
     {
         return [
             Action::make('listLayout')

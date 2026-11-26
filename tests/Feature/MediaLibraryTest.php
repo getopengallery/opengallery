@@ -10,6 +10,7 @@ use App\Filament\Resources\Photos\Pages\EditPhoto;
 use App\Filament\Resources\Photos\Pages\ListPhotos;
 use App\Filament\Resources\Photos\Pages\ListTrashedPhotos;
 use App\Filament\Resources\Photos\PhotoResource;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\MediaGrid;
 use App\Models\ActivityEvent;
 use App\Models\Album;
@@ -20,6 +21,7 @@ use App\Models\User;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 beforeEach(fn () => Storage::fake('gallery'));
@@ -207,7 +209,7 @@ it('shows the media library as a grid of compact tiles and remembers a switch to
         ->assertSet('mediaLayout', ListPhotos::GRID)
         ->assertCanSeeTableRecords([$photo])
         ->assertSeeHtml('og-pick is-compact')
-        ->callAction('listLayout')
+        ->callAction(TestAction::make('listLayout')->table())
         ->assertSet('mediaLayout', ListPhotos::LIST)
         ->assertCanSeeTableRecords([$photo]);
 
@@ -412,4 +414,79 @@ it('offers the original for download only to people who may download it', functi
         ->get(PhotoResource::getUrl('view', ['record' => $photo]))
         ->assertOk()
         ->assertSee($download);
+});
+
+it('links the albums and the uploader in the list layout and cuts long titles and names short', function () {
+    $album = Album::factory()->create(['title' => 'Summer trip']);
+    $uploader = User::factory()->create(['name' => str_repeat('Long name ', 8)]);
+    $photo = photoIn($album, $uploader, name: 'Linked.jpg');
+    $photo->update(['title' => str_repeat('Very long title ', 6)]);
+    $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+
+    Livewire::test(ListPhotos::class)
+        ->call('setLayout', ListPhotos::LIST)
+        ->assertCanSeeTableRecords([$photo])
+        ->assertSeeHtml(AlbumResource::getUrl('edit', ['record' => $album]))
+        ->assertSeeHtml(UserResource::getUrl('edit', ['record' => $uploader]))
+        ->assertSee(Str::limit($photo->title, 40))
+        ->assertSee(Str::limit($uploader->name, 40));
+});
+
+it('shows the albums and the uploader as plain text to people who may not open them', function () {
+    $album = Album::factory()->create(['title' => 'Summer trip', 'visibility' => Visibility::Public]);
+    $uploader = tap(User::factory()->create())->assignRole(Role::Uploader->value);
+    $photo = photoIn($album, $uploader, name: 'Plain.jpg');
+    $this->actingAs($uploader);
+
+    Livewire::test(ListPhotos::class)
+        ->call('setLayout', ListPhotos::LIST)
+        ->assertCanSeeTableRecords([$photo])
+        ->assertSee('Summer trip')
+        ->assertDontSeeHtml(AlbumResource::getUrl('edit', ['record' => $album]))
+        ->assertDontSeeHtml(UserResource::getUrl('edit', ['record' => $uploader]));
+});
+
+it('links the albums, cover albums and uploader on the photo page for people who may open them', function () {
+    $album = Album::factory()->create(['title' => 'Summer trip']);
+    $uploader = User::factory()->create();
+    $photo = photoIn($album, $uploader, name: 'Detail.jpg');
+    $album->update(['cover_photo_id' => $photo->id]);
+    $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+
+    $this->get(PhotoResource::getUrl('view', ['record' => $photo]))
+        ->assertOk()
+        ->assertSee(AlbumResource::getUrl('edit', ['record' => $album]), false)
+        ->assertSee(UserResource::getUrl('edit', ['record' => $uploader]), false);
+});
+
+it('shows the albums and uploader on the photo page as plain text to people who may not open them', function () {
+    $album = Album::factory()->create(['title' => 'Summer trip', 'visibility' => Visibility::Public]);
+    $uploader = tap(User::factory()->create())->assignRole(Role::Uploader->value);
+    $photo = photoIn($album, $uploader, name: 'Plain.jpg');
+    $this->actingAs($uploader);
+
+    $this->get(PhotoResource::getUrl('view', ['record' => $photo]))
+        ->assertOk()
+        ->assertSee('Summer trip')
+        ->assertDontSee(AlbumResource::getUrl('edit', ['record' => $album]), false)
+        ->assertDontSee(UserResource::getUrl('edit', ['record' => $uploader]), false);
+});
+
+it('shows the edit page like the photo page, with the taken date, albums and tags as the editable parts', function () {
+    $album = Album::factory()->create(['title' => 'Summer trip']);
+    $uploader = User::factory()->create();
+    $photo = photoIn($album, $uploader, name: 'Edit.jpg');
+    $this->actingAs(tap(User::factory()->create())->assignRole(Role::Admin->value));
+
+    Livewire::test(EditPhoto::class, ['record' => $photo->id])
+        ->assertSee('Where it is')
+        ->assertSee('History')
+        ->assertSee('edit.jpg')
+        ->assertSee($uploader->name)
+        ->assertSeeHtml(UserResource::getUrl('edit', ['record' => $uploader]))
+        ->set('data.taken_at', '2024-05-17 14:30:00')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($photo->fresh()->taken_at->format('Y-m-d H:i'))->toBe('2024-05-17 14:30');
 });

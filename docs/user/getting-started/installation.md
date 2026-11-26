@@ -187,7 +187,7 @@ An album page shows dozens of thumbnails. Over HTTP/2 the browser fetches them s
 
 ## Upgrading
 
-People who manage settings see the installed version at the bottom of the admin menu. The gallery can [tell you about new versions](../administration/settings.md#updates). They are also listed on the [releases page](https://github.com/getopengallery/opengallery/releases).
+People who manage settings see the installed version at the bottom of the admin menu. While update checks are on, it links to the [Updates page](../administration/settings.md#updates). The gallery can [tell you about new versions](../administration/settings.md#updates). They are also listed on the [releases page](https://github.com/getopengallery/opengallery/releases).
 
 ### Installing an update from the admin
 

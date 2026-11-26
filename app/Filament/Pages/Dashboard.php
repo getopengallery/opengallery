@@ -66,9 +66,8 @@ class Dashboard extends BaseDashboard
     public function customizeAction(): Action
     {
         return Action::make('customize')
-            ->label(__('Customize dashboard'))
+            ->label(__('Edit'))
             ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
-            ->iconButton()
             ->tooltip(__('Customize dashboard'))
             ->color('gray')
             ->slideOver()
