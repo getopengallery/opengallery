@@ -42,7 +42,7 @@ OpenGallery is a Laravel 13 application with a Filament 5 admin panel. Visitors 
 
 `AppServiceProvider::boot()` then:
 
-1. Registers the `database` session driver as `App\Support\PrivateDatabaseSessionHandler` (no IP addresses or user agents), sets `Password::defaults()` to at least 12 characters (used by every password field), and adds `Gate::before()`: the `super-admin` role passes every check.
+1. Registers the `database` session driver as `App\Support\PrivateDatabaseSessionHandler` (no IP addresses or raw user agents; only the short `UserAgentLabel`), sets `Password::defaults()` to at least 12 characters (used by every password field), and adds `Gate::before()`: the `super-admin` role passes every check.
 2. Listens to auth events: `Registered` gives new accounts the `user` role; `Login`, `Failed`, `Lockout` and `PasswordReset` are written to the activity log.
 3. Wraps every Filament bulk action in `ActivityLog::startBatch()` / `finishBatch()`, so a bulk action is one log entry.
 4. Sets the table defaults for the admin (filters in a dropdown, applied immediately) and the confirmation of plain delete actions ("This cannot be undone.").

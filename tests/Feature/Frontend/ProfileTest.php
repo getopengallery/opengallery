@@ -1,8 +1,12 @@
 <?php
 
+use App\Enums\ActivityLevel;
+use App\Enums\ActivityType;
+use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Photo;
 use App\Models\User;
+use App\Notifications\SessionsSignedOut;
 use App\Support\Avatars;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Http\UploadedFile;
@@ -301,4 +305,144 @@ describe('downloading the own photos', function () {
         $response->assertOk()->assertDownload('my-photos.zip');
         expect(zipEntries($response))->toBe(['Camp/Day 3/holiday-beach.jpg', 'Camp/holiday-beach.jpg']);
     });
+});
+
+describe('active sessions', function () {
+    it('lists the person\'s own sessions and marks this device', function () {
+        useDatabaseSessions();
+        $user = User::factory()->create();
+        sessionRow($user, 'other-firefox', 'Firefox on macOS', now()->subMinutes(10)->getTimestamp());
+        sessionRow($user, 'other-unknown', null, now()->subHour()->getTimestamp());
+        sessionRow($user, 'expired-session', 'Opera on Linux', now()->subYear()->getTimestamp());
+        sessionRow(User::factory()->create(), 'strangers-session', 'Chrome on Windows');
+        $currentId = fromBrowser();
+
+        // The first request stores this device's session, the second one lists it.
+        $this->actingAs($user)->get(route('profile.edit'))->assertOk();
+
+        $this->get(route('profile.edit'))
+            ->assertOk()
+            ->assertSee('Where you\'re signed in')
+            ->assertSeeInOrder(['Unknown device', 'This device', 'Firefox on macOS', 'Last active 10 minutes ago', 'Unknown device', 'Last active 1 hour ago'])
+            ->assertSee(route('profile.sessions.destroy', 'other-firefox'), false)
+            ->assertDontSee(route('profile.sessions.destroy', $currentId), false)
+            ->assertDontSee('Chrome on Windows')
+            ->assertDontSee('Opera on Linux');
+    });
+
+    it('hides the list when sessions are not stored in the database', function (string $driver) {
+        config(['session.driver' => $driver]);
+        app('session')->forgetDrivers();
+
+        $this->actingAs(User::factory()->create())->get(route('profile.edit'))
+            ->assertOk()
+            ->assertDontSee('Where you\'re signed in')
+            ->assertDontSee('Sign out all other devices');
+    })->with(['array', 'file']);
+
+    it('signs out another device, which is logged out on its next request', function () {
+        useDatabaseSessions();
+        $user = User::factory()->create();
+        $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+        $otherDeviceId = session()->getId();
+        expect(sessionIds($user))->toBe([$otherDeviceId]);
+
+        $thisDeviceId = fromBrowser();
+        $this->actingAs($user)->delete(route('profile.sessions.destroy', $otherDeviceId))
+            ->assertRedirect(route('profile.edit'))
+            ->assertSessionHas('status', 'session-signed-out');
+
+        expect(sessionIds($user))->toBe([$thisDeviceId]);
+
+        nextRequest();
+        fromBrowser($otherDeviceId);
+        $this->get(route('profile.edit'))->assertRedirect(route('login'));
+    });
+
+    it('refuses to sign out the session of someone else', function () {
+        useDatabaseSessions();
+        $stranger = User::factory()->create();
+        sessionRow($stranger, 'strangers-session');
+
+        $this->actingAs(User::factory()->create())
+            ->delete(route('profile.sessions.destroy', 'strangers-session'))
+            ->assertNotFound();
+
+        expect(sessionIds($stranger))->toBe(['strangers-session']);
+    });
+
+    it('refuses to sign out the current session or an unknown one with the single sign out', function () {
+        useDatabaseSessions();
+        $user = User::factory()->create();
+        $currentId = fromBrowser();
+        $this->actingAs($user)->get(route('profile.edit'))->assertOk();
+
+        $this->delete(route('profile.sessions.destroy', $currentId))->assertNotFound();
+        $this->delete(route('profile.sessions.destroy', 'no-such-session'))->assertNotFound();
+
+        expect(sessionIds($user))->toBe([$currentId]);
+    });
+
+    it('needs the password to sign out all other devices', function (array $input) {
+        useDatabaseSessions();
+        $user = User::factory()->create(['remember_token' => 'known-token']);
+        sessionRow($user, 'other-device');
+
+        $this->actingAs($user)->from(route('profile.edit'))
+            ->delete(route('profile.sessions.destroy-others'), $input)
+            ->assertSessionHasErrorsIn('signOutOthers', 'current_password')
+            ->assertRedirect(route('profile.edit'));
+
+        expect(sessionIds($user))->toContain('other-device')
+            ->and($user->fresh()->remember_token)->toBe('known-token');
+    })->with(['no password' => [[]], 'a wrong password' => [['current_password' => 'wrong-password']]]);
+
+    it('signs out all other devices, keeps this one and replaces the remember token', function () {
+        useDatabaseSessions();
+        mailWorks();
+        $user = User::factory()->create(['remember_token' => 'known-token']);
+        $stranger = User::factory()->create();
+        sessionRow($user, 'other-device-1');
+        sessionRow($user, 'other-device-2');
+        sessionRow($stranger, 'strangers-session');
+        $currentId = fromBrowser();
+        $this->actingAs($user)->get(route('profile.edit'))->assertOk();
+        $before = (int) ActivityEvent::max('id');
+
+        $this->from(route('profile.edit'))
+            ->delete(route('profile.sessions.destroy-others'), ['current_password' => 'password'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('profile.edit'))
+            ->assertSessionHas('status', 'sessions-signed-out');
+
+        expect(sessionIds($user))->toBe([$currentId])
+            ->and(sessionIds($stranger))->toBe(['strangers-session'])
+            ->and($user->fresh()->remember_token)->not->toBe('known-token');
+
+        // Only the security entry, not an "updated user" one for the new token or password hash.
+        $entries = ActivityEvent::where('id', '>', $before)->get();
+        expect($entries)->toHaveCount(1)
+            ->and($entries->first()->type)->toBe(ActivityType::SessionsSignedOut)
+            ->and($entries->first()->user_id)->toBe($user->id)
+            ->and($entries->first()->properties)->toMatchArray(['count' => 2]);
+        Notification::assertNotSentTo($user, SessionsSignedOut::class);
+        $this->get(route('profile.edit'))->assertOk()->assertSee('All other devices signed out.');
+    });
+
+    it('records signing out one device, and nothing at the lowest detail level', function (ActivityLevel $level, int $entries) {
+        useDatabaseSessions();
+        mailWorks();
+        config(['gallery.activity_log_level' => $level->value]);
+        $user = User::factory()->create();
+        sessionRow($user, 'other-device');
+        $before = (int) ActivityEvent::max('id');
+
+        $this->actingAs($user)->delete(route('profile.sessions.destroy', 'other-device'))->assertRedirect(route('profile.edit'));
+
+        expect(ActivityEvent::where('id', '>', $before)->where('type', ActivityType::SessionsSignedOut)->count())->toBe($entries);
+        Notification::assertNothingSent();
+    })->with([
+        'changes only' => [ActivityLevel::Changes, 1],
+        'off' => [ActivityLevel::Off, 0],
+    ]);
 });

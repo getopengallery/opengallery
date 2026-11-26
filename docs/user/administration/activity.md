@@ -6,9 +6,9 @@ order: 60
 
 The dashboard and the activity log show what is happening in your gallery. The dashboard's activity panels (library figures, activity calendar, trends, recent activity, most viewed albums) and the activity log need the permission "See the dashboard and activity log". The other panels of the dashboard depend on other permissions (see [The dashboard](dashboard.md)). What is recorded, and for how long, is set in the [log settings](settings.md#activity-log), opened with the **Log settings** button on the activity log.
 
-The gallery never stores IP addresses or browser details. Visitors who are not logged in are only counted anonymously per day.
+The gallery never stores IP addresses or full browser details. Visitors who are not logged in are only counted anonymously per day.
 
-Like most websites, the gallery keeps a session for every visitor while they browse. Sessions do not record IP addresses or browser details either, and they are removed some time after they expire (by default two hours without activity).
+Like most websites, the gallery keeps a session for every visitor while they browse. Sessions do not record IP addresses either. For logged-in people a session keeps only a short browser and system name, such as "Firefox on macOS", so they can recognise their devices (see [Where you're signed in](../members-and-visitors/profile.md#where-youre-signed-in)). Sessions are removed some time after they expire (by default two hours without activity).
 
 ## The dashboard
 
@@ -29,7 +29,7 @@ Album views and logins only appear if the activity log records them. The figures
 **System → Activity log** lists every recorded entry with **When**, **Who**, **What** and **Details**. It includes, depending on the setting:
 
 - changes in the admin: albums, uploads, sharing, users, roles, groups, settings, themes and plugins;
-- security events: failed logins, lockouts, password resets, wrong album passwords and linked sign-in accounts;
+- security events: failed logins, lockouts, password resets, wrong album passwords, linked sign-in accounts and people signed out of their devices;
 - logins of members;
 - album views.
 
@@ -39,9 +39,9 @@ The **What** column uses these descriptions:
 | --- | --- |
 | Visits | Logged in, Opened album |
 | Changes | Created, Changed, Deleted, Restored, Uploaded photos, Added photos, Removed photos, Reordered photos, Reordered albums, Changed settings, Activated theme, Turned plugin on, Turned plugin off, Uploaded theme, Uploaded plugin |
-| Security | Failed login, Locked out, Reset password, Wrong album password, Linked sign-in account, Unlinked sign-in account |
+| Security | Failed login, Locked out, Reset password, Wrong album password, Linked sign-in account, Unlinked sign-in account, Signed out sessions |
 
-**Details** says what was changed, for example which fields of an album or which people were added to a group. Passwords and other secret values are only recorded as "changed", never with their value.
+**Details** says what was changed, for example which fields of an album or which people were added to a group. Passwords and other secret values are only recorded as "changed", never with their value. "Signed out sessions" says how many devices were signed out; the entry names the person who did it, which is an administrator when they signed someone else out.
 
 ![The activity log with its columns](../../assets/activity-log.png)
 

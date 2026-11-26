@@ -147,6 +147,12 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         return $this->hasMany(SocialAccount::class);
     }
 
+    /** @return HasMany<UserSession, $this> Browsers where the person is signed in (App\Support\UserSessions). */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class);
+    }
+
     /** @return BelongsToMany<Group, $this> */
     public function groups(): BelongsToMany
     {

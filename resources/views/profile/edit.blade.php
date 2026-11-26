@@ -10,6 +10,9 @@
             <div>@include('profile.partials.update-avatar-form')</div>
             <div>@include('profile.partials.update-profile-information-form')</div>
             <div>@include('profile.partials.update-password-form')</div>
+            @if (\App\Support\UserSessions::available())
+                <div>@include('profile.partials.sessions')</div>
+            @endif
             <div>@include('profile.partials.linked-accounts')</div>
             @if ($uploadedPhotos > 0)
                 <div>@include('profile.partials.download-photos')</div>

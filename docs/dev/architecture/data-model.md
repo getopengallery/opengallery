@@ -179,7 +179,9 @@ Notifications shown in the gallery: `id` (UUID), `type` (the notification class)
 
 `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches` and `failed_jobs` come with Laravel. Sessions and the cache use the database by default (`.env.example`), so no extra services are needed.
 
-With `SESSION_DRIVER=database`, sessions are written by `App\Support\PrivateDatabaseSessionHandler` (registered as the `database` driver in `AppServiceProvider` with `Session::extend()`). It is Laravel's handler without `addRequestInformation()`, so `sessions.ip_address` and `sessions.user_agent` always stay empty; the migration `2026_11_14_213203_clear_ip_addresses_and_user_agents_from_sessions` cleared what older versions stored. Do not register another session driver that records them. Covered by `tests/Feature/System/SecurityTest.php` ("sessions").
+With `SESSION_DRIVER=database`, sessions are written by `App\Support\PrivateDatabaseSessionHandler` (registered as the `database` driver in `AppServiceProvider` with `Session::extend()`). It is Laravel's handler with its own `addRequestInformation()`: `sessions.ip_address` always stays empty, and `sessions.user_agent` holds only the short label from `App\Support\UserAgentLabel` ("Firefox on macOS", a small parser without dependencies), never the raw user agent. The migration `2026_11_14_213203_clear_ip_addresses_and_user_agents_from_sessions` cleared what older versions stored, so older rows have an empty label and show as "Unknown device". Do not register another session driver that records the IP address or the raw user agent.
+
+`App\Models\UserSession` maps the `sessions` table (`scopeActive()` leaves out expired rows; `User::sessions()` is the relation), and `App\Support\UserSessions` is the one place that lists and ends sessions: `available()` (true only for `SESSION_DRIVER=database`), `for()`, `query()`, `signOut()` and `signOutAll()`. See [Security measures](security.md#sessions-and-passwords). Covered by `tests/Feature/System/SecurityTest.php` ("sessions").
 
 ## Pivots and the activity log
 
