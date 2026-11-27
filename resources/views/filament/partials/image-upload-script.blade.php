@@ -10,7 +10,7 @@
 
     Inline (like theme-styles) so it works without rebuilding the frontend.
 --}}
-<script>
+<script data-navigate-once>
     (() => {
         const typesByExtension = {
             gif: 'image/gif',

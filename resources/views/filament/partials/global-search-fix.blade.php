@@ -10,7 +10,7 @@
 
     Inline (like theme-styles) so it works without rebuilding the frontend.
 --}}
-<script>
+<script data-navigate-once>
     document.addEventListener('mousedown', (event) => {
         if (event.button !== 0 || ! (event.target instanceof Element)) {
             return
