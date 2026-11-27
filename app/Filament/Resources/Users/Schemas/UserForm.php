@@ -8,6 +8,9 @@ use App\Support\Avatars;
 use App\Support\Invitations;
 use App\Support\Locales;
 use App\Support\Mailing;
+use App\Support\SiteSettings;
+use App\Support\StorageQuota;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -16,7 +19,9 @@ use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -104,7 +109,59 @@ class UserForm
                             ->dehydrated(false)
                             ->visibleOn('edit'),
                     ]),
+
+                // Read by CreateUser/EditUser (the storage columns are not mass assignable).
+                Section::make(__('Storage'))
+                    ->visible(fn (): bool => SiteSettings::storageLimitsEnabled())
+                    ->schema([
+                        Toggle::make('storage_unlimited')
+                            ->label(__('Unlimited storage'))
+                            ->helperText(__('This user can upload without a limit.'))
+                            ->dehydrated(false)
+                            ->live(),
+                        TextInput::make('storage_quota_gb')
+                            ->label(__('Storage limit'))
+                            ->integer()
+                            ->minValue(SiteSettings::STORAGE_QUOTA_MIN_GB)
+                            ->maxValue(SiteSettings::STORAGE_QUOTA_MAX_GB)
+                            ->suffix('GB')
+                            ->placeholder(fn (): string => __('Default (:size GB)', ['size' => SiteSettings::defaultStorageQuotaGb()]))
+                            ->maxWidth('xs')
+                            ->dehydrated(false)
+                            ->live()
+                            ->visible(fn (Get $get): bool => ! $get('storage_unlimited'))
+                            ->helperText(__('How much space this user\'s photos may take, thumbnails included. Leave empty to use the default limit from the storage settings.'))
+                            ->hintAction(
+                                Action::make('resetStorageQuota')
+                                    ->label(__('Reset to default'))
+                                    ->icon(Heroicon::OutlinedArrowUturnLeft)
+                                    ->visible(fn (Get $get): bool => filled($get('storage_quota_gb')))
+                                    ->action(fn (Set $set) => $set('storage_quota_gb', null)),
+                            ),
+                    ]),
             ]);
+    }
+
+    /**
+     * The storage columns as the form sets them; nothing while storage
+     * limits are off (the section is hidden then).
+     *
+     * @param  array<string, mixed>  $data  the form's raw state
+     * @return array{storage_unlimited?: bool, storage_quota_bytes?: ?int}
+     */
+    public static function storageAttributes(array $data): array
+    {
+        if (! SiteSettings::storageLimitsEnabled()) {
+            return [];
+        }
+
+        $unlimited = (bool) ($data['storage_unlimited'] ?? false);
+        $gb = (int) ($data['storage_quota_gb'] ?? 0);
+
+        return [
+            'storage_unlimited' => $unlimited,
+            'storage_quota_bytes' => ! $unlimited && $gb > 0 ? StorageQuota::gbToBytes($gb) : null,
+        ];
     }
 
     /** Profile picture: re-encoded on the server (Avatars::store); replaced files are deleted by the User model. */

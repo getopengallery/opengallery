@@ -100,3 +100,18 @@ it('removes the old static robots.txt on upgrade, unless it was changed', functi
     unlink($public.'/robots.txt');
     rmdir($public);
 });
+
+it('gives every existing account unlimited storage when upgrading, but not accounts made after', function () {
+    $migration = require database_path('migrations/2026_11_27_135241_add_storage_quota_to_users_table.php');
+    $existing = User::factory()->create();
+
+    $migration->down();
+    $migration->up();
+    $new = User::factory()->create();
+
+    expect(DB::table('users')->where('id', $existing->id)->value('storage_unlimited'))->toBe(1)
+        ->and($existing->fresh()->storage_unlimited)->toBeTrue()
+        ->and($existing->fresh()->storage_quota_bytes)->toBeNull()
+        ->and($new->fresh()->storage_unlimited)->toBeFalse()
+        ->and($new->fresh()->storage_quota_bytes)->toBeNull();
+});

@@ -183,8 +183,8 @@ class LibraryStats
         return array_values($series);
     }
 
-    /** Media rows of photo originals. */
-    private static function originals(): QueryBuilder
+    /** Media rows of photo originals (also used by App\Support\StorageQuota). */
+    public static function originals(): QueryBuilder
     {
         return DB::table('media')
             ->where('media.model_type', (new Photo)->getMorphClass())
@@ -192,7 +192,7 @@ class LibraryStats
     }
 
     /** SQL for the bytes of one photo's generated files (0 where not recorded). */
-    private static function generatedSql(): string
+    public static function generatedSql(): string
     {
         return '('.implode(' + ', array_map(
             fn (string $conversion) => 'COALESCE('.self::json('media.custom_properties->'.MediaSizes::CONVERSIONS.'->'.$conversion).', 0)',

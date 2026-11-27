@@ -7,8 +7,10 @@ use App\Models\Photo;
 use App\Models\User;
 use App\Support\Licensing;
 use App\Support\MediaSizes;
+use App\Support\PhotoCannotBeProcessed;
 use App\Support\PhotoCompression;
 use App\Support\PhotoUploads;
+use App\Support\StorageQuota;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -43,6 +45,12 @@ class AddPhotoToAlbum
 
         if ($compression && PhotoCompression::compress($path)) {
             [$width, $height] = PhotoCompression::shownSize($path, $exif['Orientation'] ?? 1);
+        }
+
+        // Counted as stored, after compression; parallel uploads are checked here too.
+        clearstatcache(true, $path);
+        if ($uploader && ! StorageQuota::allows($uploader, (int) filesize($path))) {
+            throw new PhotoCannotBeProcessed(StorageQuota::exceededMessage($uploader));
         }
 
         // In the trash until it is ready, so no grid shows it without its images.

@@ -6,7 +6,7 @@ order: 10
 
 Site-wide settings are in the admin menu, with one page per topic. You need the permission "Change site settings". Every change is recorded in the activity log.
 
-- **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos), [Tags](#tags), [Licenses](#licenses) and [E-mail](#e-mail).
+- **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos), [Storage](#storage), [Tags](#tags), [Licenses](#licenses) and [E-mail](#e-mail).
 - **System**: [Background jobs](#background-jobs) and [Updates](#updates). The [log settings](#activity-log) open with the **Log settings** button on the activity log.
 
 Each page has its own **Save** button and saves only that page. If you try to leave a page with changes you have not saved, the browser asks first. To find a setting, type its name in the search field at the top of the admin, for example "favicon".
@@ -163,6 +163,17 @@ Only photos uploaded after you save are compressed. Once compression is saved as
 
 - **Users can play a slideshow**: on by default. A play button in the photo viewer shows the photos one after another.
 - **Seconds per photo**: how long each photo stays in the slideshow, 5 by default, between 2 and 60. Only shown while the slideshow is on.
+
+## Storage
+
+How much photo storage each person may use. See [Storage limits](users-and-permissions.md#storage-limits) for setting a limit for one person.
+
+![The Storage settings page](../../assets/settings-storage.webp)
+
+- **Limit storage per user**: off by default. While it is off, nobody is limited and the rest of this page is hidden.
+- **Default limit**: only shown while limits are on, required, in GB (between 1 and 1,000,000; 10 by default). It applies to everyone without a limit of their own, so changing it changes theirs too.
+
+1 GB here is 1024 × 1024 × 1024 bytes. What counts and what happens when a limit is reached is described under [Storage limits](users-and-permissions.md#storage-limits).
 
 ## Tags
 

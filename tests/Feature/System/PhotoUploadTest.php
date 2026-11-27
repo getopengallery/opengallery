@@ -6,8 +6,12 @@ use App\Enums\Role;
 use App\Models\Album;
 use App\Models\Photo;
 use App\Models\Pivots\AlbumPhoto;
+use App\Models\Setting;
 use App\Models\User;
+use App\Support\PhotoCannotBeProcessed;
 use App\Support\PhotoUploads;
+use App\Support\SiteSettings;
+use App\Support\StorageQuota;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
@@ -214,4 +218,107 @@ it('refuses uploads into a trashed album', function () {
     $album->delete();
 
     uploadPhotoInChunks('album:'.$album->id)->assertForbidden();
+});
+
+describe('with a storage limit', function () {
+    beforeEach(function () {
+        $this->image = UploadedFile::fake()->image('x.jpg', 40, 30)->getContent();
+        $this->user = actingAsRole();
+        useStorageLimits();
+    });
+
+    it('refuses a file that does not fit at its first chunk, before anything is stored', function () {
+        $album = Album::factory()->create();
+        photoWithStoredSizes($album, 1000, uploader: $this->user);
+        giveStorageLimit($this->user, 1500);
+
+        postChunk(['size' => 501], 'abc')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['size' => StorageQuota::exceededMessage($this->user)]);
+
+        expect(Photo::count())->toBe(1)
+            ->and(Storage::disk('local')->allFiles(PhotoUploads::CHUNK_DIRECTORY))->toBeEmpty();
+    });
+
+    it('takes a file that exactly fills what is left', function () {
+        giveStorageLimit($this->user, strlen($this->image));
+
+        postChunk([], $this->image)->assertOk()->assertJson(['done' => true]);
+
+        expect(Photo::count())->toBe(1);
+    });
+
+    it('does not refuse an upload that fits', function () {
+        giveStorageLimit($this->user, strlen($this->image) + 1);
+
+        postChunk([], $this->image)->assertOk()->assertJson(['done' => true]);
+    });
+
+    it('refuses once the limit is reached by earlier uploads', function () {
+        giveStorageLimit($this->user, strlen($this->image) * 2);
+        postChunk([], $this->image)->assertOk();
+        $this->image = UploadedFile::fake()->image('y.jpg', 400, 300)->getContent();
+
+        postChunk([], $this->image)->assertJsonValidationErrors('size');
+
+        expect(Photo::count())->toBe(1);
+    });
+
+    it('never refuses someone without a limit', function (bool $limitsOn, bool $unlimited) {
+        $limitsOn ?: Setting::where('key', SiteSettings::STORAGE_LIMITS)->delete();
+        giveStorageLimit($this->user, 10, $unlimited);
+
+        postChunk([], $this->image)->assertOk()->assertJson(['done' => true]);
+    })->with([
+        'unlimited' => [true, true],
+        'limits off' => [false, false],
+    ]);
+
+    it('lets a large file start while compression is on, but not when nothing is left', function () {
+        useCompression(maxPx: 100);
+        giveStorageLimit($this->user, 10);
+
+        // Compression may shrink it, so only the exact size at the end decides.
+        postChunk(['size' => 5000], 'abc')->assertOk();
+
+        giveStorageLimit($this->user, 0);
+        postChunk(['size' => 5000], 'abc')->assertJsonValidationErrors(['size' => StorageQuota::exceededMessage($this->user)]);
+    });
+
+    it('refuses at the end when the compressed file still does not fit, leaving no photo or file', function () {
+        useCompression(maxPx: 100);
+        $bytes = file_get_contents(noisyImageFile(800, 600));
+        giveStorageLimit($this->user, 1000);
+
+        postChunk([], $bytes)
+            ->assertUnprocessable()
+            ->assertJson(['message' => StorageQuota::exceededMessage($this->user)]);
+
+        expect(Photo::count())->toBe(0)
+            ->and(Media::count())->toBe(0)
+            ->and(collect(Storage::disk('local')->allFiles(PhotoUploads::CHUNK_DIRECTORY))->filter(fn ($f) => str_ends_with($f, '.part')))->toBeEmpty();
+    });
+
+    it('counts the compressed size, so a photo that only fits after compression is stored', function () {
+        useCompression(maxPx: 100);
+        $path = noisyImageFile(800, 600);
+        giveStorageLimit($this->user, filesize($path) - 1);
+
+        $photo = photoFromFile(Album::factory()->create(), $path, $this->user);
+
+        expect($photo->original()->size)->toBeLessThan(filesize($path));
+    });
+
+    it('refuses the finished photo when other uploads have used the space meanwhile', function () {
+        $album = Album::factory()->create();
+        $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
+        file_put_contents($path, $this->image);
+        photoWithStoredSizes($album, 10, uploader: $this->user);
+        giveStorageLimit($this->user, strlen($this->image));
+
+        expect(fn () => app(AddPhotoToAlbum::class)->handle($album, $path, 'x.jpg', $this->user))
+            ->toThrow(PhotoCannotBeProcessed::class, StorageQuota::exceededMessage($this->user));
+
+        expect(Photo::count())->toBe(1);
+    });
 });

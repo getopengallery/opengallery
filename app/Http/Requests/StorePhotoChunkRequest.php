@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PhotoCompression;
 use App\Support\PhotoUploads;
+use App\Support\StorageQuota;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -28,7 +30,11 @@ class StorePhotoChunkRequest extends FormRequest
                     $fail(__('This file type is not supported.'));
                 }
             }],
-            'size' => ['required', 'integer', 'min:1', 'max:'.PhotoUploads::maxBytes()],
+            'size' => ['required', 'integer', 'min:1', 'max:'.PhotoUploads::maxBytes(), function (string $attribute, mixed $value, Closure $fail) {
+                if ($this->integer('offset') === 0 && ! $this->fitsQuota((int) $value)) {
+                    $fail(StorageQuota::exceededMessage($this->user()));
+                }
+            }],
             'offset' => ['required', 'integer', 'min:0', 'lt:size'],
             // A little slack over the chunk size the browser was told to use.
             'chunk' => ['required', 'file', 'max:'.(int) ceil(PhotoUploads::chunkBytes() / 1024 * 1.1)],
@@ -41,5 +47,21 @@ class StorePhotoChunkRequest extends FormRequest
         return [
             'size.max' => __('The file is larger than the upload limit of :mb MB.', ['mb' => (int) round(PhotoUploads::maxBytes() / 1024 / 1024)]),
         ];
+    }
+
+    /**
+     * Refuses at the first chunk, before gigabytes are sent for nothing. With
+     * compression on the stored file may be smaller, so only a full quota is
+     * refused here; AddPhotoToAlbum checks the exact size at the end.
+     */
+    private function fitsQuota(int $bytes): bool
+    {
+        $remaining = StorageQuota::remaining($this->user());
+
+        if ($remaining === null) {
+            return true;
+        }
+
+        return PhotoCompression::isActive() ? $remaining > 0 : $bytes <= $remaining;
     }
 }

@@ -107,3 +107,11 @@ function standardGrants(Role $role): array
 {
     return collect(RolesAndPermissionsSeeder::matrix()[$role->value])->map->value->sort()->values()->all();
 }
+
+/** Gives $user their own storage limit of $bytes (null: the site default), or no limit at all. */
+function giveStorageLimit(User $user, ?int $bytes, bool $unlimited = false): User
+{
+    $user->forceFill(['storage_quota_bytes' => $bytes, 'storage_unlimited' => $unlimited])->save();
+
+    return $user;
+}

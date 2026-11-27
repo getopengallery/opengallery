@@ -35,6 +35,21 @@ If a step fails, the photo is removed again. When the database is busy (`Detects
 - New uploads: `AddPhotoToAlbum` calls it after reading the EXIF and the memory check, before `addMedia()`, and stores the media custom property `compression` (`['max' => ?int, 'quality' => ?int]`, the settings used).
 - Existing photos: `startExisting()` sets the cursor setting `uploads.compression_existing` to 0 (the "Compress existing photos" action). The background job `compress-existing` (`BackgroundJobs::tasks()`, every pass) calls `compressExisting()`, which works through the media ids in batches of `BATCH` for up to `SECONDS` and clears the cursor when done or when compression was turned off. `hasWork()` makes AJAX passes start every minute (`BackgroundJobs::ajaxDue()`), and `remaining()` feeds the count on the settings page. Before a file is replaced, its size is kept once as the media property `original_size` ([File sizes](media-library.md#file-sizes)). `wouldChange()` skips photos whose stored `compression` property is already as strict as the current settings; a lower quality compresses them again.
 
+## Storage limits
+
+`App\Support\StorageQuota` answers how much a person may store, while Settings → Storage is on (`SiteSettings::storageLimitsEnabled()`). Nothing is cached, so a check right after an upload or a deletion is exact.
+
+- `used($user)`: bytes of the originals plus generated conversions of every photo with `uploader_id` = the user, trashed photos included. It reuses `LibraryStats::originals()` and `LibraryStats::generatedSql()`, which are public for this.
+- `limit($user)`: `null` (no limit) while limits are off or `users.storage_unlimited` is set; otherwise `users.storage_quota_bytes`, or the default `SiteSettings::defaultStorageQuotaGb()` converted with `gbToBytes()` (1 GB = 1024³ bytes).
+- `remaining($user)` and `allows($user, $bytes)`: a file that exactly fills the quota is allowed. `exceededMessage()` is the translated "Not enough storage left" text.
+
+Two checks use it:
+
+1. `StorePhotoChunkRequest` validates `size` at the first chunk (`offset` 0), so nothing large is sent for nothing. While `PhotoCompression::isActive()` the file may shrink, so it only refuses when `remaining()` is 0.
+2. `AddPhotoToAlbum::handle()` checks the exact size of the file after compression, before the photo is created, and throws `PhotoCannotBeProcessed` with the message. This also catches parallel uploads.
+
+Changing a photo's uploader (media library bulk action) is not checked. `StorageQuota` is not consulted for uploads without an uploader.
+
 ## Limits and settings
 
 | Setting | Default | Meaning |
