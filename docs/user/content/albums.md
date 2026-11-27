@@ -14,7 +14,7 @@ People with the permission "See every album", "Edit every album" or "Delete ever
 
 The list shows albums as a tree: albums inside another album appear indented below it, with the number of photos and albums they contain. Sorting by another column or searching switches to a flat list that shows each album's full path.
 
-![The albums list](../../assets/albums-list.png)
+![The albums list](../../assets/albums-list.webp)
 
 Click a row to open the album and edit it. Each row also has:
 
@@ -53,7 +53,7 @@ You can upload thousands of photos in one go. A progress bar shows how many phot
 
 Click **Add to album** to add the selected photos from the library. Photos you uploaded are already in the album, even if you close the picker without clicking it. To add photos you need the permission "Upload photos" and must be allowed to edit the album. Collaborators use this same section with what their role allows; see [Working on an album together](sharing.md#working-on-an-album-together).
 
-![Adding photos to an album](../../assets/albums-add-photos.png)
+![Adding photos to an album](../../assets/albums-add-photos.webp)
 
 Photos you upload in the picker of a new album (before it is created) or when choosing a cover are kept in your private album "Unsorted uploads" until they join an album (see [System albums](#system-albums)). They leave it as soon as they are added to another album, wherever you do that: in an album, in the media library or in the photo's own form.
 
@@ -65,7 +65,7 @@ In the **Photos** section, click photos to select them, or use **Select all**. T
 - **Remove from album**: the photos stay in the media library and in their other albums. A photo that is only in this album is kept; move it to the trash instead if you want it gone.
 - **Move to trash**: removes the photos from every album they are in. You can restore them from the trash in **Media**. See [Photos and the media library](photos.md#the-trash).
 
-![The Photos section of an album with one photo selected](../../assets/albums-photos-section.png)
+![The Photos section of an album with one photo selected](../../assets/albums-photos-section.webp)
 
 ## Photo order
 

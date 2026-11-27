@@ -11,7 +11,7 @@ Site-wide settings are in the admin menu, with one page per topic. You need the 
 
 Each page has its own **Save** button and saves only that page. If you try to leave a page with changes you have not saved, the browser asks first. To find a setting, type its name in the search field at the top of the admin, for example "favicon".
 
-![The site settings page](../../assets/settings-page.png)
+![The site settings page](../../assets/settings-page.webp)
 
 ## Image fields
 
@@ -58,7 +58,7 @@ Photos and pages are never stored on the device. Only the site's styles, the log
 
 How the site appears in search results (Google, Bing and others) and in the previews that messengers, chat apps and social networks show when someone shares a link.
 
-![The Search engines settings page](../../assets/settings-search-engines.png)
+![The Search engines settings page](../../assets/settings-search-engines.webp)
 
 ### Search results
 
@@ -129,11 +129,11 @@ Off by default. With **Compress uploaded photos** on, new photos are made smalle
 
 GIF, HEIC, AVIF and animated WebP files are never changed. When the result would not be smaller, the original stays.
 
-![The Compression section of the photo settings](../../assets/settings-photos-compression.png) <!-- TODO: screenshot of Settings -> Photos -> Compression with both parts on -->
+![The Compression section of the photo settings](../../assets/settings-photos-compression.webp)
 
 Only photos uploaded after you save are compressed. Once compression is saved as on, **Compress existing photos** appears. After you confirm, the photos already stored are compressed with the saved settings, a few at a time by the [background jobs](#background-jobs), so these must be running. The section shows how many photos are still to be checked. The originals are replaced and cannot be restored. Photos that were already compressed with the same or stricter settings are skipped; if you lower the quality later, they are compressed again.
 
-![The button to compress existing photos with the number of photos still to check](../../assets/settings-photos-compress-existing.png) <!-- TODO: screenshot of the Compress existing photos button and the remaining count -->
+![The button to compress existing photos with the number of photos still to check](../../assets/settings-photos-compress-existing.webp)
 
 ### Downloads
 
@@ -168,7 +168,7 @@ Only photos uploaded after you save are compressed. Once compression is saved as
 
 How people label albums and photos. See [Tags](../content/tags.md) for how tagging works.
 
-![The Tags settings page with its switches and predefined tags](../../assets/settings-tags.png)
+![The Tags settings page with its switches and predefined tags](../../assets/settings-tags.webp)
 
 - **Use tags**: on by default. When off, the tag fields are hidden and the search ignores tags. Existing tags are kept and come back when you turn it on again.
 - **Allow new tags**: on by default. When off, people can only add predefined tags. Tags already on an album or photo stay.
@@ -179,7 +179,7 @@ How people label albums and photos. See [Tags](../content/tags.md) for how taggi
 
 Which license a photo carries, for example "CC BY 4.0" or "All rights reserved". See [Licenses](../content/licenses.md) for how people give photos a license and where it is shown.
 
-![The Licenses settings page with the default license and the licenses to choose from](../../assets/settings-licenses.png) <!-- TODO: screenshot of Settings → Licenses with licensing on -->
+![The Licenses settings page with the default license and the licenses to choose from](../../assets/settings-licenses.webp)
 
 - **Use licenses**: off by default. When on, every new photo gets the default license, the photo page shows a **License** field and the photo information in the viewer shows the license. When off, licenses are hidden, but photos keep theirs and they come back when you turn it on again.
 - **Default license**: only shown while licenses are on, and required. New uploads get this license; photos uploaded before keep theirs, or stay without a license. Below the field you see the selected license's description in plain words and a **Read the license** link to its full text. The default license cannot be deactivated or deleted.

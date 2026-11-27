@@ -21,7 +21,7 @@ The media library opens as a grid. Switch between the two layouts with the **Lis
 - **List** shows each photo's thumbnail, title and file name, albums (one badge per album; albums in the trash have a gray badge marked "(in the trash)"), uploader, upload date and size. Photos without a title show "Untitled", and photos that are in no album at all show "In no album" (this should not happen in normal use; add such a photo to an album or move it to the trash). More columns, such as the date taken, can be turned on in the column menu. Long titles, file names, album names and uploader names are cut after 40 characters; hover over them to read the full text. Click an album to open its edit page and click the uploader to open that person's page in the admin. They are plain text when you may not open them: for an album you need to own it or have the permission "Edit any album", for a person the permission "Manage users" and the right to manage that account. Click anywhere else in a row to open the photo; the only icon at the end of the row is **Move to trash** (the red trash can).
 - **Grid** shows the photos in rows of equal height, like an album on the site: every photo keeps its shape, so upright photos are shown upright and nothing is cut off. An album's edit page and the photo picker show photos the same way, with the title on the photo. Hover over the title to see the albums the photo is in. A tile marked **Not on the site** belongs only to albums that are in the trash, so visitors cannot see it until one of them is restored. Click a photo to select it; each tile has its own button to open the photo.
 
-![The media library as a grid, with the filters opened from the funnel icon](../../assets/photos-media-grid.png)
+![The media library as a grid, with the filters opened from the funnel icon](../../assets/photos-media-grid.webp)
 
 ## Finding photos
 
@@ -103,13 +103,13 @@ The second row has **File** (name, type, size and dimensions) and, next to it, *
 
 Click **Save changes** to save. You stay on the page. Click an album under **Albums** or **Cover of** to open its edit page, and click the name under **Uploaded by** to open that person's page in the admin. They are plain text when you may not open them: for an album you need to own it or have the permission "Edit any album", for a person the permission "Manage users" and the right to manage that account.
 
-![A photo page with preview, title, albums and history](../../assets/photos-edit.png) <!-- TODO: screenshot of the photo page as an editor sees it -->
+![A photo page with preview, title, albums and history](../../assets/photos-edit.webp)
 
 ### Read-only photo page
 
 Photos in the trash, and photos you may see but not edit, open the same page read-only: the same layout without editable fields. For a photo in the trash, the page says since when it has been there and offers **Restore** and **Delete permanently** instead of the other buttons (it is only shown to people who could restore it). After **Restore**, someone who may edit the photo lands on its editable page.
 
-![A photo page read-only, with its preview, albums and history](../../assets/photos-view.png)
+![A photo page read-only, with its preview, albums and history](../../assets/photos-view.webp)
 
 ## Who may change a photo
 

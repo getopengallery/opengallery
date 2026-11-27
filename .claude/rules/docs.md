@@ -36,14 +36,15 @@ The docs are rendered by the application, so:
 
 ## Screenshots
 Screenshots are encouraged to illustrate UI steps, especially in `user/` docs.
-- Store images under **`/docs/assets/`** (shared) — e.g. `docs/assets/albums-upload.png`. Create the folder if missing.
-- Reference with Markdown, relative to the current doc: from `docs/user/content/albums.md` that is `![Uploading photos](../../assets/albums-upload.png)`.
+- Store images under **`/docs/assets/`** (shared) as WebP — e.g. `docs/assets/albums-upload.webp`.
+- Reference with Markdown, relative to the current doc: from `docs/user/content/albums.md` that is `![Uploading photos](../../assets/albums-upload.webp)`.
 - Use descriptive alt text (what the user should see / click). Alt text is what appears if the image fails to render.
-- Filenames: lowercase, hyphenated, `<area>-<action>.png`. Never spaces, never non-ASCII.
-- You cannot take screenshots yourself. When a screenshot would clearly help but none exists, **insert a placeholder** and flag it in your summary:
-  `![Upload dialog](../../assets/albums-upload.png) <!-- TODO: screenshot of the upload dialog -->` (only images with such a TODO on the same line may point to a missing file)
+- Filenames: lowercase, hyphenated, `<area>-<action>.webp`. Never spaces, never non-ASCII.
+- Take and retake screenshots with the `docs-screenshots` skill (`.claude/skills/docs-screenshots/SKILL.md`): add an entry to its `shots.json`, run `shots.py capture NAME`, and check the result with `shots.py sheet NAME` only. Never open full images one by one.
+- When a shot cannot be captured (for example it fails or needs a state the demo cannot reach), **insert a placeholder** and flag it in your summary:
+  `![Upload dialog](../../assets/albums-upload.webp) <!-- TODO: screenshot of the upload dialog -->` (only images with such a TODO on the same line may point to a missing file)
   Do not invent image files or reference remote URLs.
-- Keep screenshots up to date: if a UI change makes a screenshot misleading, flag the affected image(s) in your summary for re-capture rather than silently leaving it.
+- Keep screenshots up to date: if a UI change makes a screenshot misleading, retake it with `shots.py capture NAME`, or flag it in your summary if that fails.
 
 ## How to update
 - First read `docs/README.md` and the README of the sub-folder for the area you touched, then the pages it links.

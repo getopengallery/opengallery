@@ -24,7 +24,7 @@ You do not need a console: the setup runs in the browser. If you have one, you c
 
 ### The setup in your browser
 
-![The first page of the setup with the language and the server check](../../assets/setup-welcome.png)
+![The first page of the setup with the language and the server check](../../assets/setup-welcome.webp)
 
 The setup has five steps. The list on the left shows where you are; steps you have finished can be opened again.
 

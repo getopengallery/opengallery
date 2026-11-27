@@ -6,7 +6,7 @@ order: 20
 
 Everyone with an account has a profile page on the site. Once you are logged in, open the menu with your name in the header and choose **Profile**.
 
-![The profile page](../../assets/profile-page.png) <!-- TODO: re-capture the profile page with the new "Where you're signed in" section -->
+![The profile page](../../assets/profile-page.webp)
 
 ## Profile picture
 

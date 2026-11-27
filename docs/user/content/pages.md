@@ -23,7 +23,7 @@ In the **Publishing** section:
 
 Published pages are visible even when public albums are turned off for visitors, unless they are for members only. While a page is published, **View on site** at the top of its edit page shows it as visitors see it.
 
-![Editing a page](../../assets/pages-editor.png)
+![Editing a page](../../assets/pages-editor.webp)
 
 ## Photos on a page
 

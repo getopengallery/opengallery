@@ -37,13 +37,13 @@ Each album still decides for itself who may see it (step 6).
 
 Go to **Gallery → Albums** and click **New album**. Enter a **Title**, leave **Visibility** at "Private (owner only)" for now and click **Create**.
 
-![The form for a new album, with title, visibility, cover and photo order](../../assets/albums-create.png)
+![The form for a new album, with title, visibility, cover and photo order](../../assets/albums-create.webp)
 
 ## 5. Add photos
 
 On the album's page, scroll to **Photos** and click **Add photos**. Drop photos or whole folders onto the upload area; they go straight into the album. To also add photos that are already in the library, select them and click **Add to album**. Large photos and big batches are fine. See [Adding photos](../content/albums.md#adding-photos).
 
-![Adding photos to an album in the media picker](../../assets/albums-add-photos.png)
+![Adding photos to an album in the media picker](../../assets/albums-add-photos.webp)
 
 ## 6. Share the album
 

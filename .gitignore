@@ -12,6 +12,7 @@
 !/.claude/skills/
 /.claude/skills/*
 !/.claude/skills/feature/
+!/.claude/skills/docs-screenshots/
 /.codex
 /.cursor/
 /.github/skills
@@ -35,6 +36,7 @@
 /skills-lock.json
 /storage/*.key
 /storage/pail
+/storage/docs-screenshots
 /vendor
 _ide_helper.php
 Homestead.json

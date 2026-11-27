@@ -1512,5 +1512,6 @@
     "Existing photos are being compressed": "Vorhandene Fotos werden komprimiert",
     "This runs in the background jobs and may take a while for a large library.": "Das läuft in den Hintergrundaufgaben und kann bei einer großen Mediathek eine Weile dauern.",
     "{0} Existing photos are almost done.|{1} Existing photos: 1 photo still to check.|[2,*] Existing photos: :count photos still to check.": "{0} Vorhandene Fotos sind fast fertig.|{1} Vorhandene Fotos: noch 1 Foto zu prüfen.|[2,*] Vorhandene Fotos: noch :count Fotos zu prüfen.",
-    "New uploads are compressed with the saved settings. Photos stored before stay as they are until you compress them too.": "Neue Uploads werden mit den gespeicherten Einstellungen komprimiert. Bereits gespeicherte Fotos bleiben unverändert, bis du sie ebenfalls komprimierst."
+    "New uploads are compressed with the saved settings. Photos stored before stay as they are until you compress them too.": "Neue Uploads werden mit den gespeicherten Einstellungen komprimiert. Bereits gespeicherte Fotos bleiben unverändert, bis du sie ebenfalls komprimierst.",
+    "Screenshot": "Bildschirmfoto"
 }
