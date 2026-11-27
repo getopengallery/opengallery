@@ -202,6 +202,9 @@ class PhotoCompression
 
             $disk->put($stored, (string) file_get_contents($path));
 
+            if ($media->getCustomProperty(self::PROPERTY) === null) {
+                MediaSizes::rememberOriginal($media, (int) $media->size);
+            }
             $media->size = (int) filesize($path);
             $media->setCustomProperty(self::PROPERTY, self::settings());
             $media->save();

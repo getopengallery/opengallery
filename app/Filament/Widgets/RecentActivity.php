@@ -3,12 +3,12 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\Permission;
+use App\Support\Dashboard\ActivityStats;
 use App\Support\Dashboard\DashboardLayout;
-use App\Support\DashboardStats;
 
 /**
  * The latest activity log entries, without those about albums or photos the
- * viewer cannot see (DashboardStats::recent()).
+ * viewer cannot see (ActivityStats::recent()).
  */
 class RecentActivity extends DashboardWidget
 {
@@ -37,6 +37,6 @@ class RecentActivity extends DashboardWidget
     /** @return array<string, mixed> */
     protected function getViewData(): array
     {
-        return ['events' => DashboardStats::recent(static::viewer())];
+        return ['events' => ActivityStats::recent(static::viewer())];
     }
 }

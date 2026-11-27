@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Photo;
+use App\Support\ActivityLog;
 use App\Support\AlbumAccess;
 use App\Support\PhotoLocation;
 use App\Support\PhotoZip;
@@ -49,6 +50,8 @@ class PhotoSelectionDownloadController extends Controller
             ->filter(fn (Photo $photo): bool => AlbumAccess::canDownload($user, $photo));
 
         abort_if($photos->isEmpty(), 404);
+
+        ActivityLog::zipDownload(null, $photos->count(), $request);
 
         return PhotoZip::make(
             __('Photos'),

@@ -161,7 +161,7 @@ describe('the menu', function () {
 
         expect(adminMenu())->toMatchArray([
             'Settings' => ['General', 'App', 'Search engines', 'Access', 'Photos', 'Tags', 'Licenses', 'E-mail'],
-            'System' => ['Activity log', 'Background jobs', 'Updates'],
+            'System' => ['Statistics', 'Activity log', 'Background jobs', 'Updates'],
         ]);
 
         $this->get(SettingsCluster::getUrl())->assertRedirect(GeneralSettings::getUrl());

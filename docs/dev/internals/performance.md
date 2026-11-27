@@ -30,6 +30,10 @@ With `config('gallery.sendfile')` set (`GALLERY_SENDFILE=apache|nginx`), `PhotoF
 
 Each photo has three WebP conversions (`Photo::CONVERSION_SIZES`): `preview` (1920 px), `thumb` (720 px) and `small` (360 px). `preview` is made first and `App\Support\ConversionsFromPreview` (the media library's image generator) starts `thumb` and `small` from it, so the original is decoded once per upload. Blocks offer `small` and `thumb` in a `srcset` (`App\Support\Srcset`), see [Blocks](../extending/blocks.md#loading-photos). Photos uploaded before `small` existed get it from the background jobs (`App\Support\SmallThumbnails`, made from their `thumb`).
 
+## Statistics
+
+The Statistics page and the dashboard's figures read from `App\Support\Statistics\*` (see [Activity log internals](activity-log.md#statistics-and-the-dashboard)): aggregate queries on `activity_events`, `media` and `users`, each cached for 600 seconds with site-wide keys, so the page costs a handful of queries a few times an hour. File sizes are not read from disk when the page opens; they are stored as media custom properties and filled by a background task ([File sizes](media-library.md#file-sizes)).
+
 ## Production caches
 
 Live sites (`APP_ENV=production`) keep Laravel's configuration, route and event caches and Filament's component and icon caches built without anyone running a command (`App\Support\ProductionCaches`, run by the global `KeepProductionCachesFresh` middleware):

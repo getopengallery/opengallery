@@ -32,7 +32,7 @@ enum ActivityLevel: string implements HasDescription, HasLabel
             self::Off => __('Nothing new is recorded. Existing entries stay until they expire.'),
             self::Changes => __('Changes made in the admin (albums, uploads, users, groups, roles, settings) and security events (failed logins, lockouts, password resets, wrong album passwords, linked sign-in accounts).'),
             self::ChangesAndLogins => __('Changes, plus when members log in.'),
-            self::All => __('Changes, logins and album views. Visitors who are not logged in are counted anonymously per day.'),
+            self::All => __('Changes, logins, album views and downloads. Visitors who are not logged in are counted anonymously per day.'),
         };
     }
 

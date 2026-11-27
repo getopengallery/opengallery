@@ -77,6 +77,8 @@ One row per original file, polymorphic to the photo (`model_type`, `model_id`). 
 
 They are generated during the upload request unless `config('gallery.queue_conversions')` is true.
 
+Two custom properties on a photo's original feed the disk-space statistics (see [Media library](../internals/media-library.md#file-sizes)): `original_size` (bytes before compression) and `conversion_sizes` (conversion name => bytes). The media table itself only knows the original's current size.
+
 ### Tags
 
 `tags` (`App\Models\Tag`) holds one row per tag, shared by everyone:
@@ -120,6 +122,7 @@ Laravel's columns (`name`, `email`, `email_verified_at`, `password`, `remember_t
 | `avatar_path` | Profile picture on the `local` disk under `avatars/`, written by `App\Support\Avatars::store()`; hidden, so changes are logged without values. The file is deleted when the user is deleted. |
 | `locale` | Chosen language, or null for the site default |
 | `awaiting_approval` | True for people who signed up while "New accounts need approval" is on, until someone approves them (`App\Support\AccountApproval`). Not mass assignable. |
+| `last_login_at` | Timestamp, nullable: the last login, written by `User::recordLogin()` on every login whatever the activity level, without model events or a change of `updated_at`; ignored by the activity log. Read by `MemberActivityStats`. |
 | `dashboard_layout` | JSON, null = defaults: the person's arrangement of the admin dashboard (`{"v": 1, "widgets": [{"key", "hidden", "size"}]}`), read and written only by `App\Support\Dashboard\DashboardLayout`. Not mass assignable, saved quietly and ignored by the activity log (a personal preference); deleted with the account. |
 
 `User` implements Filament's `FilamentUser` and `HasAvatar` and Laravel's `HasLocalePreference` and `MustVerifyEmail`. `User::mustConfirmEmail()` (no `email_verified_at` while `Mailing::delivers()`) and `awaiting_approval` are enforced by `App\Http\Middleware\EnsureAccountIsActive` on the site (web group) and in the admin panel: such accounts are redirected to `verification.notice` or `approval.notice`; logout, those pages and the profile stay open. `email_verified_at` is not mass assignable, so `CreateUser` / `EditUser` save it with `forceFill()`. `sendEmailVerificationNotification()` only sends while mail works and never throws. Migration `2026_11_15_120405_add_awaiting_approval_to_users_table` marked every older account as confirmed.
@@ -184,7 +187,7 @@ Identities linked by the identity-providers plugin: `user_id`, `provider` (the p
 
 | Column | Meaning |
 | --- | --- |
-| `type` | `App\Enums\ActivityType` value |
+| `type` | `App\Enums\ActivityType` value (visits: `login`, `album_view`, `photo_download`, `zip_download`) |
 | `user_id` | Who did it; null for guests and the system |
 | `album_id` | The album, for album views and album changes |
 | `visitor` | Daily-rotating anonymous hash for guests; no IP address or user agent is ever stored |

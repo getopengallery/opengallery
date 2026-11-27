@@ -159,6 +159,7 @@
     a.og-ledger-item:hover .og-ledger-label { color: inherit; }
     .og-ledger-value { font-size: 1.875rem; line-height: 2.25rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
     .og-ledger-label { font-size: 0.875rem; color: rgb(var(--og-muted, 107 107 107)); }
+    .og-ledger-change { font-size: 0.8125rem; color: rgb(var(--og-muted, 107 107 107)); }
 
     /* Activity calendar */
     .og-calendar-note { margin-bottom: 1rem; }
@@ -236,7 +237,7 @@
     .og-trend-value { font-size: 2rem; line-height: 2.25rem; font-weight: 600; letter-spacing: -0.02em; }
     .og-trend-label { font-size: 0.875rem; color: rgb(var(--og-ink, 26 26 26)); }
     .og-trend-change { grid-column: 1 / -1; min-height: 1.25rem; font-size: 0.8125rem; color: rgb(var(--og-muted, 107 107 107)); }
-    .og-trend-chart { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); align-items: end; gap: 0.375rem; height: 6rem; border-bottom: 1px solid rgb(var(--og-line, 227 227 227)); }
+    .og-trend-chart { display: grid; grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr)); align-items: end; gap: 0.375rem; height: 6rem; border-bottom: 1px solid rgb(var(--og-line, 227 227 227)); }
     .og-trend-col { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 2px; height: 100%; padding-bottom: 2px; }
     .og-trend-col:hover .og-trend-bar { opacity: 0.75; }
     .og-trend-bar { display: block; width: 100%; max-width: 1.75rem; height: var(--share); min-height: 2px; border-radius: 4px 4px 1px 1px; }
@@ -244,6 +245,15 @@
     .og-trend-bar.is-guests, .og-swatch.is-guests { background: rgb(var(--og-primary, 26 26 26) / 0.35); }
     .og-trend-col.is-current .og-trend-bar { background: repeating-linear-gradient(135deg, rgb(var(--og-primary, 26 26 26) / 0.55) 0 2px, transparent 2px 5px); box-shadow: inset 0 0 0 1px rgb(var(--og-primary, 26 26 26) / 0.45); }
     .og-trend-axis { display: flex; justify-content: space-between; font-size: 0.75rem; color: rgb(var(--og-muted, 107 107 107)); margin-top: -0.375rem; }
+    .og-trend-bar.is-downloads, .og-swatch.is-downloads { background: rgb(var(--og-primary, 26 26 26) / 0.6); }
+    .og-trend-chart.is-dense { gap: 2px; }
+    .og-trend-chart.is-dense .og-trend-bar { border-radius: 2px 2px 0 0; }
+    .og-stats-range { margin-bottom: 1.5rem; }
+    .og-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+    .og-stats-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 1rem 1.5rem; }
+    .og-stats-figure { display: flex; flex-direction: column; gap: 0.125rem; }
+    .og-stats-figure-value { font-size: 1.5rem; line-height: 2rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .og-stats-figure-label { font-size: 0.8125rem; color: rgb(var(--og-muted, 107 107 107)); }
     .og-trend-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem 1rem; font-size: 0.8125rem; }
     .og-trend-legend span { display: inline-flex; align-items: center; gap: 0.375rem; }
     .og-swatch { display: inline-block; width: 0.625rem; height: 0.625rem; border-radius: 2px; }

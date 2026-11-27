@@ -160,7 +160,7 @@ Password and end date are not available for private albums.
 
 ## Letting visitors download photos
 
-Turn on **Visitors may download the photos** in **Visibility & sharing** to add a download button to the photo viewer on the site and a **Download all** button to the album's page. They download the original files, as they were uploaded; **Download all** puts all of the album's photos into one zip file. Visitors still need to be allowed to open the album: the password and the end date apply to downloads too. GPS positions are removed from their downloads unless this is turned off in the [photo settings](../administration/settings.md#downloads).
+Turn on **Visitors may download the photos** in **Visibility & sharing** to add a download button to the photo viewer on the site and a **Download all** button to the album's page. They download the original files, as they were uploaded; **Download all** puts all of the album's photos into one zip file. Visitors still need to be allowed to open the album: the password and the end date apply to downloads too. GPS positions are removed from their downloads unless this is turned off in the [photo settings](../administration/settings.md#downloads). Downloads are recorded in the activity log and counted in the [statistics](../administration/statistics.md#most-downloaded-photos) when it records everything.
 
 The switch is off for every album. While it is off, visitors only get the photos in screen size; the original files stay with the people who may edit the photos. It is not available for private albums.
 

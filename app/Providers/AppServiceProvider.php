@@ -31,6 +31,7 @@ use App\Support\DateFormat;
 use App\Support\Locales;
 use App\Support\MailboxTransport;
 use App\Support\MailQueue;
+use App\Support\MediaSizes;
 use App\Support\PrivateDatabaseSessionHandler;
 use App\Support\ProductionCaches;
 use App\Support\RequestMemo;
@@ -69,6 +70,7 @@ use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\FileLoader;
 use Illuminate\Validation\Rules\Password;
+use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -188,8 +190,14 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(Login::class, function (Login $event) {
             if ($event->user instanceof User) {
+                $event->user->recordLogin();
                 ActivityLog::login($event->user);
             }
+        });
+
+        // Sizes of generated files for the statistics page.
+        Event::listen(ConversionHasBeenCompletedEvent::class, function (ConversionHasBeenCompletedEvent $event) {
+            MediaSizes::recordConversion($event->media, $event->conversion->getName());
         });
 
         // Security events. E-mail addresses typed into the login form are never stored.

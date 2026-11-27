@@ -4,7 +4,7 @@ order: 30
 
 # Activity log internals
 
-The activity log records visits (logins, album views), changes made in the admin and security events in the `activity_events` table. Everything goes through `App\Support\ActivityLog`; the admin shows it in the activity log resource and on the dashboard. What administrators see and configure is described in the user guide's [Dashboard and activity log](../../user/administration/activity.md).
+The activity log records visits (logins, album views), changes made in the admin and security events in the `activity_events` table. Everything goes through `App\Support\ActivityLog`; the admin shows it in the activity log resource, on the dashboard and on the [Statistics](#statistics-and-the-dashboard) page. What administrators see and configure is described in the user guide's [Dashboard and activity log](../../user/administration/activity.md).
 
 ## Privacy
 
@@ -18,18 +18,18 @@ Database sessions keep nearly the same promise: `App\Support\PrivateDatabaseSess
 
 `App\Enums\ActivityLevel` (Admin → System → Activity log → Log settings, read with `SiteSettings::activityLevel()`) decides what is written:
 
-| Level | Value | `logsChanges()` | `logsSecurity()` | `logsLogins()` | `logsVisits()` |
+| Level | Value | `logsChanges()` | `logsSecurity()` | `logsLogins()` | `logsVisits()` (album views and downloads) |
 | --- | --- | --- | --- | --- | --- |
 | `Off` | `off` | no | no | no | no |
 | `Changes` | `changes` | yes | yes | no | no |
 | `ChangesAndLogins` | `logins` | yes | yes | yes | no |
 | `All` | `all` | yes | yes | yes | yes |
 
-`ActivityLog::write()` checks the level for every entry: security types need `logsSecurity()`, logins and album views check their own method before writing, and everything else needs `logsChanges()`. Writing never throws: errors are reported and the page, login or save carries on.
+`ActivityLog::write()` checks the level for every entry: security types need `logsSecurity()`, logins check `logsLogins()`, album views and downloads `logsVisits()` before writing, and everything else needs `logsChanges()`. Writing never throws: errors are reported and the page, login or save carries on.
 
 ## Event types
 
-`App\Enums\ActivityType` lists every type with `label()` for display. `isSecurity()` marks `LoginFailed`, `LockedOut`, `PasswordReset`, `AlbumPasswordFailed`, `AlbumGuestCodeFailed`, `AccountLinked`, `AccountUnlinked` and `SessionsSignedOut`; `isVisit()` marks `Login` and `AlbumView`. These two groups are the "Kind" filter of the activity log; everything else counts as a change.
+`App\Enums\ActivityType` lists every type with `label()` for display. `isSecurity()` marks `LoginFailed`, `LockedOut`, `PasswordReset`, `AlbumPasswordFailed`, `AlbumGuestCodeFailed`, `AccountLinked`, `AccountUnlinked` and `SessionsSignedOut`; `isVisit()` marks the types in `ActivityType::visits()`: `Login`, `AlbumView` and the downloads (`ActivityType::downloads()`: `PhotoDownload`, `ZipDownload`). These two groups are the "Kind" filter of the activity log; everything else counts as a change.
 
 ## Where entries come from
 
@@ -38,7 +38,9 @@ Database sessions keep nearly the same promise: `App\Support\PrivateDatabaseSess
 | `App\Observers\ActivityObserver` on `Album`, `User`, `Group`, `Role`, `Page`, `Photo`, `License` (registered in `AppServiceProvider`) | `created`, `updated`, `deleted`, `restored`. A photo's `created` is skipped; uploads are logged per batch. |
 | `App\Models\Pivots\RecordsPivotActivity` on the pivot models | Adding and removing related records ("Albums: +X", members, roles, permissions, shares) through `ActivityLog::pivotChanged()` |
 | Auth event listeners in `AppServiceProvider` | `Login`, `LoginFailed`, `LockedOut`, `PasswordReset` |
-| `AlbumController` | `AlbumView` (once per album, visitor and day, remembered in the session), `AlbumPasswordFailed`, `AlbumGuestCodeFailed` (wrong code on a guest link) |
+| `AlbumController` | `AlbumView` (once per album, visitor and day, remembered in the session), `AlbumPasswordFailed`, `AlbumGuestCodeFailed` (wrong code on a guest link); `download()` writes `ZipDownload` through `ActivityLog::zipDownload($album, $count, $request)` |
+| `MediaController` | `PhotoDownload` through `ActivityLog::photoDownload()` for an original requested with `?download=1`, once per visitor, photo and day (session key) |
+| `PhotoSelectionDownloadController` | `ZipDownload` with `album_id` null and the photo count in `properties`; every download counts, with no de-duplication. The profile "my photos" download is not logged |
 | Explicit calls in the admin | `photosUploaded()`, `photosAdded()`, `photosRemoved()`, `photosReordered()`, `albumsReordered()`, `settingsChanged()`, `extensionChanged()` (theme activated, plugin on or off, theme or plugin uploaded) |
 | `App\Models\SocialAccount` events (`created`, `deleted`) | `AccountLinked`, `AccountUnlinked` |
 | `App\Support\UserSessions` | `SessionsSignedOut` through `ActivityLog::sessionsSignedOut($user, $count, $by)`: the subject is the signed-out account, the actor the person who did it (the account itself when `$by` is null), `properties` holds `count`. Written at every level except `Off`, like all security types. |
@@ -75,14 +77,28 @@ Chunked uploads finish one photo per request. Each drop in the photo picker has 
 
 `ActivityEvent` is `MassPrunable`: `prunable()` selects entries older than `config('gallery.activity_retention_days')` (the same Log settings page, 1 to 3650 days, default 365). The scheduled `model:prune` (daily, `routes/console.php`) deletes them, so retention needs the cron job.
 
-## Dashboard
+## Statistics and the dashboard
 
-The activity widgets (`App\Filament\Widgets\LibraryOverview`, `ActivityCalendar`, `ActivityTrends`, `RecentActivity`, `PopularAlbums`) are shown to people with `view activity` and read through `App\Support\DashboardStats`:
+The admin page `App\Filament\Pages\Statistics` (System → Statistics, slug `statistics`, view `resources/views/filament/pages/statistics.blade.php`) needs `Permission::ViewStatistics` (`view statistics`, group "Admin area"; admins have it through the seeder, moderators do not, super admins always). It is separate from `view activity`. The period is the public property `$range` (`#[Url]`, a value of `App\Enums\StatisticsRange`: 7, 30, 90 days or 12 months, bucketed by day, day, week and month) and `$calendar` switches the activity calendar. The page holds no queries; they live in `App\Support\Statistics`, all cached with `Cache::remember()` for `CACHE_SECONDS` (600) and site-wide, so no access decision is cached:
 
-- `totals()`: counts of the whole library (only numbers; system albums are not counted), cached for `DashboardStats::CACHE_SECONDS` (10 minutes).
-- `calendar($mode, $weeks)`: `DashboardStats::MEMBERS` or `GUESTS`, 53 weeks by default. The per-day counts are cached for 10 minutes; the widget is lazy-loaded.
-- `trends($weeks)`: album views (members and guests) and logins per week, 12 weeks by default, grouped by `DATE(created_at)` in SQL and bucketed in PHP (portable between MySQL and SQLite). Cached, lazy.
-- `recent(User $viewer, $limit)`: without `view any album`, entries whose `album_id` or album or photo subject the viewer cannot list (`Album::listableFor()`, `Photo::visibleTo()`) are left out. The activity log resource itself is not filtered.
-- `popularAlbums(User $viewer, $days, $limit)`: 30 days, 6 albums, among those the viewer may list. Albums the viewer may update link to the album editor.
+| Class | Provides |
+| --- | --- |
+| `VisitStats` | `series($range)` (views by members and guests, downloads and logins per bucket), `weeks($n)` (the dashboard's "Last week" figures), `totals($range)`, `calendar(MEMBERS or GUESTS, $weeks = 53)`, `topAlbums($range, $viewer, $limit)`, `unopenedAlbums($range)` and `topDownloads($range)` |
+| `LibraryStats` | `totals()` (counts of the library, without system albums), `storage()`, `storageByAlbum()`, `storageByUploader()` and `growth($range)`; sizes come from [`MediaSizes`](media-library.md#file-sizes) |
+| `MemberActivityStats` | `overview()` and `leastActive()` from `users.last_login_at` (`ACTIVE_DAYS` 7, 30 and 90, `INACTIVE_DAYS` 180) |
+| `ExposureStats` | `overview()`: what anonymous visitors can reach (open photos and albums, passwords, guest invitations, visibility, expired access); personal system albums and the trash are left out |
+
+Rankings that name albums, such as `VisitStats::topAlbums()`, cache the counts for the whole site and cut them down per viewer afterwards with `Album::listableFor()`, unless the viewer has `view any album`. The unopened-albums list needs the activity log level that records album views, and every visit figure is only as old as the log's retention; the page shows notes for both (`ActivityLevel::logsLogins()` and `logsVisits()`, `SiteSettings::activityRetentionDays()`).
+
+The activity widgets (`App\Filament\Widgets\LibraryOverview`, `ActivityTrends`, `RecentActivity`, `PopularAlbums`) are shown to people with `view activity`. The old `App\Support\DashboardStats` and the `activity-calendar` widget no longer exist (a saved layout that still names the key drops it silently, see [Dashboard widgets](../extending/dashboard-widgets.md#per-user-layouts)):
+
+- `LibraryStats::totals()`: the library figures. The storage figure includes the generated sizes and links to Statistics for people who may open it.
+- `VisitStats::weeks()`: last week's album views, downloads and logins against the week before; the widget links to Statistics ("All statistics") when `Statistics::canAccess()`.
+- `VisitStats::topAlbums($range, $viewer, $limit)`: the five most viewed albums of the last 30 days, with "Show all" linking to Statistics.
+- `App\Support\Dashboard\ActivityStats::recent(User $viewer, $limit)`: without `view any album`, entries whose `album_id` or album or photo subject the viewer cannot list (`Album::listableFor()`, `Photo::visibleTo()`) are left out. The activity log resource itself is not filtered.
 
 `ActivityEvent::subjectUrl()` links users, groups and roles only for people who may open those resources. The other dashboard widgets are described in [Dashboard widgets](../extending/dashboard-widgets.md).
+
+### Last login
+
+`users.last_login_at` is written by `User::recordLogin()` from the `Login` listener in `AppServiceProvider` on every login, whatever the activity level. It updates through the query builder, so no model events fire (no activity entry) and `updated_at` stays; `ActivityLog::IGNORED` lists the column too. The migration filled it for existing accounts from their logged logins.

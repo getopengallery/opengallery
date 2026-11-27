@@ -88,6 +88,7 @@ Admin area:
 
 - **Open the admin area**: needed for every other admin permission. Without it, someone who [works on an album](../content/sharing.md#working-on-an-album-together) still gets a reduced admin with only **Albums**.
 - **See the dashboard and activity log**: the activity panels of the [dashboard](dashboard.md) and the full activity log. The log names every album and member it mentions, including private albums, so give this permission only to people you trust with that.
+- **See the statistics**: the [Statistics](statistics.md) page with visits, downloads, disk space, member activity and what visitors can see. Administrators have it; moderators do not. It is separate from the dashboard permission.
 
 Users and access:
 

@@ -20,8 +20,9 @@ The dashboard is the first page of the admin. It is made of panels, and each per
 | **Site health** | Problems with the installation, each with a link to the setting or the instructions that fix it (see below) | Change site settings |
 | **Members** | Accounts waiting for approval, open and expired invitations, unconfirmed e-mail addresses, new members of the last 30 days and the newest members | Manage users |
 | **Pages** | How many pages are published, drafts or for members only, and the pages edited last | Edit pages |
-| **Library figures** | The number of albums, photos, members and groups, and the storage the photos use | See the dashboard and activity log |
-| **Activity**, **Trends**, **Recent activity**, **Most viewed albums** | When members and guests were active, album views and logins per week, the latest entries of the activity log and the most viewed albums (see [Dashboard and activity log](activity.md)) | See the dashboard and activity log |
+| **Library figures** | The number of albums, photos, members and groups, and the storage the photos use, including their smaller generated versions. The storage figure links to [Statistics](statistics.md) if you may open it | See the dashboard and activity log |
+| **Last week** (trends) | Last week's album views, downloads and logins compared with the week before, with a link **All statistics** for people who may open [Statistics](statistics.md) | See the dashboard and activity log |
+| **Recent activity**, **Most viewed albums** | The latest entries of the activity log and the five most viewed albums, with **Show all** (see [Dashboard and activity log](activity.md)) | See the dashboard and activity log |
 
 ## The standard arrangement for each role
 
@@ -29,10 +30,10 @@ Until you [arrange your dashboard](#arranging-your-dashboard) yourself, the pane
 
 | Who | Order of the panels |
 | --- | --- |
-| **Administrators** | Welcome; site health, members and albums needing attention side by side; library figures; your albums, your recent uploads and pages; trends; recent activity and most viewed albums; activity calendar; trash |
-| **Moderators** | Welcome; albums needing attention, your albums and your recent uploads; trends; recent activity and most viewed albums; library figures; activity calendar; trash |
+| **Administrators** | Welcome; site health, members and albums needing attention side by side; library figures; your albums, your recent uploads and pages; trends; recent activity and most viewed albums; trash |
+| **Moderators** | Welcome; albums needing attention, your albums and your recent uploads; trends; recent activity and most viewed albums; library figures; trash |
 | **Uploaders** | Welcome; your albums (wide) next to your recent uploads; trash |
-| **Activity only** ("See the dashboard and activity log") | Welcome; trends; recent activity and most viewed albums; library figures; activity calendar |
+| **Activity only** ("See the dashboard and activity log") | Welcome; trends; recent activity and most viewed albums; library figures |
 | **Managing users** | Welcome; members (full width) |
 | **Site settings** | Welcome; site health (full width) |
 | **Editing pages** | Welcome; pages (full width) |
@@ -83,6 +84,8 @@ Click **Save**. Only you see your arrangement; it does not change anyone else's 
 
 Your permissions always decide which panels you get. If you lose a permission, its panel disappears from your dashboard even if you arranged it; if you gain one, or a plugin adds a panel, it appears next to the panel it follows by default. If you hide every panel, the dashboard tells you how to show them again.
 
+The activity calendar used to be a panel of the dashboard. It is now part of [Statistics](statistics.md#activity-calendar); a dashboard you arranged earlier simply drops it.
+
 ## Speed
 
-Panels with figures for the whole gallery (library figures, activity, trends) are updated at most every ten minutes. The slower site health checks are made by the background jobs, not when the dashboard opens. The activity calendar and trends load right after the rest of the page, so the dashboard opens quickly even with a large library.
+Panels with figures for the whole gallery (library figures, trends) are updated at most every ten minutes. The slower site health checks are made by the background jobs, not when the dashboard opens. The trends load right after the rest of the page, so the dashboard opens quickly even with a large library.

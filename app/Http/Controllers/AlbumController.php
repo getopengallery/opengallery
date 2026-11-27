@@ -145,6 +145,8 @@ class AlbumController extends Controller
         $photos = $album->photos()->with(['media', 'albums'])->get();
         abort_if($photos->isEmpty(), 404);
 
+        ActivityLog::zipDownload($album, $photos->count(), $request);
+
         return PhotoZip::make($album->title, $photos, withoutLocation: fn (Photo $photo) => PhotoLocation::isHiddenFrom($request->user(), $photo));
     }
 

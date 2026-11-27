@@ -68,6 +68,7 @@ Defined in `routes/console.php`; makes one pass of the background jobs (`App\Sup
    | `UpdateInstaller::prune()` | daily | Update preparations nobody finished and leftovers of a finished update |
    | `SmallThumbnails::makeMissing()` | every pass | The `small` size for photos uploaded before it existed, made from their `thumb`, at most 15 s per pass |
    | `PhotoCompression::compressExisting()` | every pass | Compresses stored photos after an admin pressed "Compress existing photos" (cursor setting `uploads.compression_existing`), up to `PhotoCompression::SECONDS` (15 s) and `BATCH` (50) photos per pass; does nothing without a cursor |
+   | `MediaSizes::fillMissing()` | every pass | Records the file sizes of older photos for the statistics (300 photos, 10 s per pass, cursor setting `statistics.media_sizes_cursor`); see [File sizes](../internals/media-library.md#file-sizes) |
    | `SiteHealth::refresh()` | `SiteHealth::REFRESH_SECONDS` (5 min) | The site health checks that scan tables and files (pending migrations, stuck and failed jobs, missing thumbnails), cached for `LATE_SECONDS`; the widget only reads them and runs them itself only when no result is cached. Then `SiteHealthNotices::check()` tells people who change settings about new problems |
    | `Inbox::prune()` | daily | Notifications older than `Inbox::KEEP_DAYS` (180 days) |
 

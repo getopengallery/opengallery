@@ -6,6 +6,7 @@ use App\Models\Album;
 use App\Models\Photo;
 use App\Models\User;
 use App\Support\Licensing;
+use App\Support\MediaSizes;
 use App\Support\PhotoCompression;
 use App\Support\PhotoUploads;
 use Carbon\CarbonImmutable;
@@ -38,6 +39,7 @@ class AddPhotoToAlbum
 
         // Replaces the uploaded file with a smaller one when compression is on; the metadata stays in it.
         $compression = PhotoCompression::isActive() ? PhotoCompression::settings() : null;
+        $uploadedBytes = (int) filesize($path);
 
         if ($compression && PhotoCompression::compress($path)) {
             [$width, $height] = PhotoCompression::shownSize($path, $exif['Orientation'] ?? 1);
@@ -69,7 +71,7 @@ class AddPhotoToAlbum
             $photo->addMedia($path)
                 ->preservingOriginal()
                 ->usingFileName($this->safeFileName($originalName))
-                ->withCustomProperties($compression ? [PhotoCompression::PROPERTY => $compression] : [])
+                ->withCustomProperties($compression ? [PhotoCompression::PROPERTY => $compression, MediaSizes::ORIGINAL => $uploadedBytes] : [])
                 ->toMediaCollection(Photo::COLLECTION);
 
             DB::transaction(function () use ($album, $photo) {

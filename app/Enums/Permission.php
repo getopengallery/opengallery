@@ -20,6 +20,7 @@ enum Permission: string
     case ManagePlugins = 'manage plugins';
     case InstallExtensions = 'install extensions';
     case ViewActivity = 'view activity';
+    case ViewStatistics = 'view statistics';
 
     case CreateAlbums = 'create albums';
     case UploadPhotos = 'upload photos';
@@ -39,7 +40,7 @@ enum Permission: string
     {
         return [
             'Albums & photos' => [self::CreateAlbums, self::UploadPhotos, self::ViewAnyAlbum, self::EditAnyAlbum, self::DeleteAnyAlbum, self::InviteCollaborators],
-            'Admin area' => [self::AccessAdmin, self::ViewActivity],
+            'Admin area' => [self::AccessAdmin, self::ViewActivity, self::ViewStatistics],
             'Users & access' => [self::ManageUsers, self::ManageGroups, self::ManageRoles],
             'Site & appearance' => [self::ManageSettings, self::ManagePages, self::ManageThemes, self::ManagePlugins, self::InstallExtensions],
         ];
@@ -50,6 +51,7 @@ enum Permission: string
         return match ($this) {
             self::AccessAdmin => __('Open the admin area'),
             self::ViewActivity => __('See the dashboard and activity log'),
+            self::ViewStatistics => __('See the statistics'),
             self::ManageUsers => __('Manage users'),
             self::ManageGroups => __('Manage groups'),
             self::ManageRoles => __('Manage roles'),
@@ -71,6 +73,7 @@ enum Permission: string
     {
         return match ($this) {
             self::AccessAdmin => __('Needed for every other admin permission.'),
+            self::ViewStatistics => __('Storage, visits, downloads and member activity for the whole site.'),
             self::CreateAlbums => __('They can edit, share and delete their own albums.'),
             self::UploadPhotos => __('Into albums they may edit.'),
             self::ViewAnyAlbum => __('Including private albums, without a share or password.'),
