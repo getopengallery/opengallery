@@ -127,7 +127,7 @@ The albums list shows the albums you work on, with **Your role**. On an album's 
 | List of collaborators | Can see | Can see | Can see |
 | **Leave album** | Yes | Yes | Yes |
 
-- **Add photos** opens the usual picker, which shows this album's photos and your own uploads.
+- **Add photos** opens the usual picker, which shows this album's photos and your own uploads. Its filters are limited to **Only photos in this album** (or **Hide photos already in this album**) and **Uploaded**, because the others would name other people's photos.
 - **Remove from album** keeps photos in their other albums. A photo in no other album moves to the "Unsorted uploads" of the person who uploaded it.
 - **Add album inside** creates an album that belongs to the owner of the album it is in. It is private until the owner, staff or an Editor publishes it.
 - **A sub-album you created** can be moved to the trash, restored and deleted by you, whatever your role, as long as you still work on the album it is in. Deleting it never deletes photos: photos in no other album move to "Unsorted uploads", your own uploads to yours and the rest to the owner's.

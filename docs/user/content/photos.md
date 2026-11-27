@@ -48,7 +48,7 @@ Under **+ More filters** you find the others; each gets its own chip once you se
 
 Photos in the trash are not in the media library; they have their own page (see [The trash](#the-trash)), with the same filters.
 
-The filters are the same in the list and the grid. The photo picker of an album keeps a simpler filter menu behind a funnel icon, with only **Album**, **Uploaded by** and **Uploaded**.
+The filters are the same in the list and the grid. The photo picker ("Add photos" in an album, choosing a cover or a photo for a page) offers the same chips and the same **+ More filters**, plus one chip for the album you are working on: **Hide photos already in this album** when adding photos, **Only photos in this album** when choosing a cover. That chip is on when the picker opens.
 
 ## Working with several photos
 

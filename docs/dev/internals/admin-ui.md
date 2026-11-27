@@ -8,7 +8,7 @@ The admin is built with Filament. A few shared rules keep its screens consistent
 
 ## Lists and filters
 
-Every admin list shows its filters as a row of chips above the table (`App\Filament\Tables\FilterBar`). `AppServiceProvider::boot()` sets the default for all other tables with `Table::configureUsing()`: filters in a dropdown behind the funnel icon next to the search (`FiltersLayout::Dropdown`), applied immediately (`deferFilters(false)`). The media picker (`App\Livewire\MediaPicker`) is the one core table that keeps this dropdown. Do not override the layout or deferral in a single table beyond calling `FilterBar`.
+Every admin list shows its filters as a row of chips above the table (`App\Filament\Tables\FilterBar`). `AppServiceProvider::boot()` sets the default for all other tables with `Table::configureUsing()`: filters in a dropdown behind the funnel icon next to the search (`FiltersLayout::Dropdown`), applied immediately (`deferFilters(false)`). Core tables all call `FilterBar::configure()`, including the media picker (`App\Livewire\MediaPicker`, primary chips `scope`, `albums`, `uploader`, `taken`). Do not override the layout or deferral in a single table beyond calling `FilterBar`.
 
 ### The filter bar
 
@@ -35,7 +35,7 @@ Further rules:
 - **Dates**: use `App\Filament\Tables\Filters\DateRangeFilter` for any date filter. It renders one "From – To" field and an indicator such as "Uploaded since 03.11.2026"; in the filter bar it becomes a chip with the quick picks. Qualify the column when the query joins other tables.
 - **Date format**: every date and time is shown as `DD.MM.YYYY HH:MM` (seconds only where they matter, such as the activity log), in every language. The formats are the constants of `App\Support\DateFormat`. `AppServiceProvider` makes them the defaults of every table, infolist and date picker (pickers use Filament's own calendar, `native(false)`, Monday first), so call `->dateTime()` / `->date()` without a format. In PHP and Blade use `DateFormat::date()`, `dateTime()` or `dateTimeWithSeconds()`; never `isoFormat('LL')`, `diffForHumans()` or `->since()`.
 - **Users**: filters that choose a person are `searchable()` and never `preload()`, because a site can have thousands of users. Short lists such as roles, groups and albums may preload.
-- **Shared filters**: when two tables show the same records, share the filter definitions instead of copying them. The media library and the picker both use `PhotosTable::albumFilter()` (`multiple: true` in the library, one album in the picker), `uploaderFilter()` and `uploadedFilter()`.
+- **Shared filters**: when two tables show the same records, share the filter definitions instead of copying them. The media library and the picker both use `PhotosTable::albumFilter()` (`multiple: true` in the library, one album in the picker), `uploaderFilter()`, `uploadedFilter()` and `PhotoFilters::all()`.
 - **Layouts**: a table with a list and a grid layout (the media library) keeps the same filters and search in both; only columns, page sizes and record actions change.
 
 ```php

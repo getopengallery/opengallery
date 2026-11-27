@@ -101,7 +101,7 @@ Names are plain text when you may not open what they point to: a person's page n
 
 An empty list says what it is for and offers its first step, for example **New album**. If the search or a filter hides every row, it says "Nothing matches" instead; change the search or the filters.
 
-The media library keeps its search and filters when you switch between list and grid. It has the most filters, for example tags, license, shape, resolution and file name (see [Finding photos](../content/photos.md#finding-photos)); the photo picker in an album ("Add photos") keeps a simpler filter menu behind a funnel icon, with the album, uploader and upload date filters of the media library.
+The media library keeps its search and filters when you switch between list and grid. It has the most filters, for example tags, license, shape, resolution and file name (see [Finding photos](../content/photos.md#finding-photos)); the photo picker ("Add photos" in an album, choosing a cover) uses the same chips and filters.
 
 ## Finding the documentation
 

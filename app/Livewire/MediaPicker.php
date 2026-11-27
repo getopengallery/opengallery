@@ -3,7 +3,9 @@
 namespace App\Livewire;
 
 use App\Enums\Permission;
+use App\Filament\Resources\Photos\Tables\PhotoFilters;
 use App\Filament\Resources\Photos\Tables\PhotosTable;
+use App\Filament\Tables\FilterBar;
 use App\Filament\Tables\MediaGrid;
 use App\Models\Album;
 use App\Models\Photo;
@@ -154,7 +156,8 @@ class MediaPicker extends Component implements HasActions, HasSchemas, HasTable
 
     public function table(Table $table): Table
     {
-        return $table
+        // The same filter chips as the media library; the album scope toggle comes first.
+        return FilterBar::configure($table, primary: ['scope', 'albums', 'uploader', 'taken'])
             ->query($this->availablePhotos()->with(['media', 'albums']))
             ->defaultSort('created_at', 'desc')
             // Smaller pages than the library: the picker sits in a modal.
@@ -172,6 +175,8 @@ class MediaPicker extends Component implements HasActions, HasSchemas, HasTable
                         ->orWhereIn('photos.id', $this->justUploaded))),
                 ...($this->limitToAlbumId === null ? [PhotosTable::albumFilter(), PhotosTable::uploaderFilter()] : []),
                 PhotosTable::uploadedFilter(),
+                // Collaborators only get filters that name nobody else.
+                ...($this->limitToAlbumId === null ? PhotoFilters::all() : []),
             ])
             ->toolbarActions([
                 ...($this->multiple ? MediaGrid::selectionActions() : []),
