@@ -10,6 +10,7 @@ use App\Filament\Actions\UploadExtensionAction;
 use App\Filament\Navigation\NavigationGroup;
 use App\Filament\Tables\EmptyState;
 use App\Filament\Tables\ExtensionsTable;
+use App\Filament\Tables\FilterBar;
 use App\Support\ActivityLog;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -106,6 +107,7 @@ class Plugins extends Page implements HasTable
                         }
                     }),
             ])
+            ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['status']))
             ->filters([
                 SelectFilter::make('status')
                     ->label(__('Status'))

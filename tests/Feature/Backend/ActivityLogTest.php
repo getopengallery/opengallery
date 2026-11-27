@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Filament\Resources\ActivityEvents\ActivityEventResource;
 use App\Filament\Resources\ActivityEvents\Pages\ManageActivityEvents;
 use App\Filament\Resources\Users\UserResource;
+use App\Filament\Tables\FilterBar;
 use App\Models\ActivityEvent;
 use App\Models\Role as RoleModel;
 use App\Models\User;
@@ -30,7 +31,8 @@ describe('as an admin', function () {
         $columns = $table->getColumns();
 
         $page->assertCanSeeTableRecords([$login])->assertSeeHtml(UserResource::getUrl('edit', ['record' => $owner]));
-        expect($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+        expect($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
+            ->and(FilterBar::uses($table))->toBeTrue()
             ->and($table->hasDeferredFilters())->toBeFalse()
             // The log has no badges: its cells hold a single entry.
             ->and($columns['user.name']->isBadge())->toBeFalse()

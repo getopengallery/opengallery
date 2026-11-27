@@ -8,20 +8,34 @@ The admin is built with Filament. A few shared rules keep its screens consistent
 
 ## Lists and filters
 
-Every table filters the same way. `AppServiceProvider::boot()` sets the defaults for all tables with `Table::configureUsing()`:
+Every admin list shows its filters as a row of chips above the table (`App\Filament\Tables\FilterBar`). `AppServiceProvider::boot()` sets the default for all other tables with `Table::configureUsing()`: filters in a dropdown behind the funnel icon next to the search (`FiltersLayout::Dropdown`), applied immediately (`deferFilters(false)`). The media picker (`App\Livewire\MediaPicker`) is the one core table that keeps this dropdown. Do not override the layout or deferral in a single table beyond calling `FilterBar`.
 
-- filters open in a dropdown behind the funnel icon next to the search (`FiltersLayout::Dropdown`);
-- filters apply immediately (`deferFilters(false)`), so there is no "Apply filters" button.
+### The filter bar
 
-Do not override the layout or deferral in a single table. The media picker (`App\Livewire\MediaPicker`) uses the same dropdown as the media library.
+```php
+use App\Filament\Tables\FilterBar;
+
+$table
+    ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['visibility', 'owner']))
+    ->filters([...]);
+```
+
+`FilterBar::configure()` sets `FiltersLayout::Hidden` and `deferFilters(false)`. Filament still builds, applies and stores the filters (so `?filters[...]` URLs and `$table->getFilters()` work as before); the bar is only the view. It is rendered by the `TablesRenderHook::TOOLBAR_AFTER` hook and `TablesRenderHook::FILTER_INDICATORS` hides Filament's "Active filters" row, both registered in `AdminPanelProvider` and active only for tables that called `configure()`. The view is `resources/views/filament/tables/filter-bar.blade.php`, the styles are the `og-filter-*` classes in `resources/views/filament/partials/theme-styles.blade.php`. Plugins that add admin tables opt in with the same call.
+
+- **Primary filters**: the names in `primary` always show a chip, in that order. All other filters are listed under "+ More filters" and get a chip once set.
+- **Chip**: shows the label, or "Label: value" with a remove cross once set ("Album: Sea +2" for several values). Clicking it opens a popover with checkboxes (`multiple()`) or radio choices, a search field above `FilterBar::SEARCH_THRESHOLD` (7) options, a "Clear" link, and for dates quick picks (`FilterBar::datePresets()`: last 7 days, last 30 days, this year, last year) next to From / To. "Reset all" clears every filter. On phones the popover is a bottom sheet with a "Show N results" button.
+- **Supported filters**: `SelectFilter` (single or `multiple()`, static options or a `BelongsTo` / `BelongsToMany` `relationship()`), `TernaryFilter`, `DateRangeFilter`, `TextFilter` and toggle `Filter`s without a form. Any other filter type throws a `LogicException` when the table renders.
+- **Counts**: for relationship filters the popover shows how many rows each option has. The counts come from the table's base query (`$table->getQuery()`, with its query scopes, without filters and search); the labels come from the filter's own relationship query, so access scopes such as `Album::listableFor()` still apply. Only `BelongsTo` and `BelongsToMany` are counted. At most `FilterBar::OPTION_LIMIT` (100) options are listed, the most used ones plus any selected, and the popover says so.
+- **Text**: `App\Filament\Tables\Filters\TextFilter` is the one free-text "contains" filter; give it the query with `->matchUsing(fn (Builder $query, string $text) => ...)` (see `PhotoFilters::whereContains()`).
+- **Empty choice**: `relationship(..., hasEmptyOption: true)` with `emptyRelationshipOptionLabel()` adds a "no value" option, such as "Without tags".
 
 Further rules:
 
 - **Trash**: see [The trash](#the-trash) below. Do not use tabs or a `TrashedFilter` for it.
-- **Dates**: use `App\Filament\Tables\Filters\DateRangeFilter` for any date filter. It renders one "From – To" field and an indicator such as "Uploaded since 03.11.2026". Qualify the column when the query joins other tables.
+- **Dates**: use `App\Filament\Tables\Filters\DateRangeFilter` for any date filter. It renders one "From – To" field and an indicator such as "Uploaded since 03.11.2026"; in the filter bar it becomes a chip with the quick picks. Qualify the column when the query joins other tables.
 - **Date format**: every date and time is shown as `DD.MM.YYYY HH:MM` (seconds only where they matter, such as the activity log), in every language. The formats are the constants of `App\Support\DateFormat`. `AppServiceProvider` makes them the defaults of every table, infolist and date picker (pickers use Filament's own calendar, `native(false)`, Monday first), so call `->dateTime()` / `->date()` without a format. In PHP and Blade use `DateFormat::date()`, `dateTime()` or `dateTimeWithSeconds()`; never `isoFormat('LL')`, `diffForHumans()` or `->since()`.
 - **Users**: filters that choose a person are `searchable()` and never `preload()`, because a site can have thousands of users. Short lists such as roles, groups and albums may preload.
-- **Shared filters**: when two tables show the same records, share the filter definitions instead of copying them. The media library and the picker both use `PhotosTable::albumFilter()`, `uploaderFilter()` and `uploadedFilter()`.
+- **Shared filters**: when two tables show the same records, share the filter definitions instead of copying them. The media library and the picker both use `PhotosTable::albumFilter()` (`multiple: true` in the library, one album in the picker), `uploaderFilter()` and `uploadedFilter()`.
 - **Layouts**: a table with a list and a grid layout (the media library) keeps the same filters and search in both; only columns, page sizes and record actions change.
 
 ```php
@@ -208,7 +222,7 @@ Safari does not focus a link on click, which made Filament close the results bef
 
 The Plugins and Themes pages are tables built from the manifests (`plugin.json`, `theme.json`), not from the database: each page implements `HasTable` and renders it with `EmbeddedTable::make()` in `content()`. `App\Filament\Tables\ExtensionsTable` turns the manifests into rows keyed by slug (`records()`, with search and sorting by name; the page passes its own fields and filters) and gives the shared columns (`columns()`: name with description, version, author). On phones only the name and description are shown: version, author and the theme colours are `visibleFrom('md')`, so the description gets the whole width.
 
-- **Plugins**: an **Active** `ToggleColumn` (`updateStateUsing()` calls `Plugins::toggle()`), disabled with the tooltip "Enabled in the server configuration" for `GALLERY_PLUGINS`, and a **Status** filter. The row (`recordUrl()`) and a gear icon button open the plugin's settings page while it is on.
+- **Plugins**: an **Active** `ToggleColumn` (`updateStateUsing()` calls `Plugins::toggle()`), disabled with the tooltip "Enabled in the server configuration" for `GALLERY_PLUGINS`, and a **Status** filter (a primary chip of the filter bar). The row (`recordUrl()`) and a gear icon button open the plugin's settings page while it is on.
 - **Themes**: a colour preview (`filament.tables.theme-swatches`) and, because exactly one theme is always active, no switch but record actions: **Activate** (a quiet grey outlined button with a confirmation on every other theme, calls `Themes::activate()`) and **Active** (a disabled badge in the primary colour, which is the active theme's own colour in the admin, with a tooltip, kept at full colour with `fi-force-enabled`). The active theme is listed first (`sortByDesc('active')` over `ExtensionsTable::records()`). The row and the gear icon button open `ThemeSettings`, also for inactive themes.
 
 Both pages have an **Upload theme** / **Upload plugin** header action, `App\Filament\Actions\UploadExtensionAction` (`->themes()` / `->plugins()`): a `FileUpload` with `storeFiles(false)` (the Livewire temporary file is unpacked directly) and a **Replace the installed version** toggle. It is visible only while `ExtensionInstaller::allowed()` and checks that and the page's `canAccess()` again before installing. An `ExtensionInstallFailed` is shown as a persistent danger notification and keeps the modal open (`halt()`); a successful upload is logged (`ActivityType::ThemeInstalled` / `PluginInstalled`) and reloads the page. The installer itself is described in [Writing plugins](../extending/plugins.md#installing-from-a-zip-file).

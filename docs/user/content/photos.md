@@ -18,31 +18,37 @@ While [storage limits](../administration/users-and-permissions.md#storage-limits
 
 ## List and grid
 
-The media library opens as a grid. Switch between the two layouts with the **List** and **Grid** buttons in the toolbar above the table, in the same row as the search and the filters. Your choice is remembered until you log out.
+The media library opens as a grid. Switch between the two layouts with the **List** and **Grid** buttons in the toolbar above the table, in the same row as the search; the filter chips are right below. Your choice is remembered until you log out.
 
 - **List** shows each photo's thumbnail, title and file name, albums (one badge per album; albums in the trash have a gray badge marked "(in the trash)"), uploader, upload date and size. Photos without a title show "Untitled", and photos that are in no album at all show "In no album" (this should not happen in normal use; add such a photo to an album or move it to the trash). More columns, such as the date taken, can be turned on in the column menu. Long titles, file names, album names and uploader names are cut after 40 characters; hover over them to read the full text. Click an album to open its edit page and click the uploader to open that person's page in the admin. They are plain text when you may not open them: for an album you need to own it or have the permission "Edit any album", for a person the permission "Manage users" and the right to manage that account. Click anywhere else in a row to open the photo; the only icon at the end of the row is **Move to trash** (the red trash can).
 - **Grid** shows the photos in rows of equal height, like an album on the site: every photo keeps its shape, so upright photos are shown upright and nothing is cut off. An album's edit page and the photo picker show photos the same way, with the title on the photo. Hover over the title to see the albums the photo is in. A tile marked **Not on the site** belongs only to albums that are in the trash, so visitors cannot see it until one of them is restored. Click a photo to select it; each tile has its own button to open the photo.
 
-![The media library as a grid, with the filters opened from the funnel icon](../../assets/photos-media-grid.webp)
+![The media library as a grid, with the Album chip open](../../assets/photos-media-grid.webp)
 
 ## Finding photos
 
-Search by title, or open the filters with the funnel icon (see [Searching and filtering lists](../getting-started/admin-area.md#searching-and-filtering-lists)):
+Search by title, or use the filter chips above the list (see [Searching and filtering lists](../getting-started/admin-area.md#searching-and-filtering-lists)). These chips are always shown:
 
-- **Album**
-- **Uploaded by**
-- **Uploaded**: a date range
-- **Tags**: photos that have any of the tags you choose. Only shown while [tagging](tags.md) is on.
-- **Tagged**: photos with tags or without tags. Only shown while tagging is on.
-- **License**: photos with that [license](licenses.md). Only shown while licenses are on.
+- **Album**: photos in any of the albums you tick. The options show how many photos each album has.
 - **Taken**: a date range for the date taken.
+- **Tags**: photos that have any of the tags you tick, or **Without tags** for photos with no tag. Only shown while [tagging](tags.md) is on.
+- **Uploaded by**
 - **Shape**: landscape, portrait or square.
-- **Number of albums**: photos that are in one album, or in several.
-- **File name contains**: part of the uploaded file name.
+
+Under **+ More filters** you find the others; each gets its own chip once you set it:
+
+- **Uploaded**: a date range.
+- **License**: photos with that [license](licenses.md). Only shown while licenses are on.
+- **Number of albums**: photos that are in no album, in one album, or in several.
+- **Resolution**: under 2 MP, 2-12 MP or over 12 MP (megapixels).
+- **File type**: JPEG, PNG, WebP, GIF, HEIC or AVIF; tick several to see any of them.
+- **Missing**: photos that lack any of the details you tick: title, description, date taken and, while licenses are on, license. Use it to find photos that still need captions.
+- **My favorites**: only the photos you have marked as a favorite. Other people's favorites are not shown.
+- **File name**: part of the uploaded file name.
 
 Photos in the trash are not in the media library; they have their own page (see [The trash](#the-trash)), with the same filters.
 
-The filters are the same in the list and the grid. The photo picker of an album offers only **Album**, **Uploaded by** and **Uploaded**.
+The filters are the same in the list and the grid. The photo picker of an album keeps a simpler filter menu behind a funnel icon, with only **Album**, **Uploaded by** and **Uploaded**.
 
 ## Working with several photos
 

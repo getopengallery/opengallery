@@ -22,7 +22,7 @@ beforeEach(fn () => Storage::fake('gallery'));
 describe('filters', function () {
     beforeEach(fn () => $this->admin = actingAsRole(Role::Admin));
 
-    it('narrows the library by tags and by having tags at all, only while tagging is on', function () {
+    it('narrows the library by tags and by having no tags, only while tagging is on', function () {
         $album = Album::factory()->create();
         $sunset = tagged(galleryPhoto($album, name: 'Sunset.jpg'), 'Sunset');
         $beach = tagged(galleryPhoto($album, name: 'Beach.jpg'), 'Beach');
@@ -33,18 +33,14 @@ describe('filters', function () {
             ->assertCanSeeTableRecords([$sunset])
             ->assertCanNotSeeTableRecords([$beach, $bare])
             ->removeTableFilters()
-            ->filterTable('tagged', true)
-            ->assertCanSeeTableRecords([$sunset, $beach])
-            ->assertCanNotSeeTableRecords([$bare])
-            ->filterTable('tagged', false)
+            ->filterTable('tags', ['__empty'])
             ->assertCanSeeTableRecords([$bare])
             ->assertCanNotSeeTableRecords([$sunset, $beach]);
 
         Setting::put(SiteSettings::TAGGING, false);
 
         Livewire::test(ListPhotos::class)
-            ->assertTableFilterHidden('tags')
-            ->assertTableFilterHidden('tagged');
+            ->assertTableFilterHidden('tags');
     });
 
     it('narrows the library by license, only while licensing is on', function () {
@@ -97,14 +93,99 @@ describe('filters', function () {
             ->assertCanSeeTableRecords([$square])
             ->assertCanNotSeeTableRecords([$wide, $tall])
             ->removeTableFilters()
-            ->filterTable('file_name', ['file_name' => ' SHOT '])
+            ->filterTable('file_name', ['value' => ' SHOT '])
             ->assertCanSeeTableRecords([$wide])
             ->assertCanNotSeeTableRecords([$tall, $square])
             // "%" and "_" are plain characters, not wildcards.
-            ->filterTable('file_name', ['file_name' => 'wide%'])
+            ->filterTable('file_name', ['value' => 'wide%'])
             ->assertCanNotSeeTableRecords([$wide, $tall, $square])
-            ->filterTable('file_name', ['file_name' => 'wid_'])
+            ->filterTable('file_name', ['value' => 'wid_'])
             ->assertCanNotSeeTableRecords([$wide, $tall, $square]);
+    });
+
+    it('narrows the library by resolution and file type', function () {
+        $album = Album::factory()->create();
+        $small = galleryPhoto($album, name: 'Small.jpg');
+        $medium = tap(galleryPhoto($album, name: 'Medium.jpg'))->update(['width' => 4000, 'height' => 3000]);
+        $large = tap(galleryPhoto($album, name: 'Large.jpg'))->update(['width' => 5000, 'height' => 3000]);
+        $png = galleryPhoto($album, name: 'Logo.png');
+        $png->original()->update(['mime_type' => 'image/png']);
+        $png->update(['width' => 100, 'height' => 100]);
+
+        Livewire::test(ListPhotos::class)
+            ->filterTable('resolution', 'small')
+            ->assertCanSeeTableRecords([$small, $png])
+            ->assertCanNotSeeTableRecords([$medium, $large])
+            ->filterTable('resolution', 'medium')
+            ->assertCanSeeTableRecords([$medium])
+            ->assertCanNotSeeTableRecords([$small, $large, $png])
+            ->filterTable('resolution', 'large')
+            ->assertCanSeeTableRecords([$large])
+            ->assertCanNotSeeTableRecords([$small, $medium, $png])
+            ->removeTableFilters()
+            ->filterTable('file_type', ['image/png'])
+            ->assertCanSeeTableRecords([$png])
+            ->assertCanNotSeeTableRecords([$small, $medium, $large])
+            ->filterTable('file_type', ['image/png', 'image/jpeg'])
+            ->assertCanSeeTableRecords([$small, $medium, $large, $png]);
+    });
+
+    it('finds photos that miss any of the chosen details, an empty title counting as missing, and offers the license only while licensing is on', function () {
+        $album = Album::factory()->create();
+        $details = ['title' => 'Title', 'description' => 'Text', 'taken_at' => '2024-05-10 12:00:00'];
+        $noTitle = tap(galleryPhoto($album, name: 'A.jpg'))->update([...$details, 'title' => '']);
+        $noDescription = tap(galleryPhoto($album, name: 'B.jpg'))->update([...$details, 'description' => null]);
+        $noDate = tap(galleryPhoto($album, name: 'C.jpg'))->update([...$details, 'taken_at' => null]);
+        $complete = tap(galleryPhoto($album, name: 'D.jpg'))->update($details);
+
+        $page = Livewire::test(ListPhotos::class)
+            ->filterTable('missing', ['title'])
+            ->assertCanSeeTableRecords([$noTitle])
+            ->assertCanNotSeeTableRecords([$noDescription, $noDate, $complete])
+            ->filterTable('missing', ['title', 'taken_at'])
+            ->assertCanSeeTableRecords([$noTitle, $noDate])
+            ->assertCanNotSeeTableRecords([$noDescription, $complete])
+            ->filterTable('missing', ['description', 'taken_at', 'title'])
+            ->assertCanSeeTableRecords([$noTitle, $noDescription, $noDate])
+            ->assertCanNotSeeTableRecords([$complete]);
+
+        expect(array_keys($page->instance()->getTable()->getFilter('missing')->getOptions()))->toBe(['title', 'description', 'taken_at']);
+
+        $default = enableLicensing();
+        $complete->update(['license_id' => $default->id]);
+        $unlicensed = tap(galleryPhoto($album, name: 'E.jpg'))->update([...$details, 'license_id' => null]);
+
+        $page = Livewire::test(ListPhotos::class)
+            ->filterTable('missing', ['license'])
+            ->assertCanSeeTableRecords([$unlicensed])
+            ->assertCanNotSeeTableRecords([$complete]);
+
+        expect(array_keys($page->instance()->getTable()->getFilter('missing')->getOptions()))->toContain('license');
+    });
+
+    it('narrows the library by several albums, by photos in no album and by the viewer\'s own favorites', function () {
+        $camp = Album::factory()->create();
+        $best = Album::factory()->create();
+        $other = Album::factory()->create();
+        $inCamp = galleryPhoto($camp, name: 'Camp.jpg');
+        $inBest = galleryPhoto($best, name: 'Best.jpg');
+        $inOther = galleryPhoto($other, name: 'Other.jpg');
+        $orphan = Photo::factory()->create();
+        $this->admin->favoritePhotos()->attach([$inCamp->id, $orphan->id]);
+        User::factory()->create()->favoritePhotos()->attach($inBest);
+
+        Livewire::test(ListPhotos::class)
+            ->filterTable('albums', [$camp->id, $best->id])
+            ->assertCanSeeTableRecords([$inCamp, $inBest])
+            ->assertCanNotSeeTableRecords([$inOther, $orphan])
+            ->removeTableFilters()
+            ->filterTable('album_count', 'none')
+            ->assertCanSeeTableRecords([$orphan])
+            ->assertCanNotSeeTableRecords([$inCamp, $inBest, $inOther])
+            ->removeTableFilters()
+            ->filterTable('favorites', ['isActive' => true])
+            ->assertCanSeeTableRecords([$inCamp, $orphan])
+            ->assertCanNotSeeTableRecords([$inBest, $inOther]);
     });
 });
 

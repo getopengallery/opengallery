@@ -11,6 +11,7 @@ use App\Filament\Resources\Roles\Pages\ListRoles;
 use App\Filament\Resources\Roles\RelationManagers\HoldersRelationManager;
 use App\Filament\Tables\Columns\UserStackColumn;
 use App\Filament\Tables\EmptyState;
+use App\Filament\Tables\FilterBar;
 use App\Models\Role;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
@@ -103,6 +104,7 @@ class RoleResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['users']))
             ->filters([
                 // Users are searched, never preloaded: there may be many.
                 SelectFilter::make('users')

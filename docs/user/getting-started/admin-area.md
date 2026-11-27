@@ -65,18 +65,21 @@ Click a result, or move to it with the arrow keys and press Enter, to open it.
 
 ## Searching and filtering lists
 
-Every list in the admin (albums, media, pages, users, groups, roles and the activity log) works the same way:
+Every list in the admin (albums, media, pages, users, groups, roles, the activity log and plugins) works the same way:
 
-- The **search** field next to the funnel icon searches the list by name or title.
-- The **funnel icon** opens the filters. A filter applies as soon as you change it; the number on the icon shows how many filters are on. **Reset** turns them all off.
-- Active filters are listed above the list. Click the cross next to one to remove it.
-- Date filters take a range: fill in **From**, **To** or both.
+- The **search** field in the toolbar searches the list by name or title.
+- Each filter is a **chip** in a row above the list, for example **Album** or **Visibility**. Click a chip to open a small window with its choices: checkboxes where you may pick several (a few lists let you pick only one), and a search field when there are many. For albums, people, tags and similar choices the number next to each option says how many items in the list it covers. **Clear** in the window's header empties that one filter. The list updates as you pick.
+- A chip that is set shows its value, for example "Album: Sea +2" (the first choice and how many more) or "Taken: 2025", and a cross. Click the cross to remove that filter. **Reset all** at the end of the row turns every filter off.
+- Date filters (such as **Taken**, **Uploaded** or **When**) offer quick picks: **Last 7 days**, **Last 30 days**, this year and last year. Or fill in **From**, **To** or both.
+- Filters you need less often are under **+ More filters**. Once you set one, it gets its own chip.
+- A list of related items (all your albums or people) shows only the 100 most used ones, with a note saying so. Use the search field in the window to look for others; the ones you picked always stay in the list.
+- On a phone the chips scroll sideways, and a filter opens as a sheet from the bottom of the screen with a **Show N results** button to close it.
 - Lists with a trash (albums and media) show only what is not in the trash. While the trash holds something, a trash can button (**Trash**) with the number of items appears at the top; it opens the trash, which offers **Restore** and **Delete permanently** (and **View** for photos).
 - **Move to trash** can be undone from the trash. **Delete** (for pages, users, groups and roles, which have no trash) and **Delete permanently** cannot; their confirmation says so.
 
-![The albums list with its filters opened from the funnel icon](../../assets/admin-list-filters.webp)
+![The albums list with the Visibility chip open](../../assets/admin-list-filters.webp)
 
-The icon next to the funnel, where a list has one, shows or hides columns.
+The icon in the toolbar, where a list has one, shows or hides columns.
 
 Each row has the same kinds of buttons, in the same order:
 
@@ -98,7 +101,7 @@ Names are plain text when you may not open what they point to: a person's page n
 
 An empty list says what it is for and offers its first step, for example **New album**. If the search or a filter hides every row, it says "Nothing matches" instead; change the search or the filters.
 
-The media library keeps its search and filters when you switch between list and grid. It has the most filters, for example tags, license, shape and file name (see [Finding photos](../content/photos.md#finding-photos)); the photo picker in an album ("Add photos") offers the album, uploader and upload date filters of the media library.
+The media library keeps its search and filters when you switch between list and grid. It has the most filters, for example tags, license, shape, resolution and file name (see [Finding photos](../content/photos.md#finding-photos)); the photo picker in an album ("Add photos") keeps a simpler filter menu behind a funnel icon, with the album, uploader and upload date filters of the media library.
 
 ## Finding the documentation
 

@@ -45,7 +45,7 @@ Click **New album** in the albums list or **New album** on your "My albums" page
 Open the album and scroll to the **Photos** section below the form. Click **Add photos** to open the media picker. On the site, people who may add photos to an album see an **Add photos** button at the top of the album's page, which opens the album here with the picker already open. In the picker you can:
 
 - drop new photos, or whole folders of photos, on the upload area (or browse for them). They are uploaded straight into this album and selected for you;
-- choose photos that are already in the library, filtered by album, uploader or upload date with the funnel icon, the same filters as in the media library. The filter "Hide photos already in this album" is on when the picker opens; remove it to see every photo.
+- choose photos that are already in the library, filtered by album, uploader or upload date with the funnel icon, the same filters as in the media library (the picker keeps this filter menu instead of the chips). The filter "Hide photos already in this album" is on when the picker opens; remove it to see every photo.
 
 The upload area lists the file types and the largest size this gallery accepts (see [Site settings](../administration/settings.md#uploads)).
 

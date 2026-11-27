@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Pages\Tables;
 use App\Filament\Actions\OpenOnSiteAction;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Tables\EmptyState;
+use App\Filament\Tables\FilterBar;
 use App\Models\Page;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -37,6 +38,7 @@ class PagesTable
                     ->sortable(),
             ])
             ->defaultSort('title')
+            ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['is_published', 'members_only']))
             ->filters([
                 TernaryFilter::make('is_published')
                     ->label(__('Published'))

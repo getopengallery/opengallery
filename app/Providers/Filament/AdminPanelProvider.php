@@ -8,6 +8,7 @@ use App\Extensions\PluginManager;
 use App\Filament\AvatarProviders\InitialsAvatarProvider;
 use App\Filament\GlobalSearch\AdminSearchProvider;
 use App\Filament\Navigation\NavigationGroup;
+use App\Filament\Tables\FilterBar;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\SetLocale;
 use App\Livewire\DatabaseNotifications;
@@ -25,6 +26,7 @@ use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\View\TablesRenderHook;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -99,6 +101,9 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn () => view('partials.background-jobs'))
             // The installed version, for people who manage the site.
             ->renderHook(PanelsRenderHook::SIDEBAR_FOOTER, fn () => view('filament.partials.app-version'))
+            // Filter chips above tables that use FilterBar, in place of Filament's filter panel and "Active filters" row.
+            ->renderHook(TablesRenderHook::TOOLBAR_AFTER, fn () => FilterBar::render())
+            ->renderHook(TablesRenderHook::FILTER_INDICATORS, fn () => FilterBar::hideIndicators())
             ->navigationGroups(NavigationGroup::panelGroups())
             ->navigationItems([
                 NavigationItem::make('view-site')

@@ -51,7 +51,7 @@ Several changes to the same item by the same person within a short time are comb
 
 "Downloaded photo" and "Downloaded photos as zip" are recorded at the level **Everything**. A person counts once per photo or album and day; a zip of a selected set of photos counts every time, with the number of photos in **Details**. Downloads from your own profile are not recorded.
 
-Search the log by member name, or filter it with the funnel icon by **Kind** (visits, changes or security; the visits filter reads "Visits (logins, album views, downloads)"), **What** happened, **Who** (members or guests and system), a specific **Member**, or **When** (a date range).
+Search the log by member name, or filter it with the chips above the list by **Kind** (visits, changes or security; the visits filter reads "Visits (logins, album views, downloads)"), **What** happened, **Who** (members or guests and system), a specific **Member**, or **When** (a date range).
 
 ## How long entries are kept
 

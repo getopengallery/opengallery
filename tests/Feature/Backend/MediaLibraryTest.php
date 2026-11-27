@@ -13,6 +13,7 @@ use App\Filament\Resources\Photos\Pages\ListTrashedPhotos;
 use App\Filament\Resources\Photos\Pages\ViewPhoto;
 use App\Filament\Resources\Photos\PhotoResource;
 use App\Filament\Resources\Users\UserResource;
+use App\Filament\Tables\FilterBar;
 use App\Filament\Tables\MediaGrid;
 use App\Filament\Trash\TrashActions;
 use App\Models\ActivityEvent;
@@ -212,7 +213,8 @@ describe('for an administrator', function () {
         $table = $page->instance()->getTable();
         $filters = array_keys($table->getFilters());
 
-        expect($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+        expect($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
+            ->and(FilterBar::uses($table))->toBeTrue()
             ->and($table->hasDeferredFilters())->toBeFalse();
 
         $page->call('setLayout', ListPhotos::LIST);
@@ -221,6 +223,31 @@ describe('for an administrator', function () {
         $page->filterTable('uploaded', ['from' => now()->subWeek()->toDateString()])
             ->assertCanSeeTableRecords([$new])
             ->assertCanNotSeeTableRecords([$old]);
+    });
+
+    it('shows the filters as chips above the library, with the choice on the chip and a way to reset all', function () {
+        $album = Album::factory()->create(['title' => 'Summer trip']);
+        galleryPhoto($album, name: 'Beach.jpg');
+
+        $this->get(PhotoResource::getUrl('index'))
+            ->assertOk()
+            ->assertSee(['og-filter-chip', 'Album', 'Taken', 'Tags', 'Uploaded by', 'Shape', 'More filters'], false)
+            ->assertDontSee('Reset all');
+
+        $this->get(PhotoResource::getUrl('index', ['filters' => ['albums' => ['values' => [$album->id]], 'taken' => ['from' => '2024-01-01', 'until' => '2024-12-31']]]))
+            ->assertOk()
+            ->assertSee(['Summer trip', '01.01.2024 – 31.12.2024', 'Reset all']);
+    });
+
+    it('opens the library on the album of the dashboard\'s "Unsorted uploads" link', function () {
+        $inbox = Album::inbox($this->admin);
+        $waiting = Photo::factory()->inAlbum($inbox)->create(['uploader_id' => $this->admin->id]);
+        $sorted = Photo::factory()->inAlbum(Album::factory()->create())->create();
+
+        Livewire::withQueryParams(['filters' => ['albums' => ['values' => [$inbox->id]]]])
+            ->test(ListPhotos::class)
+            ->assertCanSeeTableRecords([$waiting])
+            ->assertCanNotSeeTableRecords([$sorted]);
     });
 
     it('moves photos to the trash, hides them from the album and passes the cover on', function () {
@@ -328,6 +355,26 @@ describe('for upload-only staff', function () {
             ->assertCanSeeTableRecords([$public, $own])
             ->assertCanNotSeeTableRecords([$hidden]);
         $this->get(PhotoResource::getUrl('view', ['record' => $hidden]))->assertNotFound();
+    });
+
+    it('offers only albums they may list on the album chip, each with its photo count', function () {
+        $own = Album::factory()->for($this->helper, 'owner')->create(['title' => 'Camp']);
+        $public = Album::factory()->visibility(Visibility::Public)->create(['title' => 'Open day']);
+        $secret = Album::factory()->create(['title' => 'Secret plans']);
+        $first = galleryPhoto($own, $this->helper, 'One.jpg');
+        $second = galleryPhoto($own, $this->helper, 'Two.jpg');
+        $secret->addPhotos($second);
+        galleryPhoto($public, name: 'Three.jpg');
+        galleryPhoto($secret, name: 'Four.jpg');
+
+        $page = Livewire::test(ListPhotos::class)->assertCanSeeTableRecords([$first, $second]);
+        $albums = collect(FilterBar::chips($page->instance()->getTable()))->firstWhere('name', 'albums');
+
+        expect($albums['options'])->toBe([
+            (string) $own->id => ['label' => 'Camp', 'count' => 2],
+            (string) $public->id => ['label' => 'Open day', 'count' => 1],
+        ])->and($albums['limited'])->toBeFalse();
+        $page->filterTable('albums', [$own->id])->assertCanSeeTableRecords([$first, $second]);
     });
 
     it('edits a photo and its tags, and changes its albums only within their rights', function () {

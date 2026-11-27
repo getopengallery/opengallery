@@ -9,6 +9,7 @@ use App\Filament\Navigation\NavigationGroup;
 use App\Filament\Resources\ActivityEvents\Pages\ManageActivityEvents;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\EmptyState;
+use App\Filament\Tables\FilterBar;
 use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Models\ActivityEvent;
 use App\Support\DateFormat;
@@ -102,6 +103,7 @@ class ActivityEventResource extends Resource
                     ->color('gray')
                     ->wrap(),
             ])
+            ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['period', 'kind', 'type', 'member', 'user']))
             ->filters([
                 SelectFilter::make('kind')
                     ->label(__('Kind'))

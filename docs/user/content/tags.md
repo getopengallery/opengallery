@@ -28,7 +28,7 @@ In the media library, select photos and choose **Add tags** or **Remove tags** (
 - **Add tags** gives every selected photo the tags you choose and keeps the tags it has. The same settings apply as in the field: with **Allow new tags** turned off, only predefined tags are added. A photo that already has 30 tags does not get more; the message says how many photos were at the limit.
 - **Remove tags** removes the tags you choose from the photos' own tags. Tags a photo gets from its albums stay (see [Album tags and their photos](#album-tags-and-their-photos)). A tag that nothing uses any more is deleted.
 
-To find the photos first, use the **Tags** and **Tagged** filters of the media library (see [Finding photos](photos.md#finding-photos)).
+To find the photos first, use the **Tags** filter of the media library (its **Without tags** choice finds photos with no tag) (see [Finding photos](photos.md#finding-photos)).
 
 ## Reusing existing tags
 
