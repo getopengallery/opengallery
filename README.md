@@ -26,13 +26,19 @@ A self-hosted, privacy-focused photo gallery for individuals, families, clubs an
 ## Features
 
 - **Albums and sub-albums** with five visibility levels: public, unlisted (link only), all members, specific users and groups, and private. Optional password and a "share until" date.
+- **Sharing by e-mail** with people who have no account: they get a personal link and confirm it with a 6-digit code sent to them. Admins choose how many days guests keep access.
 - **Photos** can be in several albums at once without copying files. Sort them by hand (drag and drop) or by date taken, upload date or name.
+- **Photo viewer** with a slideshow, photo information (date taken and camera details) and downloads of single photos or whole albums, each of which admins can turn off.
+- **Tags** for albums and photos, found by the site search.
+- **Favorites**: members mark photos with a heart and find them again on their own page.
 - **Media library** in the admin, as a list or a grid, with filters by album, uploader and date. Every photo chooser in the admin uses the same picker, with uploads included.
 - **Uploads** in chunks, so large photos work with small PHP upload limits. Thumbnails and camera data are read automatically.
 - **Collaboration**: invite people to work on an album with you.
+- **Notifications** in the gallery and by e-mail when an album is shared with someone. Bulk e-mails go out in portions, so a host's sending limit is respected.
 - **Roles and groups**: built-in roles and your own roles with fine-grained permissions. Groups decide who sees albums shared with an audience such as "Family" or "Scout leaders".
 - **Content pages** such as an imprint, a privacy policy or "About us", with photos and small galleries.
 - **Dashboard and activity log** of logins, album views and changes. No IP addresses or browser details are stored, and the log can be turned off.
+- **Signed-in devices**: everyone sees where they are logged in and can sign other devices out.
 - **Site settings** in the admin: name, logo, favicon, languages, e-mail, upload limits, registration, and what visitors see when public albums are off.
 - **Installable web app** for the home screen of phones and computers.
 - **Languages**: English and German included; every person can choose their own.
@@ -79,7 +85,7 @@ PHP 8.3+, Laravel 13, Filament 5, Spatie Laravel Permission, Spatie Media Librar
 
 ## Roadmap
 
-Ideas for later: a marketplace for themes and plugins, tags, favourites, comments and reactions, a slideshow, video support, an API, cloud storage, WebDAV and federation.
+Ideas for later: a marketplace for themes and plugins, comments and reactions, video support, an API, cloud storage, WebDAV and federation.
 
 ## Security
 
