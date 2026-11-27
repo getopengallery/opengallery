@@ -95,7 +95,7 @@ class PhotoInfolist
             ->state(fn (Photo $record) => $record->mediaUrl('preview'))
             ->imageHeight('auto')
             ->extraImgAttributes(['class' => 'og-preview-image og-preview-image-contained'])
-            ->placeholder(__('No preview available'));
+            ->placeholder(__('No preview'));
     }
 
     public static function coverOfEntry(): TextEntry

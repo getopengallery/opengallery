@@ -67,7 +67,7 @@
         </div>
 
         <div>
-            <x-primary-button>{{ __('Connect and set up the database') }}</x-primary-button>
+            <x-primary-button>{{ __('Set up database') }}</x-primary-button>
             <p class="mt-2 text-caption text-muted">{{ __('Creating the tables can take a moment.') }}</p>
         </div>
     </form>

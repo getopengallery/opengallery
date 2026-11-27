@@ -1,7 +1,7 @@
 <section>
     <header>
         <h2 class="text-title font-semibold text-ink">
-            {{ __('Profile Information') }}
+            {{ __('Profile information') }}
         </h2>
 
         <p class="mt-1 text-sm text-muted">
@@ -24,12 +24,12 @@
         </div>
 
         <div x-data="{ email: @js(old('email', $user->email)), saved: @js($user->email) }">
-            <x-input-label for="email" :value="__('Email')" />
+            <x-input-label for="email" :value="__('E-mail')" />
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" x-model="email" required autocomplete="username" />
             <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
             <div class="mt-4" x-show="email !== saved" x-cloak>
-                <x-input-label for="profile_current_password" :value="__('Current Password')" />
+                <x-input-label for="profile_current_password" :value="__('Current password')" />
                 <x-text-input id="profile_current_password" name="current_password" type="password" class="mt-1 block w-full" x-bind:required="email !== saved" x-bind:disabled="email === saved" autocomplete="current-password" />
                 <p class="mt-1 text-sm text-muted">{{ __('Needed to change your e-mail address. If you only sign in through a provider, first set a password with "Forgot your password?" on the login page.') }}</p>
                 <x-input-error class="mt-2" :messages="$errors->get('current_password')" />

@@ -21,7 +21,7 @@
                 <x-input-error :messages="$errors->get('name')" class="mt-2" />
             </div>
             <div>
-                <x-input-label for="email" :value="__('Email')" />
+                <x-input-label for="email" :value="__('E-mail')" />
                 <x-text-input id="email" name="email" type="email" class="mt-1.5 w-full" :value="old('email')" required autocomplete="username" />
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
@@ -32,7 +32,7 @@
                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
             </div>
             <div>
-                <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+                <x-input-label for="password_confirmation" :value="__('Confirm password')" />
                 <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1.5 w-full" required autocomplete="new-password" />
             </div>
 

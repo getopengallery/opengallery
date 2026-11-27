@@ -5,7 +5,7 @@
 
     <div class="mt-8 flex flex-wrap gap-3">
         <a href="{{ route('login') }}" class="og-btn-primary">{{ __('Log in') }}</a>
-        <a href="{{ route('home') }}" class="og-btn-secondary">{{ __('Open the site') }}</a>
+        <a href="{{ route('home') }}" class="og-btn-secondary">{{ __('View site') }}</a>
     </div>
 
     @if ($withDemo)

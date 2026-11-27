@@ -20,7 +20,7 @@ Open the **Settings** group in the admin menu:
 
 - On the **General** page, enter the **Site name** and, if you have one, upload a **Logo** and a **Favicon**.
 - On the **E-mail** page, choose how the gallery sends e-mail, fill in your provider's details and click **Send a test e-mail**. Without working e-mail, nobody can reset a forgotten password.
-- Click **Save settings** on each page you changed.
+- Click **Save** on each page you changed.
 
 All settings are described in [Site settings](../administration/settings.md).
 

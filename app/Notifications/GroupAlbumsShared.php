@@ -40,7 +40,7 @@ class GroupAlbumsShared extends InAppNotification
                 'person' => $this->addedBy,
                 'site' => config('app.name'),
             ]))
-            ->action(__('Open my albums'), route('dashboard'))
+            ->action(__('My albums'), route('dashboard'))
             ->line(__('You find the albums on your "My albums" page, under "Shared with you".'));
     }
 }

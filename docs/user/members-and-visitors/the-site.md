@@ -36,7 +36,7 @@ What visitors who are not logged in see depends on the [site settings](../admini
 
 An album's page shows its title and description, the albums inside it that the visitor may see (24 per page), and its photos in the album's photo order, 60 per page.
 
-When downloads are turned on for the site and an album lets visitors download photos, everyone who may open it also sees **Download all**, which downloads all its photos as one zip file. People who manage the album also see buttons at the top of its page: **Add photos** (with the permission "Upload photos") opens the album in the admin with the photo picker already open, **Edit album** opens its settings, and for unlisted albums **Copy share link** copies the link to send. Visitors never see these buttons.
+When downloads are turned on for the site and an album lets visitors download photos, everyone who may open it also sees **Download all**, which downloads all its photos as one zip file. People who manage the album also see buttons at the top of its page: **Add photos** (with the permission "Upload photos") opens the album in the admin with the photo picker already open, **Edit album** opens its settings, and for unlisted albums **Copy link** copies the link to send. Visitors never see these buttons.
 
 Click a photo to view it large, on a dark background with its title and its position in the album (for example "62 / 140", counted across all pages). Below the photo are its description and the date it was taken, when there are any. In this view:
 

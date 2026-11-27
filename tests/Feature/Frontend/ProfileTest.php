@@ -337,7 +337,7 @@ describe('active sessions', function () {
         $this->actingAs(User::factory()->create())->get(route('profile.edit'))
             ->assertOk()
             ->assertDontSee('Where you\'re signed in')
-            ->assertDontSee('Sign out all other devices');
+            ->assertDontSee('Sign out other devices');
     })->with(['array', 'file']);
 
     it('signs out another device, which is logged out on its next request', function () {

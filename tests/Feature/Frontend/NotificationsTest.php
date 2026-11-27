@@ -18,7 +18,7 @@ it('lists notifications in the reader\'s language, falls back to the stored titl
 
     $this->actingAs($grace)->get(route('notifications.index'))
         ->assertOk()
-        ->assertSee('Ada hat „Camp“ mit Ihnen geteilt')
+        ->assertSee('Ada hat „Camp“ mit dir geteilt')
         ->assertSee('A note from a removed plugin');
 
     expect($grace->unreadNotifications()->count())->toBe(0);

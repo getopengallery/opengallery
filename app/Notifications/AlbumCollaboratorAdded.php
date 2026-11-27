@@ -47,6 +47,6 @@ class AlbumCollaboratorAdded extends AlbumNotification
             ]))
             ->line(__('Your role: :role. You find the album on your "My albums" page, under "Shared with you".', ['role' => $this->role->getLabel()]))
             ->line($this->role->getDescription())
-            ->action(__('Open the album'), route('albums.show', $this->album));
+            ->action(__('Open album'), route('albums.show', $this->album));
     }
 }

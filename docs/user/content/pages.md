@@ -21,7 +21,7 @@ In the **Publishing** section:
 - **Only for logged-in members**: leave this off for legal pages such as an imprint or privacy policy.
 - **Address**: the page appears at `/pages/` followed by this address. Leave it empty to use the title.
 
-Published pages are visible even when public albums are turned off for visitors, unless they are for members only. While a page is published, **Open on the site** at the top of its edit page shows it as visitors see it.
+Published pages are visible even when public albums are turned off for visitors, unless they are for members only. While a page is published, **View on site** at the top of its edit page shows it as visitors see it.
 
 ![Editing a page](../../assets/pages-editor.png)
 

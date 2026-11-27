@@ -78,7 +78,7 @@ The icon next to the funnel, where a list has one, shows or hides columns.
 
 Each row has the same kinds of buttons, in the same order:
 
-- Click a row to open the record. There is no separate **Edit** icon in the lists. Small icons are for other actions, where the list has them: **Open on the site**, **View** (the eye, for example in the trash) and **Approve**. Hover over an icon to see what it does.
+- Click a row to open the record. There is no separate **Edit** icon in the lists. Small icons are for other actions, where the list has them: **View on site**, **View** (the eye, for example in the trash) and **Approve**. Hover over an icon to see what it does.
 - Then the row's own action, such as **Move to trash**, **Delete** or **Remove**. When a row has several, they are in its **…** menu. The same action has the same icon everywhere, also in menus, for several selected rows and at the top of a record's page: a red trash can deletes or moves to the trash (the confirmation says which), a gray minus sign only unlinks, for example **Remove** takes someone out of a group, and a gray arrow pointing back restores.
 - A few actions are written out because they are the reason to open the list: **Approve** (green check mark) for accounts waiting for approval, and **Restore** and **Delete permanently** in the trash.
 

@@ -42,7 +42,7 @@ class AlbumShared extends AlbumNotification
                 'album' => $this->album->title,
                 'site' => config('app.name'),
             ]))
-            ->action(__('Open the album'), route('albums.show', $this->album))
+            ->action(__('Open album'), route('albums.show', $this->album))
             ->line(__('You find it on your "My albums" page too, under "Shared with you".'));
     }
 }

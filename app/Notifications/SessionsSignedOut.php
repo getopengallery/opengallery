@@ -45,6 +45,6 @@ class SessionsSignedOut extends InAppNotification
             ->greeting(__('Hello :name,', ['name' => $notifiable->name]))
             ->line(__(':person signed your account at :site out on one or more devices.', ['person' => $this->signedOutBy, 'site' => $site]))
             ->line(__('Sign in again on those devices to keep using them. If you did not expect this, choose a new password.'))
-            ->action(__('Open your profile'), route('profile.edit'));
+            ->action(__('Open profile'), route('profile.edit'));
     }
 }

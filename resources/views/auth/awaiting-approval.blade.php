@@ -9,6 +9,6 @@
 
     <form method="POST" action="{{ route('logout') }}" class="mt-8">
         @csrf
-        <button type="submit" class="og-btn-secondary">{{ __('Log Out') }}</button>
+        <button type="submit" class="og-btn-secondary">{{ __('Log out') }}</button>
     </form>
 </x-guest-layout>

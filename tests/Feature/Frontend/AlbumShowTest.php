@@ -121,14 +121,14 @@ describe('a share link', function () {
         $this->actingAs($uploader)
             ->get(route('albums.show', $album))
             ->assertOk()
-            ->assertSee('Copy share link')
+            ->assertSee('Copy link')
             ->assertSee($album->share_token);
 
         auth()->logout();
         $this->get($shareUrl);
         $this->get(route('albums.show', $album))
             ->assertOk()
-            ->assertDontSee('Copy share link');
+            ->assertDontSee('Copy link');
     });
 
     it('ends with the end date, like public access, but not direct access', function () {

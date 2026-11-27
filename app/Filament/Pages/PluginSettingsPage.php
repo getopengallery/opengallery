@@ -65,7 +65,7 @@ abstract class PluginSettingsPage extends Page
                 ->livewireSubmitHandler('save')
                 ->footer([
                     Actions::make([
-                        Action::make('save')->label(__('Save settings'))->submit('save')->keyBindings(['mod+s']),
+                        Action::make('save')->label(__('Save'))->submit('save')->keyBindings(['mod+s']),
                     ]),
                 ]),
         ]);
