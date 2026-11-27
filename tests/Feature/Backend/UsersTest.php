@@ -11,6 +11,7 @@ use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\RelationManagers\SessionsRelationManager;
 use App\Filament\Resources\Users\UserResource;
+use App\Filament\Tables\FilterBar;
 use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Group;
@@ -67,7 +68,8 @@ describe('as a super admin', function () {
             ->assertActionHasColor($approve, 'success');
 
         expect($table->getRecordUrl($member))->toBe(UserResource::getUrl('edit', ['record' => $member]))
-            ->and($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+            ->and($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
+            ->and(FilterBar::uses($table))->toBeTrue()
             ->and($table->hasDeferredFilters())->toBeFalse()
             ->and($columns['roles.name']->isBadge())->toBeTrue()
             ->and($columns['groups.name']->isBadge())->toBeTrue()

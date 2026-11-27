@@ -8,6 +8,7 @@ use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\Schemas\UserDeletionForm;
 use App\Filament\Tables\Columns\UserAvatarColumn;
 use App\Filament\Tables\EmptyState;
+use App\Filament\Tables\FilterBar;
 use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Models\Group;
 use App\Models\Role;
@@ -67,6 +68,7 @@ class UsersTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('name')
+            ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['roles', 'groups', 'awaiting_approval', 'email_verified_at', 'registered']))
             ->filters([
                 SelectFilter::make('roles')
                     ->label(__('Role'))

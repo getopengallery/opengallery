@@ -246,12 +246,14 @@ describe('personal widgets', function () {
 
     it('points uploaders to photos waiting in "Unsorted uploads" and flags expiring links', function () {
         $uploader = userWithRoleOrPermissions(Role::Uploader);
-        Photo::factory()->count(2)->inAlbum(Album::inbox($uploader))->create(['uploader_id' => $uploader->id]);
+        $inbox = Album::inbox($uploader);
+        Photo::factory()->count(2)->inAlbum($inbox)->create(['uploader_id' => $uploader->id]);
         Album::factory()->for($uploader, 'owner')->create(['title' => 'Party', 'visibility' => Visibility::Public, 'access_expires_at' => now()->subDay()]);
 
         $this->actingAs($uploader);
         Livewire::test(YourAlbums::class)
             ->assertSee('2 photos wait in “Unsorted uploads”.')
+            ->assertSee(PhotoResource::getUrl('index', ['filters' => ['albums' => ['values' => [$inbox->id]]]]), false)
             ->assertSee('Party')
             ->assertSee('Link expired');
     });

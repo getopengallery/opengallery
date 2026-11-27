@@ -45,7 +45,7 @@ Click **New album** in the albums list or **New album** on your "My albums" page
 Open the album and scroll to the **Photos** section below the form. Click **Add photos** to open the media picker. On the site, people who may add photos to an album see an **Add photos** button at the top of the album's page, which opens the album here with the picker already open. In the picker you can:
 
 - drop new photos, or whole folders of photos, on the upload area (or browse for them). They are uploaded straight into this album and selected for you;
-- choose photos that are already in the library, filtered by album, uploader or upload date with the funnel icon, the same filters as in the media library. The filter "Hide photos already in this album" is on when the picker opens; remove it to see every photo.
+- choose photos that are already in the library. The picker has the same filter chips as the media library (see [Finding photos](photos.md#finding-photos)). The chip **Hide photos already in this album** is on when the picker opens; click its cross or the chip to see every photo. Next to it are **Album**, **Uploaded by** and **Taken**; the others, such as **Uploaded**, tags, license, shape and file name, are under **+ More filters**. The number of results and **Reset all** are at the right end of the row. On a phone a chip opens as a sheet from the bottom.
 
 The upload area lists the file types and the largest size this gallery accepts (see [Site settings](../administration/settings.md#uploads)).
 
@@ -59,7 +59,7 @@ Photos you upload in the picker of a new album (before it is created) or when ch
 
 ## Managing the photos of an album
 
-In the **Photos** section, click photos to select them, or use **Select all**. The button in the corner of each photo opens it in the media library. A **Cover** badge marks the album's cover. With photos selected you can:
+In the **Photos** section, click photos to select them, or use **Select all**, which then turns into "N selected · Select all · ×"; the cross clears the selection. The button in the corner of each photo opens it in the media library. A **Cover** badge marks the album's cover. With photos selected you can:
 
 - **Use as cover**: select exactly one photo to make it the album cover.
 - **Remove from album**: the photos stay in the media library and in their other albums. A photo that is only in this album is kept; move it to the trash instead if you want it gone.

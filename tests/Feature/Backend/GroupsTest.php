@@ -11,6 +11,7 @@ use App\Filament\Resources\Groups\Pages\ListGroups;
 use App\Filament\Resources\Groups\RelationManagers\MembersRelationManager;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\Columns\UserStackColumn;
+use App\Filament\Tables\FilterBar;
 use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Group;
@@ -51,8 +52,9 @@ describe('as an admin', function () {
             // Member names are escaped, and link to the person.
             ->and($html)->not->toContain('<img src=x onerror')
             ->and($html)->toContain(UserResource::getUrl('edit', ['record' => $hacker]))
-            // The list filters in a dropdown that applies at once, and opens the group from the row.
-            ->and($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+            // The list filters with chips that apply at once, and opens the group from the row.
+            ->and($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
+            ->and(FilterBar::uses($table))->toBeTrue()
             ->and($table->hasDeferredFilters())->toBeFalse()
             ->and($table->getRecordUrl($band))->toBe(GroupResource::getUrl('edit', ['record' => $band]));
 

@@ -9,6 +9,7 @@ use App\Filament\Resources\Photos\Pages\Concerns\HasMediaLayout;
 use App\Filament\Resources\Photos\PhotoResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\EmptyState;
+use App\Filament\Tables\FilterBar;
 use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Filament\Tables\MediaGrid;
 use App\Filament\Trash\ListTrashedRecords;
@@ -55,7 +56,7 @@ class PhotosTable
         $grid = in_array(HasMediaLayout::class, class_uses_recursive($livewire), true) && $livewire->usesGridLayout();
         $trash = $livewire instanceof ListTrashedRecords;
 
-        return $table
+        return FilterBar::configure($table, primary: ['albums', 'taken', 'tags', 'uploader', 'orientation'])
             ->defaultSort('created_at', 'desc')
             // In the grid, clicking a photo selects it; each tile has its own "Open" button.
             ->recordUrl($grid ? null : fn (Photo $record) => auth()->user()->can('view', $record) ? PhotoResource::detailUrl($record) : null)
@@ -67,15 +68,12 @@ class PhotosTable
                     ->paginated([10, 25, 50, 100])
                     ->defaultPaginationPageOption(25),
             )
-            // List / Grid switch, in the table toolbar like "Change order" in the albums list.
-            ->headerActions(in_array(HasMediaLayout::class, class_uses_recursive($livewire), true) ? $livewire->mediaLayoutActions() : [])
             ->filters([
-                self::albumFilter(),
+                self::albumFilter(multiple: true),
                 self::uploaderFilter(),
                 self::uploadedFilter(),
                 ...PhotoFilters::all(),
             ])
-            ->filtersFormColumns(2)
             ->recordActions(match (true) {
                 $grid => [],
                 $trash => [
@@ -88,10 +86,9 @@ class PhotosTable
                     TrashActions::moveToTrash()->iconButton(),
                 ],
             })
-            // All bulk actions in one "Actions" menu, left of "Select all" in the grid.
-            ->toolbarActions($grid
-                ? [self::bulkActionMenu($trash), ...MediaGrid::selectionActions(acrossPages: true)]
-                : [self::bulkActionMenu($trash)])
+            // All bulk actions in one "Actions" menu, then the selection control (in both layouts).
+            // The List / Grid switch sits at the toolbar's end (MediaLayoutSwitch).
+            ->toolbarActions([self::bulkActionMenu($trash), ...MediaGrid::selectionActions(acrossPages: true)])
             ->when(! $trash, fn (Table $table) => EmptyState::apply(
                 $table,
                 __('No photos yet'),
@@ -105,12 +102,13 @@ class PhotosTable
             ));
     }
 
-    /** Albums the photo is in (only albums the user can list). Shared with the media picker. */
-    public static function albumFilter(): SelectFilter
+    /** Albums the photo is in (only albums the user can list). Shared with the media picker, which picks one album. */
+    public static function albumFilter(bool $multiple = false): SelectFilter
     {
         return SelectFilter::make('albums')
             ->label(__('Album'))
             ->relationship('albums', 'title', fn (Builder $query) => $query->listableFor(auth()->user()))
+            ->multiple($multiple)
             ->searchable()
             ->preload();
     }

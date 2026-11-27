@@ -3,6 +3,7 @@
 use App\Enums\CollaboratorRole;
 use App\Enums\Permission;
 use App\Enums\Visibility;
+use App\Filament\Tables\FilterBar;
 use App\Livewire\MediaPicker;
 use App\Models\Album;
 use App\Models\Photo;
@@ -58,12 +59,29 @@ describe('for an administrator', function () {
         $picker = Livewire::test(MediaPicker::class, ['key' => 'k']);
         $table = $picker->instance()->getTable();
 
-        expect($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+        expect(FilterBar::uses($table))->toBeTrue()
+            ->and($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
             ->and($table->hasDeferredFilters())->toBeFalse();
 
         $picker->filterTable('uploaded', ['from' => now()->subMonths(3)->toDateString(), 'until' => now()->subMonth()->toDateString()])
             ->assertCanSeeTableRecords([$old])
             ->assertCanNotSeeTableRecords([$new]);
+    });
+
+    it('offers the photo filters of the media library', function () {
+        $album = Album::factory()->create();
+        $landscape = galleryPhoto($album, name: 'Wide.jpg', width: 300, height: 200);
+        $portrait = galleryPhoto($album, name: 'Tall.jpg', width: 200, height: 300);
+
+        $picker = Livewire::test(MediaPicker::class, ['key' => 'k']);
+        $table = $picker->instance()->getTable();
+
+        expect($table->getFilter('tags'))->not->toBeNull()
+            ->and($table->getFilter('file_name'))->not->toBeNull();
+
+        $picker->filterTable('orientation', 'portrait')
+            ->assertCanSeeTableRecords([$portrait])
+            ->assertCanNotSeeTableRecords([$landscape]);
     });
 
     it('uploads dropped photos into the configured place and selects them', function () {
@@ -159,8 +177,15 @@ describe('for people who may not use it fully', function () {
             ->assertCanSeeTableRecords([$inAlbum, $own])
             ->assertCanNotSeeTableRecords([$elsewhere]);
 
-        expect($picker->instance()->getTable()->getFilter('uploader'))->toBeNull()
-            ->and($picker->instance()->getTable()->getFilter('albums'))->toBeNull();
+        $table = $picker->instance()->getTable();
+
+        expect($table->getFilter('uploader'))->toBeNull()
+            ->and($table->getFilter('albums'))->toBeNull()
+            ->and($table->getFilter('uploaded'))->not->toBeNull();
+
+        foreach (['tags', 'orientation', 'resolution', 'file_type', 'taken', 'file_name'] as $name) {
+            expect($table->getFilter($name))->toBeNull();
+        }
     });
 
     it('refuses the picker without admin access or a role on the album', function () {

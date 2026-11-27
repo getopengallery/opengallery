@@ -10,6 +10,7 @@ use App\Filament\Resources\Roles\RelationManagers\HoldersRelationManager;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\Columns\UserStackColumn;
+use App\Filament\Tables\FilterBar;
 use App\Models\ActivityEvent;
 use App\Models\Role;
 use App\Models\User;
@@ -42,7 +43,8 @@ it('lists the first holders of each role with their pictures, links them, and fi
     expect($record->users)->toHaveCount(UserStackColumn::SHOWN)
         ->and($record->users_count)->toBe(UserStackColumn::SHOWN + 3)
         ->and($page->html())->toContain('alt="Holder A"', '+3', UserResource::getUrl('edit', ['record' => $holders->first()]))->not->toContain('alt="Holder I"')
-        ->and($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+        ->and($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
+        ->and(FilterBar::uses($table))->toBeTrue()
         ->and($table->hasDeferredFilters())->toBeFalse()
         ->and($table->getRecordUrl($record))->toBe(RoleResource::getUrl('edit', ['record' => $role]));
 

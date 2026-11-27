@@ -8,6 +8,7 @@ use App\Filament\Resources\Pages\Pages\CreatePage;
 use App\Filament\Resources\Pages\Pages\EditPage;
 use App\Filament\Resources\Pages\Pages\ListPages;
 use App\Filament\RichEditor\PhotoBlock;
+use App\Filament\Tables\FilterBar;
 use App\Models\Album;
 use App\Models\Page;
 use App\Models\Photo;
@@ -30,7 +31,8 @@ describe('as an admin', function () {
         $page = Livewire::test(ListPages::class);
         $table = $page->instance()->getTable();
 
-        expect($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+        expect($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
+            ->and(FilterBar::uses($table))->toBeTrue()
             ->and($table->hasDeferredFilters())->toBeFalse()
             ->and($table->getRecordUrl($draft))->toBe(PageResource::getUrl('edit', ['record' => $draft]));
 

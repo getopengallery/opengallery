@@ -30,7 +30,7 @@
     "steps": [{ "type": [".fi-global-search-field input", "album"] }, { "wait": ".fi-global-search-results-ctn" }, { "wait": 600 }],
     "clip": [".fi-global-search-field", ".fi-global-search-results-ctn"], "pad": 0
   },
-  "admin-list-filters": { "url": "/admin/albums", "as": "admin@example.com", "steps": [{ "click": "button[aria-label='Filter']" }, { "wait": 500 }] },
+  "admin-list-filters": { "url": "/admin/albums", "as": "admin@example.com", "steps": [{ "click": ".og-filter-chip:has-text('Visibility')" }, { "wait": 600 }] },
 
   "albums-list": { "url": "/admin/albums", "as": "admin@example.com" },
   "albums-create": { "url": "/admin/albums/create", "as": "admin@example.com" },
@@ -56,7 +56,7 @@
     "clip": [".fi-fo-field:has(.og-tags) .og-tags-combobox", ".og-tags-dropdown"], "pad": 6
   },
 
-  "photos-media-grid": { "url": "/admin/media", "as": "admin@example.com", "steps": [{ "click": "button[aria-label='Filter']" }, { "wait": 500 }] },
+  "photos-media-grid": { "url": "/admin/media", "as": "admin@example.com", "steps": [{ "click": ".og-filter-chip:has-text('Album')" }, { "wait": 600 }] },
   "photos-edit": {
     "url": "/admin/media/{php:App\\Models\\Photo::whereNotNull('exif')->whereHas('albums', fn ($q) => $q->where('title', 'Mountains'))->value('id')}/edit", "as": "admin@example.com",
     "php": "App\\Models\\Setting::put('licenses.enabled', true); App\\Models\\Setting::put('licenses.default', App\\Models\\License::where('name', 'CC BY 4.0')->value('id')); App\\Models\\Photo::whereNull('license_id')->update(['license_id' => App\\Models\\License::where('name', 'CC BY 4.0')->value('id')]);",

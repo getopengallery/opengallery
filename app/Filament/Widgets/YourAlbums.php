@@ -43,7 +43,7 @@ class YourAlbums extends DashboardWidget
             'uploadUrl' => $user->can(Permission::UploadPhotos->value) ? PhotoResource::getUrl('index', ['action' => 'uploadPhotos']) : null,
             'albums' => AlbumStats::ownAlbums($user),
             'inbox' => $inbox,
-            'inboxUrl' => $inbox ? PhotoResource::getUrl('index', ['filters' => ['albums' => ['value' => $inbox['album']->id]]]) : null,
+            'inboxUrl' => $inbox ? PhotoResource::getUrl('index', ['filters' => ['albums' => ['values' => [$inbox['album']->id]]]]) : null,
             'allAlbumsUrl' => AlbumResource::getUrl(),
         ];
     }

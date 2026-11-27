@@ -8,7 +8,7 @@ Plugins add features to OpenGallery without changing its core. They are managed 
 
 ## Turning plugins on and off
 
-The installed plugins are listed with their name and description, version and author (on a phone only the name and description). Use the **Active** switch in a plugin's row to turn it on or off; the page then reloads, so the plugin's settings and any pages it adds are there right away. On a live site the next page or two may load a little slower while the gallery prepares its [speed-up files](../getting-started/installation.md#prepared-files) again. Search the list by name or description, or filter it by **Status** with the funnel icon.
+The installed plugins are listed with their name and description, version and author (on a phone only the name and description). Use the **Status** chip above the list to show only active or inactive plugins. Use the **Active** switch in a plugin's row to turn it on or off; the page then reloads, so the plugin's settings and any pages it adds are there right away. On a live site the next page or two may load a little slower while the gallery prepares its [speed-up files](../getting-started/installation.md#prepared-files) again. Search the list by name or description, or filter it by **Status** with the funnel icon.
 
 ![The plugins list with the Active switches](../../assets/plugins-list.webp)
 

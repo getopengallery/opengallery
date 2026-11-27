@@ -10,6 +10,7 @@ use App\Filament\Resources\Groups\Pages\ListGroups;
 use App\Filament\Resources\Groups\RelationManagers\MembersRelationManager;
 use App\Filament\Tables\Columns\UserStackColumn;
 use App\Filament\Tables\EmptyState;
+use App\Filament\Tables\FilterBar;
 use App\Models\Group;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -119,6 +120,7 @@ class GroupResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('name')
+            ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['users']))
             ->filters([
                 // Users are searched, never preloaded: there may be many.
                 SelectFilter::make('users')

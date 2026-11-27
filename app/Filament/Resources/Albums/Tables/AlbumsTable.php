@@ -9,6 +9,7 @@ use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Albums\Schemas\AlbumDeletionForm;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Tables\EmptyState;
+use App\Filament\Tables\FilterBar;
 use App\Filament\Tables\Filters\DateRangeFilter;
 use App\Filament\Trash\ListTrashedRecords;
 use App\Filament\Trash\TrashActions;
@@ -95,6 +96,7 @@ class AlbumsTable
                     ->sortable()
                     ->visible($trash),
             ])
+            ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['visibility', 'owner', 'changed']))
             ->filters([
                 SelectFilter::make('visibility')
                     ->options(Visibility::class)

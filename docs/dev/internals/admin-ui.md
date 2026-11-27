@@ -8,20 +8,34 @@ The admin is built with Filament. A few shared rules keep its screens consistent
 
 ## Lists and filters
 
-Every table filters the same way. `AppServiceProvider::boot()` sets the defaults for all tables with `Table::configureUsing()`:
+Every admin list shows its filters as a row of chips above the table (`App\Filament\Tables\FilterBar`). `AppServiceProvider::boot()` sets the default for all other tables with `Table::configureUsing()`: filters in a dropdown behind the funnel icon next to the search (`FiltersLayout::Dropdown`), applied immediately (`deferFilters(false)`). Core tables all call `FilterBar::configure()`, including the media picker (`App\Livewire\MediaPicker`, primary chips `scope`, `albums`, `uploader`, `taken`). Do not override the layout or deferral in a single table beyond calling `FilterBar`.
 
-- filters open in a dropdown behind the funnel icon next to the search (`FiltersLayout::Dropdown`);
-- filters apply immediately (`deferFilters(false)`), so there is no "Apply filters" button.
+### The filter bar
 
-Do not override the layout or deferral in a single table. The media picker (`App\Livewire\MediaPicker`) uses the same dropdown as the media library.
+```php
+use App\Filament\Tables\FilterBar;
+
+$table
+    ->tap(fn (Table $table) => FilterBar::configure($table, primary: ['visibility', 'owner']))
+    ->filters([...]);
+```
+
+`FilterBar::configure()` sets `FiltersLayout::Hidden` and `deferFilters(false)`. Filament still builds, applies and stores the filters (so `?filters[...]` URLs and `$table->getFilters()` work as before); the bar is only the view. It is rendered by the `TablesRenderHook::TOOLBAR_AFTER` hook and `TablesRenderHook::FILTER_INDICATORS` hides Filament's "Active filters" row, both registered in `AdminPanelProvider` and active only for tables that called `configure()`. The view is `resources/views/filament/tables/filter-bar.blade.php`, the styles are the `og-filter-*` classes in `resources/views/filament/partials/theme-styles.blade.php`. Chips use the admin's button look (corners follow the theme's corner setting). The same stylesheet lays the toolbar of these tables out as one row (`.fi-ta-ctn:has(.og-filter-bar)`): actions and selection at the start, search widening in the middle, other controls at the end; on phones the search gets its own row. `og-segmented` is the joined-button style (used by the layout switch). Plugins that add admin tables opt in with the same call.
+
+- **Primary filters**: the names in `primary` always show a chip, in that order. All other filters are listed under "+ More filters" and get a chip once set.
+- **Chip**: shows the label, or "Label: value" with a remove cross once set ("Album: Sea +2" for several values). Clicking it opens a popover with checkboxes (`multiple()`) or radio choices, a search field (`searchable` in the chip data: always for a relationship `SelectFilter`, such as albums, people, tags, roles and groups, otherwise above `FilterBar::SEARCH_THRESHOLD` (7) options; it uses `x-filament::input.wrapper`, only filters the listed entries and shows "No matches." when none fit), a "Clear" link, and for dates quick picks (`FilterBar::datePresets()`: last 7 days, last 30 days, this year, last year) next to From / To. "Reset all" sits at the right end of the chip row next to the result count and shows only while a filter is set; it clears every filter. On phones the popover is a bottom sheet with a "Show N results" button.
+- **Supported filters**: `SelectFilter` (single or `multiple()`, static options or a `BelongsTo` / `BelongsToMany` `relationship()`), `TernaryFilter`, `DateRangeFilter`, `TextFilter` and toggle `Filter`s without a form. Any other filter type throws a `LogicException` when the table renders.
+- **Counts**: for relationship filters the popover shows how many rows each option has. The counts come from the table's base query (`$table->getQuery()`, with its query scopes, without filters and search); the labels come from the filter's own relationship query, so access scopes such as `Album::listableFor()` still apply. Only `BelongsTo` and `BelongsToMany` are counted. At most `FilterBar::OPTION_LIMIT` (100) options are listed, the most used ones plus any selected, and the popover says so.
+- **Text**: `App\Filament\Tables\Filters\TextFilter` is the one free-text "contains" filter; give it the query with `->matchUsing(fn (Builder $query, string $text) => ...)` (see `PhotoFilters::whereContains()`).
+- **Empty choice**: `relationship(..., hasEmptyOption: true)` with `emptyRelationshipOptionLabel()` adds a "no value" option, such as "Without tags".
 
 Further rules:
 
 - **Trash**: see [The trash](#the-trash) below. Do not use tabs or a `TrashedFilter` for it.
-- **Dates**: use `App\Filament\Tables\Filters\DateRangeFilter` for any date filter. It renders one "From – To" field and an indicator such as "Uploaded since 03.11.2026". Qualify the column when the query joins other tables.
+- **Dates**: use `App\Filament\Tables\Filters\DateRangeFilter` for any date filter. It renders one "From – To" field and an indicator such as "Uploaded since 03.11.2026"; in the filter bar it becomes a chip with the quick picks. Qualify the column when the query joins other tables.
 - **Date format**: every date and time is shown as `DD.MM.YYYY HH:MM` (seconds only where they matter, such as the activity log), in every language. The formats are the constants of `App\Support\DateFormat`. `AppServiceProvider` makes them the defaults of every table, infolist and date picker (pickers use Filament's own calendar, `native(false)`, Monday first), so call `->dateTime()` / `->date()` without a format. In PHP and Blade use `DateFormat::date()`, `dateTime()` or `dateTimeWithSeconds()`; never `isoFormat('LL')`, `diffForHumans()` or `->since()`.
 - **Users**: filters that choose a person are `searchable()` and never `preload()`, because a site can have thousands of users. Short lists such as roles, groups and albums may preload.
-- **Shared filters**: when two tables show the same records, share the filter definitions instead of copying them. The media library and the picker both use `PhotosTable::albumFilter()`, `uploaderFilter()` and `uploadedFilter()`.
+- **Shared filters**: when two tables show the same records, share the filter definitions instead of copying them. The media library and the picker both use `PhotosTable::albumFilter()` (`multiple: true` in the library, one album in the picker), `uploaderFilter()`, `uploadedFilter()` and `PhotoFilters::all()`.
 - **Layouts**: a table with a list and a grid layout (the media library) keeps the same filters and search in both; only columns, page sizes and record actions change.
 
 ```php
@@ -40,7 +54,7 @@ Rows, headers and empty lists follow the same rules everywhere:
 - **Tooltips**: `AppServiceProvider` gives every icon-only `Action` its label as a tooltip (`Action::configureUsing()`), so set a clear `label()` and do not repeat it with `tooltip()`. An explicit `tooltip()` still wins.
 - **View on site**: `App\Filament\Actions\OpenOnSiteAction` (name `open`, gray, new tab). Set `->url()`; add `->iconButton()` in tables. Albums and pages use it in the list and in the record's header.
 - **Remove vs. delete**: actions that only unlink (detach a user from a group or role, remove photos from an album) are gray with the remove icon; red is for deleting and the trash. Give a custom remove action `ActionIcons::remove($action)`.
-- **Header actions**: secondary actions are gray and come first; the main action (create, upload) is the last one, in the primary colour. `ListPhotos`: Trash, Upload photos. Switches that change how the table looks (the media library's List / Grid) are not header actions: they are the table's `headerActions()`, in the toolbar next to search and filters, like "Change order" in the albums list.
+- **Header actions**: secondary actions are gray and come first; the main action (create, upload) is the last one, in the primary colour. `ListPhotos`: Trash, Upload photos. Switches that change how the table looks (the media library's List / Grid) are not header actions: `App\Filament\Tables\MediaLayoutSwitch::render()` prints them on `TablesRenderHook::TOOLBAR_END` (registered in `AdminPanelProvider`, view `filament.tables.layout-switch`, only for pages using `HasMediaLayout`), at the right end of the toolbar.
 - **Empty states**: every table calls `App\Filament\Tables\EmptyState::apply()` (via `->tap()`) with a heading ("No groups yet"), a sentence on what the list is for, an icon and the action that fills it (`CreateAction::make()->url(...)`). While a search or filter is on, it shows "Nothing matches" and hides the action. Relation managers and the trash pages use it too.
 - **Deleting users**: `UserDeletionForm::deleteAction()` is the one `DeleteAction` for a person (row and edit page); it asks who gets their albums.
 
@@ -208,7 +222,7 @@ Safari does not focus a link on click, which made Filament close the results bef
 
 The Plugins and Themes pages are tables built from the manifests (`plugin.json`, `theme.json`), not from the database: each page implements `HasTable` and renders it with `EmbeddedTable::make()` in `content()`. `App\Filament\Tables\ExtensionsTable` turns the manifests into rows keyed by slug (`records()`, with search and sorting by name; the page passes its own fields and filters) and gives the shared columns (`columns()`: name with description, version, author). On phones only the name and description are shown: version, author and the theme colours are `visibleFrom('md')`, so the description gets the whole width.
 
-- **Plugins**: an **Active** `ToggleColumn` (`updateStateUsing()` calls `Plugins::toggle()`), disabled with the tooltip "Enabled in the server configuration" for `GALLERY_PLUGINS`, and a **Status** filter. The row (`recordUrl()`) and a gear icon button open the plugin's settings page while it is on.
+- **Plugins**: an **Active** `ToggleColumn` (`updateStateUsing()` calls `Plugins::toggle()`), disabled with the tooltip "Enabled in the server configuration" for `GALLERY_PLUGINS`, and a **Status** filter (a primary chip of the filter bar). The row (`recordUrl()`) and a gear icon button open the plugin's settings page while it is on.
 - **Themes**: a colour preview (`filament.tables.theme-swatches`) and, because exactly one theme is always active, no switch but record actions: **Activate** (a quiet grey outlined button with a confirmation on every other theme, calls `Themes::activate()`) and **Active** (a disabled badge in the primary colour, which is the active theme's own colour in the admin, with a tooltip, kept at full colour with `fi-force-enabled`). The active theme is listed first (`sortByDesc('active')` over `ExtensionsTable::records()`). The row and the gear icon button open `ThemeSettings`, also for inactive themes.
 
 Both pages have an **Upload theme** / **Upload plugin** header action, `App\Filament\Actions\UploadExtensionAction` (`->themes()` / `->plugins()`): a `FileUpload` with `storeFiles(false)` (the Livewire temporary file is unpacked directly) and a **Replace the installed version** toggle. It is visible only while `ExtensionInstaller::allowed()` and checks that and the page's `canAccess()` again before installing. An `ExtensionInstallFailed` is shown as a persistent danger notification and keeps the modal open (`halt()`); a successful upload is logged (`ActivityType::ThemeInstalled` / `PluginInstalled`) and reloads the page. The installer itself is described in [Writing plugins](../extending/plugins.md#installing-from-a-zip-file).

@@ -14,6 +14,7 @@ use App\Filament\Resources\Albums\Pages\ListAlbums;
 use App\Filament\Resources\Albums\Pages\ListTrashedAlbums;
 use App\Filament\Resources\Albums\RelationManagers\PhotosRelationManager;
 use App\Filament\Resources\Users\UserResource;
+use App\Filament\Tables\FilterBar;
 use App\Livewire\MediaPicker;
 use App\Models\ActivityEvent;
 use App\Models\Album;
@@ -65,7 +66,8 @@ describe('the albums list', function () {
         $table = $list->instance()->getTable();
 
         expect($day->fresh()->depth())->toBe(1)
-            ->and($table->getFiltersLayout())->toBe(FiltersLayout::Dropdown)
+            ->and($table->getFiltersLayout())->toBe(FiltersLayout::Hidden)
+            ->and(FilterBar::uses($table))->toBeTrue()
             ->and($table->hasDeferredFilters())->toBeFalse()
             ->and($table->getRecordUrl($camp))->toBe(AlbumResource::getUrl('edit', ['record' => $camp]))
             ->and($table->getColumns()['visibility']->isBadge())->toBeTrue();
