@@ -4,7 +4,6 @@ namespace App\Filament\Tables;
 
 use App\Models\Photo;
 use Filament\Actions\Action;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ViewColumn;
@@ -66,9 +65,10 @@ class MediaGrid
     }
 
     /**
-     * "Select all" (every photo on this page, or with $acrossPages every photo
-     * matching the filters), replaced by "Clear selection" once everything on
-     * the page is selected. Tiles have no checkboxes.
+     * One selection control: "Select all" (every photo on this page, or with
+     * $acrossPages every photo matching the filters), then "3 selected ·
+     * Select all · ×" once photos are selected. It replaces Filament's
+     * selection row under the toolbar. Tiles have no checkboxes.
      *
      * @return list<Action>
      */
@@ -77,16 +77,7 @@ class MediaGrid
         return [
             Action::make('selectAll')
                 ->label(__('Select all'))
-                ->icon(Heroicon::OutlinedCheckCircle)
-                ->color('gray')
-                ->alpineClickHandler($acrossPages ? 'selectAllRecords()' : 'selectRecords(getRecordsOnPage())')
-                ->extraAttributes(['x-show' => '! getRecordsOnPage().length || ! areRecordsSelected(getRecordsOnPage())']),
-            Action::make('clearSelection')
-                ->label(__('Clear selection'))
-                ->icon(Heroicon::OutlinedXCircle)
-                ->color('gray')
-                ->alpineClickHandler('deselectAllRecords()')
-                ->extraAttributes(['x-show' => 'getRecordsOnPage().length && areRecordsSelected(getRecordsOnPage())', 'style' => 'display: none']),
+                ->view('filament.tables.selection-control', ['acrossPages' => $acrossPages]),
         ];
     }
 }

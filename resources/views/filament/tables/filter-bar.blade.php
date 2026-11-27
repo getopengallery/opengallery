@@ -90,14 +90,23 @@
                         <div class="og-filter-popover-body">
                             @switch($chip['kind'])
                                 @case('select')
-                                    @if (count($chip['options']) > \App\Filament\Tables\FilterBar::SEARCH_THRESHOLD)
-                                        <input
-                                            type="search"
-                                            class="og-filter-input og-filter-search"
-                                            placeholder="{{ __('Search') }}"
-                                            aria-label="{{ __('Search :name', ['name' => $chip['label']]) }}"
-                                            x-model="q"
+                                    @if ($chip['searchable'])
+                                        {{-- The same search field as the table toolbar's. --}}
+                                        <x-filament::input.wrapper
+                                            class="og-filter-search"
+                                            inline-prefix
+                                            prefix-icon="heroicon-m-magnifying-glass"
                                         >
+                                            <x-filament::input
+                                                type="text"
+                                                autocomplete="off"
+                                                inline-prefix
+                                                placeholder="{{ __('Search :name', ['name' => $chip['label']]) }}"
+                                                aria-label="{{ __('Search :name', ['name' => $chip['label']]) }}"
+                                                x-model="q"
+                                                x-effect="if (open === @js($chip['name'])) $nextTick(() => $el.focus())"
+                                            />
+                                        </x-filament::input.wrapper>
                                     @endif
 
                                     <div class="og-filter-options">
@@ -127,6 +136,14 @@
                                         @empty
                                             <p class="og-filter-empty">{{ __('Nothing to choose yet.') }}</p>
                                         @endforelse
+
+                                        @if ($chip['searchable'] && $chip['options'] !== [])
+                                            <p
+                                                class="og-filter-empty"
+                                                x-show="q !== '' && ! @js(collect($chip['options'])->map(fn (array $option): string => mb_strtolower($option['label']))->values()).some((label) => label.includes(q.toLowerCase()))"
+                                                x-cloak
+                                            >{{ __('No matches.') }}</p>
+                                        @endif
                                     </div>
 
                                     @if ($chip['limited'])
@@ -233,9 +250,14 @@
         @endif
 
         @if ($activeCount > 0)
-            <button type="button" class="og-filter-link og-filter-reset" wire:click="removeTableFilters">
-                {{ __('Reset all') }}
-            </button>
+            <div class="og-filter-summary">
+                @if ($resultCount !== null)
+                    <span>{{ trans_choice(':count result|:count results', $resultCount, ['count' => \Illuminate\Support\Number::format($resultCount)]) }}</span>
+                @endif
+                <button type="button" class="og-filter-link" wire:click="removeTableFilters">
+                    {{ __('Reset all') }}
+                </button>
+            </div>
         @endif
     </div>
 </div>

@@ -41,7 +41,7 @@ class FilterBar
     /** @var WeakMap<Table, list<string>>|null */
     private static ?WeakMap $tables = null;
 
-    /** Above this many options the popover gets a search field. */
+    /** Above this many options a popover gets a search field (relationship filters always have one). */
     public const SEARCH_THRESHOLD = 7;
 
     /** Most related records a relationship chip lists (the most used ones, plus any selected). */
@@ -105,7 +105,7 @@ class FilterBar
     /**
      * One entry per visible filter, primary filters first.
      *
-     * @return list<array{name: string, label: string, kind: string, primary: bool, active: bool, summary: ?string, multiple: bool, options: array<string, array{label: string, count: ?int}>, presets: array<string, array{label: string, from: string, until: string}>, limited: bool, state: array<string, mixed>}>
+     * @return list<array{name: string, label: string, kind: string, primary: bool, active: bool, summary: ?string, multiple: bool, options: array<string, array{label: string, count: ?int}>, presets: array<string, array{label: string, from: string, until: string}>, limited: bool, searchable: bool, state: array<string, mixed>}>
      */
     public static function chips(Table $table): array
     {
@@ -129,7 +129,7 @@ class FilterBar
     }
 
     /**
-     * @return array{name: string, label: string, kind: string, primary: bool, active: bool, summary: ?string, multiple: bool, options: array<string, array{label: string, count: ?int}>, presets: array<string, array{label: string, from: string, until: string}>, limited: bool, state: array<string, mixed>}
+     * @return array{name: string, label: string, kind: string, primary: bool, active: bool, summary: ?string, multiple: bool, options: array<string, array{label: string, count: ?int}>, presets: array<string, array{label: string, from: string, until: string}>, limited: bool, searchable: bool, state: array<string, mixed>}
      */
     private static function chip(Table $table, BaseFilter $filter, bool $primary): array
     {
@@ -145,6 +145,7 @@ class FilterBar
             'options' => [],
             'presets' => [],
             'limited' => false,
+            'searchable' => false,
             'state' => $state,
         ];
 
@@ -184,6 +185,9 @@ class FilterBar
             } else {
                 $chip['options'] = array_map(fn ($label): array => ['label' => (string) $label, 'count' => null], $filter->getOptions());
             }
+
+            // Lists of records (albums, people, tags) grow over time, so they can always be searched.
+            $chip['searchable'] = $filter->hasRelationship() || count($chip['options']) > self::SEARCH_THRESHOLD;
 
             return self::withSelection($chip, $state);
         }

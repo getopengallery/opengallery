@@ -9,6 +9,7 @@ use App\Filament\AvatarProviders\InitialsAvatarProvider;
 use App\Filament\GlobalSearch\AdminSearchProvider;
 use App\Filament\Navigation\NavigationGroup;
 use App\Filament\Tables\FilterBar;
+use App\Filament\Tables\MediaLayoutSwitch;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\SetLocale;
 use App\Livewire\DatabaseNotifications;
@@ -104,6 +105,8 @@ class AdminPanelProvider extends PanelProvider
             // Filter chips above tables that use FilterBar, in place of Filament's filter panel and "Active filters" row.
             ->renderHook(TablesRenderHook::TOOLBAR_AFTER, fn () => FilterBar::render())
             ->renderHook(TablesRenderHook::FILTER_INDICATORS, fn () => FilterBar::hideIndicators())
+            // The media library's List / Grid switch, at the right end of the toolbar.
+            ->renderHook(TablesRenderHook::TOOLBAR_END, fn () => MediaLayoutSwitch::render())
             ->navigationGroups(NavigationGroup::panelGroups())
             ->navigationItems([
                 NavigationItem::make('view-site')

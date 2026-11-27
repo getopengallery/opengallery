@@ -59,7 +59,7 @@ Photos you upload in the picker of a new album (before it is created) or when ch
 
 ## Managing the photos of an album
 
-In the **Photos** section, click photos to select them, or use **Select all**. The button in the corner of each photo opens it in the media library. A **Cover** badge marks the album's cover. With photos selected you can:
+In the **Photos** section, click photos to select them, or use **Select all**, which then turns into "N selected · Select all · ×"; the cross clears the selection. The button in the corner of each photo opens it in the media library. A **Cover** badge marks the album's cover. With photos selected you can:
 
 - **Use as cover**: select exactly one photo to make it the album cover.
 - **Remove from album**: the photos stay in the media library and in their other albums. A photo that is only in this album is kept; move it to the trash instead if you want it gone.

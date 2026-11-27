@@ -68,8 +68,6 @@ class PhotosTable
                     ->paginated([10, 25, 50, 100])
                     ->defaultPaginationPageOption(25),
             )
-            // List / Grid switch, in the table toolbar like "Change order" in the albums list.
-            ->headerActions(in_array(HasMediaLayout::class, class_uses_recursive($livewire), true) ? $livewire->mediaLayoutActions() : [])
             ->filters([
                 self::albumFilter(multiple: true),
                 self::uploaderFilter(),
@@ -88,10 +86,9 @@ class PhotosTable
                     TrashActions::moveToTrash()->iconButton(),
                 ],
             })
-            // All bulk actions in one "Actions" menu, left of "Select all" in the grid.
-            ->toolbarActions($grid
-                ? [self::bulkActionMenu($trash), ...MediaGrid::selectionActions(acrossPages: true)]
-                : [self::bulkActionMenu($trash)])
+            // All bulk actions in one "Actions" menu, then the selection control (in both layouts).
+            // The List / Grid switch sits at the toolbar's end (MediaLayoutSwitch).
+            ->toolbarActions([self::bulkActionMenu($trash), ...MediaGrid::selectionActions(acrossPages: true)])
             ->when(! $trash, fn (Table $table) => EmptyState::apply(
                 $table,
                 __('No photos yet'),

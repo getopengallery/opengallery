@@ -51,13 +51,44 @@ describe('for an administrator', function () {
         $this->get(PhotoResource::getUrl('index'))->assertOk()->assertSee('window.ogJustifiedRows', false);
 
         Livewire::test(ListPhotos::class)
-            ->callAction(TestAction::make('listLayout')->table())
+            ->call('setLayout', ListPhotos::LIST)
             ->assertSet('mediaLayout', ListPhotos::LIST)
             ->assertCanSeeTableRecords([$portrait]);
         Livewire::test(ListPhotos::class)->assertSet('mediaLayout', ListPhotos::LIST);
 
         expect(MediaGrid::ratioClass(new Photo(['width' => 8000, 'height' => 1000])))->toBe('og-r-'.MediaGrid::RATIO_MAX)
             ->and(MediaGrid::ratioClass(new Photo))->toBe('og-r-30');
+    });
+
+    it('puts the List / Grid switch at the end of the toolbar of the library and its trash only, marking the current layout', function () {
+        galleryPhoto(Album::factory()->create(), name: 'Switch.jpg', width: 300, height: 200);
+        $pressedButton = fn (string $html): string => preg_match('/aria-pressed="true"\s+title="(\w+)"/', $html, $match) ? $match[1] : '';
+
+        $grid = $this->get(PhotoResource::getUrl('index'))
+            ->assertOk()
+            ->assertSeeHtml('class="og-segmented og-layout-switch"')
+            ->assertSeeHtml("wire:click=\"setLayout('list')\"")
+            ->assertSeeHtml("wire:click=\"setLayout('grid')\"");
+        $this->get(PhotoResource::getUrl('trash'))->assertOk()->assertSeeHtml('class="og-segmented og-layout-switch"');
+        $this->get(AlbumResource::getUrl())->assertOk()->assertDontSeeHtml('class="og-segmented og-layout-switch"');
+
+        expect($pressedButton($grid->getContent()))->toBe('Grid');
+
+        Livewire::test(ListPhotos::class)->call('setLayout', ListPhotos::LIST);
+
+        expect($pressedButton($this->get(PhotoResource::getUrl('index'))->getContent()))->toBe('List');
+    });
+
+    it('offers one "Select all" control in the grid and the list, and no separate "Clear selection"', function () {
+        galleryPhoto(Album::factory()->create(), name: 'Pick.jpg', width: 300, height: 200);
+
+        $page = Livewire::test(ListPhotos::class)
+            ->assertActionExists(TestAction::make('selectAll')->table())
+            ->assertActionDoesNotExist(TestAction::make('clearSelection')->table());
+        $this->get(PhotoResource::getUrl('index'))->assertOk()->assertSeeHtml('og-selection');
+
+        $page->call('setLayout', ListPhotos::LIST)
+            ->assertActionExists(TestAction::make('selectAll')->table());
     });
 
     it('links the albums and the uploader in the list layout and cuts long titles and names short', function () {
@@ -228,6 +259,7 @@ describe('for an administrator', function () {
     it('shows the filters as chips above the library, with the choice on the chip and a way to reset all', function () {
         $album = Album::factory()->create(['title' => 'Summer trip']);
         galleryPhoto($album, name: 'Beach.jpg');
+        galleryPhoto(Album::factory()->create(), name: 'Elsewhere.jpg');
 
         $this->get(PhotoResource::getUrl('index'))
             ->assertOk()
@@ -237,6 +269,12 @@ describe('for an administrator', function () {
         $this->get(PhotoResource::getUrl('index', ['filters' => ['albums' => ['values' => [$album->id]], 'taken' => ['from' => '2024-01-01', 'until' => '2024-12-31']]]))
             ->assertOk()
             ->assertSee(['Summer trip', '01.01.2024 – 31.12.2024', 'Reset all']);
+
+        $this->get(PhotoResource::getUrl('index', ['filters' => ['albums' => ['values' => [$album->id]]]]))
+            ->assertOk()
+            ->assertSeeHtml('<div class="og-filter-summary">')
+            ->assertSee('1 result');
+        $this->get(PhotoResource::getUrl('index'))->assertDontSeeHtml('<div class="og-filter-summary">');
     });
 
     it('opens the library on the album of the dashboard\'s "Unsorted uploads" link', function () {

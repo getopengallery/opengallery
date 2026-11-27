@@ -751,19 +751,22 @@
     @media (min-width: 640px) { .og-filter-bar { padding-inline: 1.5rem; } }
     .og-filter-bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
     .og-filter-chip-wrap { position: relative; display: inline-flex; align-items: center; }
-    .og-filter-chip { display: inline-flex; align-items: center; gap: 0.375rem; height: 2rem; padding: 0 0.75rem; border-radius: 9999px; border: 1px solid var(--gray-300); background: white; font-size: 0.875rem; font-weight: 500; line-height: 1; color: var(--gray-700); white-space: nowrap; cursor: pointer; }
-    .og-filter-chip:hover { border-color: var(--gray-400); color: var(--gray-950); }
-    .og-filter-chip:focus-visible, .og-filter-chip-remove:focus-visible, .og-filter-pill:focus-visible, .og-filter-link:focus-visible { outline: 2px solid rgb(var(--og-primary, 26 26 26)); outline-offset: 2px; }
-    .dark .og-filter-chip { border-color: var(--gray-700); background: var(--gray-900); color: var(--gray-200); }
-    .dark .og-filter-chip:hover { border-color: var(--gray-500); color: white; }
-    .og-filter-chip.is-active { border-color: var(--gray-900); background: var(--gray-100); color: var(--gray-950); }
-    .og-filter-chip-wrap:has(.og-filter-chip-remove) .og-filter-chip { padding-inline-end: 2rem; }
-    .dark .og-filter-chip.is-active { border-color: var(--gray-200); background: var(--gray-800); color: white; }
-    .og-filter-chip.is-ghost { border-style: dashed; color: var(--gray-600); }
-    .dark .og-filter-chip.is-ghost { color: var(--gray-300); }
+    /* Chips look like the admin's buttons: same height, corners (theme radius), ring and shadow. */
+    .og-filter-chip { display: inline-flex; align-items: center; gap: 0.375rem; height: 2.25rem; padding: 0 0.75rem; border-radius: var(--radius-lg); background: white; box-shadow: 0 0 0 1px color-mix(in oklab, var(--gray-950) 10%, transparent), 0 1px 2px rgb(0 0 0 / 0.05); font-size: 0.875rem; font-weight: 500; line-height: 1; color: var(--gray-700); white-space: nowrap; cursor: pointer; }
+    .og-filter-chip:hover { background: var(--gray-50); color: var(--gray-950); }
+    .og-filter-chip:focus-visible, .og-filter-chip-remove:focus-visible, .og-filter-pill:focus-visible, .og-filter-link:focus-visible, .og-segmented-btn:focus-visible { outline: 2px solid rgb(var(--og-primary, 26 26 26)); outline-offset: 2px; }
+    .dark .og-filter-chip { background: color-mix(in oklab, white 5%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, white 20%, transparent); color: var(--gray-200); }
+    .dark .og-filter-chip:hover { background: color-mix(in oklab, white 10%, transparent); color: white; }
+    .og-filter-chip.is-active, .og-filter-chip[aria-expanded="true"] { box-shadow: 0 0 0 1.5px rgb(var(--og-primary, 26 26 26)); color: var(--gray-950); }
+    .og-filter-chip.is-active { background: rgb(var(--og-primary, 26 26 26) / 0.05); }
+    .dark .og-filter-chip.is-active, .dark .og-filter-chip[aria-expanded="true"] { box-shadow: 0 0 0 1.5px var(--gray-200); color: white; }
+    .og-filter-chip-wrap:has(.og-filter-chip-remove) .og-filter-chip { padding-inline-end: 2.125rem; }
+    .og-filter-chip.is-ghost { background: transparent; box-shadow: none; outline: 1px dashed var(--gray-300); outline-offset: -1px; color: var(--gray-600); }
+    .og-filter-chip.is-ghost:hover { background: var(--gray-50); }
+    .dark .og-filter-chip.is-ghost { background: transparent; outline-color: var(--gray-600); color: var(--gray-300); }
     .og-filter-chip-value { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
     .og-filter-chip-icon { width: 1rem; height: 1rem; flex-shrink: 0; }
-    .og-filter-chip-remove { position: absolute; inset-inline-end: 0.3rem; display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: 9999px; color: var(--gray-600); cursor: pointer; }
+    .og-filter-chip-remove { position: absolute; inset-inline-end: 0.375rem; display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: var(--radius-sm); color: var(--gray-600); cursor: pointer; }
     .og-filter-chip-remove:hover { background: var(--gray-200); color: var(--gray-950); }
     .dark .og-filter-chip-remove { color: var(--gray-300); }
     .dark .og-filter-chip-remove:hover { background: var(--gray-700); color: white; }
@@ -772,7 +775,39 @@
     .og-filter-link:hover { color: var(--gray-950); }
     .dark .og-filter-link { color: var(--gray-300); }
     .dark .og-filter-link:hover { color: white; }
-    .og-filter-reset { margin-inline-start: 0.25rem; }
+    /* Result count and the reset link at the end of the chip row. */
+    .og-filter-summary { display: flex; flex-shrink: 0; align-items: center; gap: 1rem; margin-inline-start: auto; padding-inline-start: 0.5rem; font-size: 0.875rem; color: var(--gray-600); white-space: nowrap; }
+    .dark .og-filter-summary { color: var(--gray-400); }
+
+    /* Toolbar of tables with chips: actions, then search taking the room, then the rest (e.g. List / Grid) at the end. */
+    .fi-ta-ctn:has(.og-filter-bar) .fi-ta-header-toolbar > :nth-child(2) { flex: 1 1 14rem; max-width: 30rem; margin-inline-start: 0; }
+    .fi-ta-ctn:has(.og-filter-bar) .fi-ta-header-toolbar .fi-ta-search-field { flex: 1; }
+    /* List / Grid: a segmented control, a light track with the chosen option raised as a white tile. */
+    .og-segmented.og-layout-switch { display: inline-grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 2px; margin-inline-start: auto; padding: 3px; background: var(--gray-100); box-shadow: inset 0 0 0 1px var(--gray-200); }
+    .dark .og-segmented.og-layout-switch { background: color-mix(in oklab, white 5%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, white 10%, transparent); }
+    .og-layout-switch > * + * { border-inline-start: 0; }
+    .og-layout-switch .og-segmented-btn { justify-content: center; padding: 0 0.75rem; border-radius: var(--radius-md); color: var(--gray-600); }
+    .og-layout-switch .og-segmented-btn:hover { background: transparent; color: var(--gray-950); }
+    .og-layout-switch .og-segmented-btn[aria-pressed="true"] { background: white; color: var(--gray-950); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px color-mix(in oklab, var(--gray-950) 8%, transparent); }
+    .dark .og-layout-switch .og-segmented-btn { color: var(--gray-400); }
+    .dark .og-layout-switch .og-segmented-btn:hover { color: white; }
+    .dark .og-layout-switch .og-segmented-btn[aria-pressed="true"] { background: var(--gray-700); color: white; box-shadow: 0 1px 2px rgb(0 0 0 / 0.3); }
+
+    /* Joined buttons (List / Grid, selection): one block with the button ring; the pressed one is filled. */
+    .og-segmented { display: inline-flex; align-items: stretch; height: 2.25rem; border-radius: var(--radius-lg); background: white; box-shadow: 0 0 0 1px color-mix(in oklab, var(--gray-950) 10%, transparent), 0 1px 2px rgb(0 0 0 / 0.05); overflow: hidden; }
+    .dark .og-segmented { background: color-mix(in oklab, white 5%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, white 20%, transparent); }
+    .og-segmented > * + * { border-inline-start: 1px solid var(--gray-200); }
+    .dark .og-segmented > * + * { border-color: color-mix(in oklab, white 15%, transparent); }
+    .og-segmented-label { display: inline-flex; align-items: center; padding: 0 0.75rem; font-size: 0.875rem; font-weight: 600; color: var(--gray-950); white-space: nowrap; }
+    .dark .og-segmented-label { color: white; }
+    .og-segmented-btn { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0 0.75rem; font-size: 0.875rem; font-weight: 500; color: var(--gray-700); white-space: nowrap; cursor: pointer; }
+    .og-segmented-btn:hover { background: var(--gray-50); color: var(--gray-950); }
+    .dark .og-segmented-btn { color: var(--gray-200); }
+    .dark .og-segmented-btn:hover { background: color-mix(in oklab, white 5%, transparent); color: white; }
+    .og-segmented-btn[aria-pressed="true"] { background: rgb(var(--og-primary, 26 26 26)); color: rgb(var(--og-on-primary, 255 255 255)); }
+    .og-segmented-icon { width: 1.125rem; height: 1.125rem; flex-shrink: 0; }
+    /* The selection control replaces Filament's selection row, which would repeat the count. */
+    .fi-ta-ctn:has(.og-selection) .fi-ta-selection-indicator { display: none; }
 
     .og-filter-popover { position: absolute; z-index: 30; inset-inline-start: 0; top: calc(100% + 0.375rem); display: flex; flex-direction: column; width: 18rem; max-height: min(26rem, 70vh); border-radius: var(--radius-lg); background: white; box-shadow: 0 8px 24px rgb(0 0 0 / 0.12), 0 0 0 1px var(--gray-200); }
     .dark .og-filter-popover { background: var(--gray-900); box-shadow: 0 8px 24px rgb(0 0 0 / 0.4), 0 0 0 1px var(--gray-700); }
@@ -794,9 +829,9 @@
     .og-filter-input { width: 100%; height: 2.25rem; padding: 0 0.625rem; border: 1px solid var(--gray-300); border-radius: var(--radius-md); background: white; font-size: 0.875rem; color: var(--gray-950); }
     .og-filter-input:focus { outline: 2px solid rgb(var(--og-primary, 26 26 26)); outline-offset: -1px; border-color: transparent; }
     .dark .og-filter-input { border-color: var(--gray-700); background: var(--gray-950); color: white; color-scheme: dark; }
-    .og-filter-search { margin: 0 0.25rem; width: calc(100% - 0.5rem); }
+    .og-filter-search { flex-shrink: 0; margin: 0 0.25rem; }
     .og-filter-presets { display: flex; flex-wrap: wrap; gap: 0.375rem; padding: 0 0.375rem; }
-    .og-filter-pill { height: 1.875rem; padding: 0 0.75rem; border-radius: 9999px; border: 1px solid var(--gray-300); font-size: 0.8125rem; font-weight: 500; color: var(--gray-700); cursor: pointer; }
+    .og-filter-pill { height: 1.875rem; padding: 0 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--gray-300); font-size: 0.8125rem; font-weight: 500; color: var(--gray-700); cursor: pointer; }
     .og-filter-pill:hover { border-color: var(--gray-400); color: var(--gray-950); }
     .og-filter-pill.is-active { border-color: rgb(var(--og-primary, 26 26 26)); background: rgb(var(--og-primary, 26 26 26)); color: rgb(var(--og-on-primary, 255 255 255)); }
     .dark .og-filter-pill:not(.is-active) { border-color: var(--gray-700); color: var(--gray-200); }
@@ -808,12 +843,15 @@
 
     /* Phones: the chips scroll sideways and a popover becomes a bottom sheet. */
     @media (max-width: 639px) {
-        .og-filter-bar-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1rem; padding-inline: 1rem; }
+        .og-filter-bar-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -1rem; padding: 2px 1rem; }
+        /* Toolbar: actions and the List / Grid switch share the first row, search gets its own row below. */
+        .fi-ta-ctn:has(.og-filter-bar) .fi-ta-header-toolbar { row-gap: 0.75rem; }
+        .fi-ta-ctn:has(.og-filter-bar) .fi-ta-header-toolbar > :nth-child(2) { order: 1; flex-basis: 100%; max-width: none; }
         .og-filter-bar-row::-webkit-scrollbar { display: none; }
         .og-filter-chip-wrap { flex-shrink: 0; position: static; }
         .og-filter-chip-wrap:has(.og-filter-chip-remove) { position: relative; }
         .og-filter-chip { height: 2.25rem; }
-        .og-filter-reset { flex-shrink: 0; white-space: nowrap; }
+        .og-segmented-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
         .og-filter-backdrop { display: block; position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / 0.45); }
         .og-filter-popover { position: fixed; z-index: 41; inset: auto 0 0 0; top: auto; width: auto; max-height: 85vh; border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding-bottom: env(safe-area-inset-bottom); }
         .og-filter-popover-header { padding: 1rem 1rem 0.5rem; }

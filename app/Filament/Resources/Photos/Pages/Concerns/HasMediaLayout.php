@@ -2,14 +2,12 @@
 
 namespace App\Filament\Resources\Photos\Pages\Concerns;
 
-use Filament\Actions\Action;
-use Filament\Support\Icons\Heroicon;
 use Livewire\Attributes\Session;
 
 /**
- * Grid (default) or list layout of the media table (PhotosTable), with the
- * "List" / "Grid" header buttons. Media and its trash share the choice for
- * the session.
+ * Grid (default) or list layout of the media table (PhotosTable); the List /
+ * Grid switch in the toolbar (MediaLayoutSwitch) calls setLayout(). Media and
+ * its trash share the choice for the session.
  */
 trait HasMediaLayout
 {
@@ -34,26 +32,5 @@ trait HasMediaLayout
         $this->tableRecordsPerPage = $this->getTable()->getDefaultPaginationPageOption();
         $this->resetPage();
         $this->flushCachedTableRecords();
-    }
-
-    /** @return list<Action> */
-    public function mediaLayoutActions(): array
-    {
-        return [
-            Action::make('listLayout')
-                ->label(__('List'))
-                ->icon(Heroicon::OutlinedListBullet)
-                ->color(fn () => $this->mediaLayout === self::LIST ? 'primary' : 'gray')
-                ->outlined(fn () => $this->mediaLayout !== self::LIST)
-                ->extraAttributes(fn () => ['aria-pressed' => $this->mediaLayout === self::LIST ? 'true' : 'false'])
-                ->action(fn () => $this->setLayout(self::LIST)),
-            Action::make('gridLayout')
-                ->label(__('Grid'))
-                ->icon(Heroicon::OutlinedSquares2x2)
-                ->color(fn () => $this->mediaLayout === self::GRID ? 'primary' : 'gray')
-                ->outlined(fn () => $this->mediaLayout !== self::GRID)
-                ->extraAttributes(fn () => ['aria-pressed' => $this->mediaLayout === self::GRID ? 'true' : 'false'])
-                ->action(fn () => $this->setLayout(self::GRID)),
-        ];
     }
 }

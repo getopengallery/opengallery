@@ -7,6 +7,7 @@ use App\Models\Album;
 use App\Models\Photo;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -23,6 +24,23 @@ it('puts the primary filters first and keeps the others for "More filters"', fun
         ->and($chips->take(5)->every(fn (array $chip): bool => $chip['primary']))->toBeTrue()
         ->and($chips->skip(5)->contains(fn (array $chip): bool => $chip['primary']))->toBeFalse()
         ->and($chips->pluck('name'))->toContain('resolution', 'file_name', 'favorites');
+});
+
+it('makes relationship filters and long option lists searchable, but not short static ones', function () {
+    $table = Livewire::test(ListPhotos::class)->instance()->getTable();
+    $chips = collect(FilterBar::chips($table))->keyBy('name');
+
+    // Albums and uploaders grow over time, so they are searchable even with one or two options.
+    expect($chips['albums']['searchable'])->toBeTrue()
+        ->and($chips['uploader']['searchable'])->toBeTrue()
+        ->and($chips['orientation']['searchable'])->toBeFalse()
+        ->and($chips['favorites']['searchable'])->toBeFalse();
+
+    $table->filters([SelectFilter::make('size')->options(array_map(fn (int $n): string => "Option $n", range(1, FilterBar::SEARCH_THRESHOLD)))]);
+    expect(FilterBar::chips($table)[0]['searchable'])->toBeFalse();
+
+    $table->filters([SelectFilter::make('size')->options(array_map(fn (int $n): string => "Option $n", range(1, FilterBar::SEARCH_THRESHOLD + 1)))]);
+    expect(FilterBar::chips($table)[0]['searchable'])->toBeTrue();
 });
 
 it('names a date range after a preset when it matches one, and writes out any other range', function (array $state, string $summary) {
