@@ -12,6 +12,7 @@ use App\Filament\Actions\ActionIcons;
 use App\Filament\Trash\TrashActions;
 use App\Models\Album;
 use App\Models\Group;
+use App\Models\License;
 use App\Models\Page;
 use App\Models\Photo;
 use App\Models\Pivots\AlbumCollaborator;
@@ -291,7 +292,7 @@ class AppServiceProvider extends ServiceProvider
             $action::configureUsing(fn ($action) => $action->modalDescription(fn (): string => __('This cannot be undone.')));
         }
 
-        foreach ([Album::class, User::class, Group::class, RoleModel::class, Page::class, Photo::class] as $model) {
+        foreach ([Album::class, User::class, Group::class, RoleModel::class, Page::class, Photo::class, License::class] as $model) {
             $model::observe(ActivityObserver::class);
         }
 

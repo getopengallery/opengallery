@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Album;
 use App\Models\Photo;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -35,7 +36,7 @@ class PhotoGridItems
 {
     /**
      * @param  iterable<Photo>  $photos
-     * @return Collection<int, array{ratio: float, thumb: string, srcset: ?string, loading: string, fetchpriority: string, decoding: string, lightbox: array{id: int, src: string, title: ?string, description: ?string, taken: ?string, download: ?string, favorite: ?array{url: string, active: bool}, info: ?list<array{label: string, value: string}>, position?: int, total?: int, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}}>
+     * @return Collection<int, array{ratio: float, thumb: string, srcset: ?string, loading: string, fetchpriority: string, decoding: string, lightbox: array{id: int, src: string, title: ?string, description: ?string, taken: ?string, download: ?string, favorite: ?array{url: string, active: bool}, info: ?list<array{label: string, value: string}>, license: ?array{name: string, title: ?string, url: ?string}, position?: int, total?: int, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}}>
      */
     public static function from(iterable $photos): Collection
     {
@@ -46,9 +47,14 @@ class PhotoGridItems
         $user = auth()->user();
         $favorites = Favorites::enabledFor($user);
         $info = SiteSettings::photoInfoEnabled();
+        $licenses = $info && Licensing::enabled();
+
+        if ($licenses) {
+            (new EloquentCollection($photos->all()))->loadMissing('license');
+        }
 
         $items = $photos
-            ->map(function (Photo $photo) use ($user, $favorites, $info) {
+            ->map(function (Photo $photo) use ($user, $favorites, $info, $licenses) {
                 $media = $photo->getFirstMedia(Photo::COLLECTION);
 
                 if (! $media) {
@@ -72,6 +78,7 @@ class PhotoGridItems
                         'download' => self::allowsDownloads($photo) ? route('media.show', ['media' => $media, 'download' => 1]) : null,
                         'favorite' => $favorites ? ['url' => route('favorites.toggle', $photo), 'active' => Favorites::has($user, $photo)] : null,
                         'info' => $info ? PhotoExif::details($photo) : null,
+                        'license' => $licenses ? Licensing::displayFor($photo) : null,
                     ],
                 ];
             })

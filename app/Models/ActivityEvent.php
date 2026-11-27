@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ActivityType;
 use App\Extensions\Manifest;
 use App\Filament\Resources\Groups\GroupResource;
+use App\Filament\Resources\Licenses\LicenseResource;
 use App\Filament\Resources\Photos\PhotoResource;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\UserResource;
@@ -150,6 +151,7 @@ class ActivityEvent extends Model
             'role' => __('role'),
             'photo' => __('photo'),
             'page' => __('page'),
+            'license' => __('license'),
             default => __('item'),
         };
     }
@@ -164,6 +166,7 @@ class ActivityEvent extends Model
             'role' => trans_choice(':count role|:count roles', $count),
             'photo' => trans_choice(':count photo|:count photos', $count),
             'page' => trans_choice(':count page|:count pages', $count),
+            'license' => trans_choice(':count license|:count licenses', $count),
             default => trans_choice(':count item|:count items', $count),
         };
     }
@@ -199,6 +202,7 @@ class ActivityEvent extends Model
             $subject instanceof Role && RoleResource::canAccess() => RoleResource::getUrl('edit', ['record' => $subject]),
             $subject instanceof Photo => PhotoResource::detailUrl($subject),
             $subject instanceof Page && $subject->is_published => route('pages.show', $subject),
+            $subject instanceof License && LicenseResource::canAccess() => LicenseResource::getUrl('edit', ['record' => $subject]),
             default => null,
         };
     }

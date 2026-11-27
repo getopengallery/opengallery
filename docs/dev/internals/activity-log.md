@@ -35,7 +35,7 @@ Database sessions keep nearly the same promise: `App\Support\PrivateDatabaseSess
 
 | Source | Writes |
 | --- | --- |
-| `App\Observers\ActivityObserver` on `Album`, `User`, `Group`, `Role`, `Page`, `Photo` (registered in `AppServiceProvider`) | `created`, `updated`, `deleted`, `restored`. A photo's `created` is skipped; uploads are logged per batch. |
+| `App\Observers\ActivityObserver` on `Album`, `User`, `Group`, `Role`, `Page`, `Photo`, `License` (registered in `AppServiceProvider`) | `created`, `updated`, `deleted`, `restored`. A photo's `created` is skipped; uploads are logged per batch. |
 | `App\Models\Pivots\RecordsPivotActivity` on the pivot models | Adding and removing related records ("Albums: +X", members, roles, permissions, shares) through `ActivityLog::pivotChanged()` |
 | Auth event listeners in `AppServiceProvider` | `Login`, `LoginFailed`, `LockedOut`, `PasswordReset` |
 | `AlbumController` | `AlbumView` (once per album, visitor and day, remembered in the session), `AlbumPasswordFailed`, `AlbumGuestCodeFailed` (wrong code on a guest link) |
@@ -57,7 +57,7 @@ Changes to the same subject by the same person within `ActivityLog::MERGE_SECOND
 
 ### Bulk actions
 
-Every Filament bulk action is wrapped in `ActivityLog::startBatch()` and `finishBatch()` (configured in `AppServiceProvider`). While a batch is open, created, updated, deleted and restored entries are collected by type and subject class instead of written, and the batch writes one entry per group ("Moved 200 photos to the trash", with the first three names). Side effects inside a batch, such as the album links of deleted photos, are not logged separately. Wrap your own loops with `ActivityLog::batch(fn () => ...)` to get the same behaviour.
+Every Filament bulk action is wrapped in `ActivityLog::startBatch()` and `finishBatch()` (configured in `AppServiceProvider`). While a batch is open, created, updated, deleted and restored entries are collected by type and subject class instead of written, and the batch writes one entry per group ("Moved 200 photos to the trash", with the first three names). Side effects inside a batch, such as the album links of deleted photos, are not logged separately. Field changes made inside a batch (for example the media library's "Set license") are not logged by the observer (it skips `updated` entries while a batch is open); call `ActivityLog::changedInBulk($model)` for each record that changed, so the batch writes one "changed N photos" entry. Wrap your own loops with `ActivityLog::batch(fn () => ...)` to get the same behaviour.
 
 ### Upload batches
 

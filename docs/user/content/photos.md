@@ -42,6 +42,7 @@ Select photos (in the list with the checkboxes, in the grid by clicking them or 
 - **Add to album**: adds the photos to another album, without copying them.
 - **New album from selection**: creates a private album of yours with the selected photos (you enter its title) and opens it, where you can choose its cover and how it is shared. Needs the permission "Create albums".
 - **Remove from album**: removes them from one album. A photo that would end up in no album is kept; move it to the trash instead.
+- **Set license**: gives them a [license](licenses.md); only shown while licenses are on and you may choose a license. Photos you may not edit are left out.
 - **Move to trash**.
 
 In the trash, the choices are **Restore** and **Delete permanently**.
@@ -56,7 +57,7 @@ Opening a photo, from the list, the grid, **Your recent uploads** on the dashboa
 
 The page has two rows. In the first row, the large preview is on the left with the editable **Title** and **Description** below it. On the right:
 
-- **Where it is**: change the **Albums** the photo is in and its [**Tags**](tags.md). **Cover of** is shown for information only. Every photo must stay in at least one album. The photo can be seen by anyone who can see one of its albums.
+- **Where it is**: change the **Albums** the photo is in and its [**Tags**](tags.md). **Cover of** is shown for information only. While licenses are on, the **License** field sets its [license](licenses.md). Every photo must stay in at least one album. The photo can be seen by anyone who can see one of its albums.
 - **History**: change the **Taken** date (useful when the camera clock was wrong). **Uploaded by**, **Uploaded** and **Last changed** are shown for information only.
 
 The second row has **File** (name, type, size and dimensions) and, next to it, **Camera** (the camera data stored in the file, in two columns), both read-only. A photo without camera data has no **Camera** section, and **File** then uses the full width.

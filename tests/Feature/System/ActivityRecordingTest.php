@@ -10,12 +10,17 @@ use App\Filament\Resources\Albums\Pages\CreateAlbum;
 use App\Filament\Resources\Albums\Pages\EditAlbum;
 use App\Filament\Resources\Albums\Pages\ListAlbums;
 use App\Filament\Resources\Albums\RelationManagers\PhotosRelationManager;
+use App\Filament\Resources\Licenses\LicenseResource;
+use App\Filament\Resources\Licenses\Pages\CreateLicense;
+use App\Filament\Resources\Licenses\Pages\EditLicense;
+use App\Filament\Resources\Licenses\Pages\ListLicenses;
 use App\Filament\Resources\Photos\Pages\ListPhotos;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Group;
+use App\Models\License;
 use App\Models\Photo;
 use App\Models\Role as RoleModel;
 use App\Models\Setting;
@@ -71,6 +76,43 @@ describe('changes made in the admin', function () {
             'Title: Camp → Summer camp',
             'Visibility: Private (owner only) → Public',
         ]);
+    });
+
+    it('logs creating, editing and deleting a license with readable field names and links to its edit page', function () {
+        $admin = actingAsRole(attributes: ['name' => 'Ada Admin']);
+
+        Livewire::test(CreateLicense::class)
+            ->fillForm(['name' => 'Studio terms', 'url' => 'https://example.com/terms', 'sort_order' => 3])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $license = License::where('name', 'Studio terms')->sole();
+        $created = changesBy($admin)->where('subject_type', License::class)->sole();
+        expect($created->type)->toBe(ActivityType::Created)
+            ->and($created->summary())->toBe('Ada Admin created license Studio terms')
+            ->and($created->subjectUrl())->toBe(LicenseResource::getUrl('edit', ['record' => $license]));
+
+        afterMergeWindow();
+        Livewire::test(EditLicense::class, ['record' => $license->id])
+            ->fillForm(['name' => 'Studio terms 2', 'title' => 'Our terms', 'url' => 'https://example.com/new', 'sort_order' => 4, 'is_active' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $updated = changesBy($admin)->where('type', ActivityType::Updated)->where('subject_type', License::class)->sole();
+        expect($updated->details())->toContain(
+            'Short name: Studio terms → Studio terms 2',
+            'Full name: empty → Our terms',
+            'Link to the license text: https://example.com/terms → https://example.com/new',
+            'Position: 3 → 4',
+            'Active: yes → no',
+        )
+            ->and($updated->subjectUrl())->toBe(LicenseResource::getUrl('edit', ['record' => $license]));
+
+        Livewire::test(ListLicenses::class)->callAction(TestAction::make('delete')->table($license));
+
+        $deleted = changesBy($admin)->where('type', ActivityType::Deleted)->where('subject_type', License::class)->sole();
+        expect($deleted->summary())->toBe('Ada Admin deleted license Studio terms 2')
+            ->and($deleted->subjectUrl())->toBeNull();
     });
 
     it('logs role changes and password resets without storing the password', function () {

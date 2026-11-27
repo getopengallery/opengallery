@@ -28,7 +28,7 @@ The navigation on the left groups the admin's screens. You only see the entries 
 | **Users & access → Roles** | [Roles and permissions](../administration/users-and-permissions.md#roles) | "Manage roles" |
 | **Appearance & extensions → Themes** | [Themes](../administration/themes.md) | "Choose and set up themes" |
 | **Appearance & extensions → Plugins** | [Plugins](../administration/plugins.md) | "Turn plugins on and off" |
-| **Settings → General, App, Search engines, Access, Photos, E-mail** | [Site settings](../administration/settings.md) | "Change site settings" |
+| **Settings → General, App, Search engines, Access, Photos, Tags, Licenses, E-mail** | [Site settings](../administration/settings.md) | "Change site settings" |
 | **System → Activity log** | [The activity log](../administration/activity.md#the-activity-log) | "See the dashboard and activity log" |
 | **System → Background jobs** | [Background jobs](../administration/settings.md#background-jobs) | "Change site settings" |
 | **System → Updates** | [Updates](../administration/settings.md#updates) | "Change site settings" |

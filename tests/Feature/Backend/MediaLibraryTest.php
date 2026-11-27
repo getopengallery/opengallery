@@ -19,8 +19,10 @@ use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Photo;
 use App\Models\User;
+use App\Support\SiteSettings;
 use App\Support\Tagging;
 use Filament\Actions\Testing\TestAction;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -105,6 +107,65 @@ describe('for an administrator', function () {
 
         expect($photo->fresh())->title->toBe('Sunrise')
             ->and($photo->fresh()->taken_at->format('Y-m-d H:i'))->toBe('2024-05-17 14:30');
+    });
+
+    it('changes the license from the photo form (logged) and the bulk action, only while licensing is on', function () {
+        $album = Album::factory()->create();
+        $before = galleryPhoto($album, name: 'Beach.jpg', width: 300, height: 200);
+        $other = galleryPhoto($album, name: 'Dunes.jpg', width: 200, height: 300);
+
+        Livewire::test(EditPhoto::class, ['record' => $before->id])->assertFormFieldHidden('license_id');
+        Livewire::test(ListPhotos::class)->assertActionHidden(TestAction::make('setLicense')->table()->bulk());
+
+        $default = enableLicensing();
+        $photo = galleryPhoto($album, name: 'Surf.jpg', width: 240, height: 160);
+        expect($photo->license_id)->toBe($default->id);
+
+        Livewire::test(EditPhoto::class, ['record' => $photo->id])
+            ->assertFormFieldVisible('license_id')
+            ->assertFormFieldEnabled('license_id')
+            ->assertFormSet(['license_id' => $default->id])
+            ->assertSeeHtml(e($default->displayDescription()))
+            ->fillForm(['license_id' => packLicense('CC BY 4.0')->id])
+            ->assertSeeHtml(e(packLicense('CC BY 4.0')->displayDescription()))
+            ->assertSeeHtml('Read the license')
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect($photo->fresh()->license_id)->toBe(packLicense('CC BY 4.0')->id);
+        $event = ActivityEvent::where('type', ActivityType::Updated)->where('subject_type', Photo::class)->where('subject_id', $photo->id)->sole();
+        expect($event->details())->toContain('License: All rights reserved → CC BY 4.0');
+
+        Livewire::test(EditPhoto::class, ['record' => $photo->id])
+            ->fillForm(['license_id' => null])
+            ->call('save')
+            ->assertHasNoFormErrors();
+        expect($photo->fresh()->license_id)->toBeNull();
+
+        Livewire::test(ListPhotos::class)
+            ->selectTableRecords([$photo->id, $other->id])
+            ->callAction(TestAction::make('setLicense')->table()->bulk(), ['license_id' => packLicense('CC0 1.0')->id])
+            ->assertNotified('License set for 2 photos');
+
+        expect($photo->fresh()->license_id)->toBe(packLicense('CC0 1.0')->id)
+            ->and($other->fresh()->license_id)->toBe(packLicense('CC0 1.0')->id);
+    });
+
+    it('logs the bulk license action as one entry that counts only the photos whose license changed', function () {
+        enableLicensing();
+        $album = Album::factory()->create();
+        $changed = collect([[300, 200], [200, 300], [240, 160]])->map(fn (array $size) => galleryPhoto($album, null, 'P'.$size[0].'.jpg', ...$size));
+        $already = tap(galleryPhoto($album, null, 'Done.jpg', 120, 80))->update(['license_id' => packLicense('CC0 1.0')->id]);
+        $before = (int) ActivityEvent::max('id');
+
+        Livewire::test(ListPhotos::class)
+            ->selectTableRecords([...$changed->pluck('id')->all(), $already->id])
+            ->callAction(TestAction::make('setLicense')->table()->bulk(), ['license_id' => packLicense('CC0 1.0')->id]);
+
+        $event = ActivityEvent::where('id', '>', $before)->where('subject_type', Photo::class)->sole();
+        expect($event->type)->toBe(ActivityType::Updated)
+            ->and($event->properties['count'])->toBe(3)
+            ->and(Photo::where('license_id', packLicense('CC0 1.0')->id)->count())->toBe(4);
     });
 
     it('adds and removes photos with bulk actions, keeping every photo in at least one album', function () {
@@ -295,6 +356,70 @@ describe('for upload-only staff', function () {
 
         $event = ActivityEvent::where('type', ActivityType::Updated)->where('subject_type', Photo::class)->sole();
         expect($event->details())->toContain('Title: Lake → Sunset at the lake', 'Albums: +Best of, −Camp');
+    });
+
+    it('lets them pick only from the licenses they may choose and refuses any other id', function () {
+        $default = enableLicensing(settings: [SiteSettings::LICENSES_CHOOSABLE => [packLicense('CC BY 4.0')->id]]);
+        $photo = galleryPhoto(Album::factory()->for($this->helper, 'owner')->create(), $this->helper);
+        $allowed = [$default->id, packLicense('CC BY 4.0')->id];
+
+        Livewire::test(EditPhoto::class, ['record' => $photo->id])
+            ->assertFormFieldEnabled('license_id')
+            ->assertFormFieldExists('license_id', fn (Select $field): bool => array_keys($field->getOptions()) === $allowed)
+            ->fillForm(['license_id' => packLicense('CC0 1.0')->id])
+            ->call('save')
+            ->assertHasFormErrors(['license_id']);
+
+        expect($photo->fresh()->license_id)->toBe($default->id);
+
+        Livewire::test(EditPhoto::class, ['record' => $photo->id])
+            ->fillForm(['license_id' => packLicense('CC BY 4.0')->id])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect($photo->fresh()->license_id)->toBe(packLicense('CC BY 4.0')->id);
+    });
+
+    it('shows the license read-only and offers no bulk action while choosing is off, and refuses a forced value', function () {
+        $default = enableLicensing(settings: [SiteSettings::LICENSES_ALLOW_CHOICE => false]);
+        $photo = galleryPhoto(Album::factory()->for($this->helper, 'owner')->create(), $this->helper);
+
+        Livewire::test(EditPhoto::class, ['record' => $photo->id])
+            ->assertFormFieldVisible('license_id')
+            ->assertFormFieldDisabled('license_id')
+            ->set('data.license_id', packLicense('CC0 1.0')->id)
+            ->call('save')
+            ->assertHasFormErrors(['license_id']);
+
+        expect($photo->fresh()->license_id)->toBe($default->id);
+
+        Livewire::test(ListPhotos::class)->assertActionHidden(TestAction::make('setLicense')->table()->bulk());
+    });
+
+    it('shows the license on the read-only photo page of a photo they may not edit, only while licensing is on', function () {
+        $photo = galleryPhoto(Album::factory()->visibility(Visibility::Public)->create(), name: 'Foreign.jpg');
+        $photo->update(['license_id' => packLicense('CC BY 4.0')->id]);
+
+        Livewire::test(ViewPhoto::class, ['record' => $photo->id])->assertDontSee('CC BY 4.0');
+
+        enableLicensing();
+
+        Livewire::test(ViewPhoto::class, ['record' => $photo->id])->assertSee('CC BY 4.0');
+    });
+
+    it('sets a license on the selected photos they may edit and leaves the others out', function () {
+        enableLicensing();
+        $mine = galleryPhoto(Album::factory()->for($this->helper, 'owner')->create(), $this->helper, 'Mine.jpg', 300, 200);
+        $foreign = galleryPhoto(Album::factory()->visibility(Visibility::Public)->create(), name: 'Foreign.jpg', width: 200, height: 300);
+        $before = $foreign->license_id;
+
+        Livewire::test(ListPhotos::class)
+            ->selectTableRecords([$mine->id, $foreign->id])
+            ->callAction(TestAction::make('setLicense')->table()->bulk(), ['license_id' => packLicense('CC BY 4.0')->id])
+            ->assertNotified('License set for 1 photo');
+
+        expect($mine->fresh()->license_id)->toBe(packLicense('CC BY 4.0')->id)
+            ->and($foreign->fresh()->license_id)->toBe($before);
     });
 
     it('keeps trashed photos on the trash page, counted for the person', function () {

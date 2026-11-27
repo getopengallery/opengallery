@@ -12,6 +12,7 @@ The tables OpenGallery creates, what each column means and how the models relate
 - An **album** has a parent album, many **photos** (through `album_photo`), is shared with users (`album_user`) and groups (`album_group`), and can have collaborators (`album_collaborators`, `album_group_collaborators`).
 - A **photo** has one original file and its conversions in the **media** table, and is in one or more albums.
 - **Tags** are linked to albums (`album_tag`) and photos (`photo_tag`).
+- A **license** (`licenses`) can be given to many photos (`photos.license_id`).
 - **Pages**, **settings** and **activity events** stand on their own.
 
 ## Albums and photos
@@ -47,12 +48,13 @@ Every person can have two **system albums**, created on demand by `Album::inbox(
 | --- | --- |
 | `uploader_id` | Who uploaded it; null after that user is deleted |
 | `title`, `description` | Shown on the site |
+| `license_id` | The photo's license (`licenses.id`), nullable; restricts deleting the license (`restrictOnDelete`) |
 | `taken_at` | From the camera data, editable |
 | `width`, `height` | Of the original |
 | `exif` | Camera data read on upload (JSON) |
 | `deleted_at` | Trash |
 
-Relations: `albums()` (including trashed albums), `activeAlbums()` (a collection without them), `coverOf()` (albums using it as cover), `uploader()`. `original()` returns the file (`Photo::COLLECTION`, `original`).
+Relations: `albums()` (including trashed albums), `activeAlbums()` (a collection without them), `coverOf()` (albums using it as cover), `uploader()`, `license()`. `original()` returns the file (`Photo::COLLECTION`, `original`).
 
 ### `album_photo` (pivot `App\Models\Pivots\AlbumPhoto`)
 
@@ -91,6 +93,21 @@ They are generated during the upload request unless `config('gallery.queue_conve
 Tags from other albums are never copied into `photo_tag` or `album_tag`. A photo gets the tags of its albums, and an album with `tags_apply_to_sub_albums` passes its tags to every album below it and their photos. `App\Support\Tagging::inheritedNames()`, `Tagging::namesFromParents()` and `App\Support\AlbumSearch` work them out when read, counting only source albums the viewer may open, so a tag on a private or password-protected album never reveals anything through a photo or sub-album the viewer can see.
 
 `Tagging` holds the rules: `suggestionsFor()`, `problemWith()` and `sync()`. Always save tags through `sync()`, which enforces the settings and removes tags nothing uses any more. Predefined tags are a list in the `tags.predefined` setting and get a row only once they are used. The form field is `App\Filament\Forms\Components\TagPicker`, an input with a scrollable dropdown; its matching compares the same way as `Tag::searchKey()`.
+
+### `licenses` (`App\Models\License`)
+
+| Column | Meaning |
+| --- | --- |
+| `name` | Short name, such as "CC BY 4.0" |
+| `title` | Full name, optional |
+| `url` | Link to the license text, optional |
+| `description` | What the license allows, in plain words, optional |
+| `sort_order` | Position in lists, lowest first |
+| `is_active` | Inactive licenses cannot be chosen; photos keep them |
+
+The migration `2026_11_27_083351_create_licenses_table` creates the table, adds `photos.license_id` and inserts the default pack (All rights reserved, CC BY 4.0, CC BY-SA 4.0, CC BY-ND 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, CC BY-NC-ND 4.0, CC0 1.0). It is a migration, not a seeder, so sites that update get the licenses too. `License::photos()` includes trashed photos, so a license used by a trashed photo cannot be deleted either (the foreign key restricts it). `displayName()`, `displayTitle()` and `displayDescription()` translate a text only when `Lang::has()` finds it in the language files, so the built-in texts are translated and anything an admin wrote is shown as written. Scopes: `active()` and `ordered()`. `isDefault()` compares with `SiteSettings::defaultLicenseId()`.
+
+`App\Support\Licensing` holds the rules: `enabled()`, `default()` (the active default license), `forNewPhoto()` (the id `AddPhotoToAlbum` gives an upload; null while licensing is off), `canChoose($user)`, `choosableFor($user)`, `optionsFor($user, $photo)` (adds the photo's current license so saving never changes it unasked), `allows($user, $licenseId, $photo)`, `describe($licenseId)` (description with a "Read the license" link, for helper texts) and `displayFor($photo)` (`{name, title, url}` for visitors, null while off). People with the permission `ManageSettings` may always pick any active license; for everyone else the choice depends on the `licenses.*` settings (see [Site settings internals](site-settings.md#keys)). Always check a submitted license with `Licensing::allows()`.
 
 ## People
 

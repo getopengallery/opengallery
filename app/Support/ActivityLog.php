@@ -7,6 +7,7 @@ use App\Enums\CollaboratorRole;
 use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Group;
+use App\Models\License;
 use App\Models\Page;
 use App\Models\Photo;
 use App\Models\Pivots\AlbumCollaborator;
@@ -64,6 +65,7 @@ class ActivityLog
         Role::class => 'role',
         Photo::class => 'photo',
         Page::class => 'page',
+        License::class => 'license',
     ];
 
     /** Relationship labels by [parent, related]. */
@@ -135,6 +137,16 @@ class ActivityLog
     public static function created(Model $subject): void
     {
         self::write(self::subjectAttributes(ActivityType::Created, $subject));
+    }
+
+    /**
+     * A change made by a bulk action (inside a batch): counted into the
+     * batch's single entry ("changed 12 photos"), since field changes are
+     * not logged one by one there.
+     */
+    public static function changedInBulk(Model $subject): void
+    {
+        self::write([...self::subjectAttributes(ActivityType::Updated, $subject), 'properties' => ['label' => self::label($subject)]]);
     }
 
     public static function updated(Model $subject): void
@@ -589,6 +601,21 @@ class ActivityLog
 
         if ($key === 'tags_apply_to_sub_albums') {
             return 'Tags apply to sub-albums';
+        }
+
+        if ($subject instanceof License) {
+            $label = match ($key) {
+                'name' => 'Short name',
+                'title' => 'Full name',
+                'url' => 'Link to the license text',
+                'sort_order' => 'Position',
+                'is_active' => 'Active',
+                default => null,
+            };
+
+            if ($label !== null) {
+                return $label;
+            }
         }
 
         $name = str_ends_with($key, '_id') ? substr($key, 0, -3) : $key;

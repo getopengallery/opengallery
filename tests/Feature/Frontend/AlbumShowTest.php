@@ -371,6 +371,34 @@ describe('the lightbox', function () {
         expect(PhotoGridItems::from([$photo])[0]['lightbox']['info'])->toBeNull();
     });
 
+    it('hands the photo\'s license to the viewer only while licensing and the photo information are on', function (bool $licensing, bool $info, bool $expected) {
+        Setting::put(SiteSettings::PHOTO_INFO_ENABLED, $info);
+        $photo = photoWithCameraData([]);
+        $photo->update(['license_id' => packLicense('CC BY 4.0')->id]);
+        enableLicensing(settings: [SiteSettings::LICENSING => $licensing]);
+
+        $lightbox = PhotoGridItems::from([$photo->fresh()])[0]['lightbox'];
+
+        expect($lightbox['license'])->toBe($expected ? [
+            'name' => 'CC BY 4.0',
+            'title' => 'Creative Commons Attribution 4.0 International',
+            'url' => 'https://creativecommons.org/licenses/by/4.0/',
+        ] : null);
+    })->with([
+        'both on' => [true, true, true],
+        'licensing off' => [false, true, false],
+        'information off' => [true, false, false],
+    ]);
+
+    it('gives no license for a photo without one', function () {
+        Setting::put(SiteSettings::PHOTO_INFO_ENABLED, true);
+        enableLicensing();
+        $photo = photoWithCameraData([]);
+        $photo->update(['license_id' => null]);
+
+        expect(PhotoGridItems::from([$photo->fresh()])[0]['lightbox']['license'])->toBeNull();
+    });
+
     it('carries the heart and whether the photo is liked for logged-in people', function () {
         $user = User::factory()->create();
         $liked = favoritesPublicPhoto();

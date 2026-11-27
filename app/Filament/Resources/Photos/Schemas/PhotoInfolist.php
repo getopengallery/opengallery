@@ -6,6 +6,7 @@ use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\Album;
 use App\Models\Photo;
+use App\Support\Licensing;
 use App\Support\PhotoExif;
 use App\Support\SiteSettings;
 use App\Support\Tagging;
@@ -61,6 +62,7 @@ class PhotoInfolist
                                     ->color('gray')
                                     ->placeholder(__('No tags'))
                                     ->visible(fn (): bool => SiteSettings::taggingEnabled()),
+                                self::licenseEntry(),
                                 TextEntry::make('deleted_at')
                                     ->label(__('In the trash since'))
                                     ->dateTime()
@@ -96,6 +98,18 @@ class PhotoInfolist
             ->imageHeight('auto')
             ->extraImgAttributes(['class' => 'og-preview-image og-preview-image-contained'])
             ->placeholder(__('No preview'));
+    }
+
+    /** The photo's license, linked to its text; shown while licensing is on. */
+    public static function licenseEntry(): TextEntry
+    {
+        return TextEntry::make('license.name')
+            ->label(__('License'))
+            ->formatStateUsing(fn (Photo $record): ?string => $record->license?->displayName())
+            ->url(fn (Photo $record): ?string => $record->license?->url, shouldOpenInNewTab: true)
+            ->tooltip(fn (Photo $record): ?string => $record->license?->displayTitle())
+            ->placeholder(__('No license given'))
+            ->visible(fn (): bool => Licensing::enabled());
     }
 
     public static function coverOfEntry(): TextEntry
