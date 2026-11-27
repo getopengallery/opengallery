@@ -66,19 +66,20 @@ class MediaGrid
     }
 
     /**
-     * "Select all" (every photo on this page), replaced by "Clear selection"
-     * once everything on the page is selected. Tiles have no checkboxes.
+     * "Select all" (every photo on this page, or with $acrossPages every photo
+     * matching the filters), replaced by "Clear selection" once everything on
+     * the page is selected. Tiles have no checkboxes.
      *
      * @return list<Action>
      */
-    public static function selectionActions(): array
+    public static function selectionActions(bool $acrossPages = false): array
     {
         return [
             Action::make('selectAll')
                 ->label(__('Select all'))
                 ->icon(Heroicon::OutlinedCheckCircle)
                 ->color('gray')
-                ->alpineClickHandler('selectRecords(getRecordsOnPage())')
+                ->alpineClickHandler($acrossPages ? 'selectAllRecords()' : 'selectRecords(getRecordsOnPage())')
                 ->extraAttributes(['x-show' => '! getRecordsOnPage().length || ! areRecordsSelected(getRecordsOnPage())']),
             Action::make('clearSelection')
                 ->label(__('Clear selection'))

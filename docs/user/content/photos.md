@@ -30,22 +30,61 @@ Search by title, or open the filters with the funnel icon (see [Searching and fi
 - **Album**
 - **Uploaded by**
 - **Uploaded**: a date range
+- **Tags**: photos that have any of the tags you choose. Only shown while [tagging](tags.md) is on.
+- **Tagged**: photos with tags or without tags. Only shown while tagging is on.
+- **License**: photos with that [license](licenses.md). Only shown while licenses are on.
+- **Taken**: a date range for the date taken.
+- **Shape**: landscape, portrait or square.
+- **Number of albums**: photos that are in one album, or in several.
+- **File name contains**: part of the uploaded file name.
 
-Photos in the trash are not in the media library; they have their own page (see [The trash](#the-trash)).
+Photos in the trash are not in the media library; they have their own page (see [The trash](#the-trash)), with the same filters.
 
-The filters are the same in the list and the grid, and in the photo picker of an album.
+The filters are the same in the list and the grid. The photo picker of an album offers only **Album**, **Uploaded by** and **Uploaded**.
 
 ## Working with several photos
 
-Select photos (in the list with the checkboxes, in the grid by clicking them or with **Select all**), then choose:
+Select photos (in the list with the checkboxes, in the grid by clicking them), then open the **Actions** menu and choose an action. In the grid, **Actions** sits left of **Select all**. In the list, the checkbox in the header selects the photos on the page and offers **Select all**. In the grid, **Select all** selects every photo that matches the current search and filters, on all pages, not only the page you see. **Clear selection** deselects them again. Use the filters first to narrow the library down to the photos you mean.
 
 - **Add to album**: adds the photos to another album, without copying them.
 - **New album from selection**: creates a private album of yours with the selected photos (you enter its title) and opens it, where you can choose its cover and how it is shared. Needs the permission "Create albums".
 - **Remove from album**: removes them from one album. A photo that would end up in no album is kept; move it to the trash instead.
-- **Set license**: gives them a [license](licenses.md); only shown while licenses are on and you may choose a license. Photos you may not edit are left out.
+- **Set license**: gives them a [license](licenses.md); only shown while licenses are on and you may choose a license.
+- **Add tags**: adds [tags](tags.md#tagging-many-photos-at-once) to the photos and keeps the tags they have. Only shown while tagging is on.
+- **Remove tags**: removes tags from the photos. Only shown while tagging is on.
+- **Rename**: gives the photos new titles from a pattern, see [Renaming photos](#renaming-photos).
+- **Change uploader**: see [Changing the uploader](#changing-the-uploader). Only shown with the permission "Edit any album".
+- **Remove from all albums**: takes the photos out of every album they are in. Because every photo stays in one album, they move to their uploader's "Unsorted uploads" (to yours, if the uploader's account no longer exists), where only the uploader sees them. You need the right to move each photo to the trash.
+- **Download**: see [Downloading several photos](#downloading-several-photos).
 - **Move to trash**.
 
-In the trash, the choices are **Restore** and **Delete permanently**.
+Every action only changes the photos you may edit (see [Who may change a photo](#who-may-change-a-photo)). When it leaves some out, the message after it says how many. Each action is recorded as one entry in the [activity log](../administration/activity.md), however many photos it changed.
+
+In the [trash](#the-trash), the choices are **Restore** and **Delete permanently**.
+
+### Renaming photos
+
+**Rename** gives every selected photo a new title made from a pattern. Write the pattern with these placeholders:
+
+- `{n}`: a running number.
+- `{title}`: the current title.
+- `{original}`: the uploaded file name, without the extension.
+- `{album}`: the title of the photo's first album (the one created first), or "Unsorted uploads" only when the photo is in no other album.
+- `{uploader}`: the name of the person who uploaded it.
+- `{taken}`: the date taken as YYYY-MM-DD, or the upload date when the date taken is unknown.
+- `{uploaded}`: the upload date as YYYY-MM-DD.
+
+**Start counting at** sets the first number and **Digits** how many digits it has: with 3 digits the numbers are 001, 002, 003 and so on. The photos are numbered in the order they were taken, and by upload time when the date taken is unknown. A pattern with a placeholder that does not exist is refused, and titles are cut at 255 characters.
+
+Only the title changes. The stored files keep their names; use **Download** to get files named after the titles.
+
+### Changing the uploader
+
+**Change uploader** makes someone else the uploader of the selected photos. Choose the new person by name or email address; only people who may upload photos, and super administrators, are offered. The new uploader can then edit the photos and move them to the trash (see [Who may change a photo](#who-may-change-a-photo)). Photos that were in the previous uploader's "Unsorted uploads" move to the new uploader's.
+
+### Downloading several photos
+
+**Download** gives you one zip file with the originals of the selected photos. The files are named after the photo titles, and the same title twice becomes "Title (1)", "Title (2)" and so on; a photo without a title keeps its file name. Photos you may not download (see [Download original](#a-single-photo)) are left out, and you are told how many. Where the location of a photo is hidden from you, it is removed from the file. The zip is built while it downloads, so it starts at once and needs no background job.
 
 ## A single photo
 

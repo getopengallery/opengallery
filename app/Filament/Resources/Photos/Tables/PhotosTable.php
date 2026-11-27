@@ -73,7 +73,9 @@ class PhotosTable
                 self::albumFilter(),
                 self::uploaderFilter(),
                 self::uploadedFilter(),
+                ...PhotoFilters::all(),
             ])
+            ->filtersFormColumns(2)
             ->recordActions(match (true) {
                 $grid => [],
                 $trash => [
@@ -86,9 +88,10 @@ class PhotosTable
                     TrashActions::moveToTrash()->iconButton(),
                 ],
             })
+            // All bulk actions in one "Actions" menu, left of "Select all" in the grid.
             ->toolbarActions($grid
-                ? [...MediaGrid::selectionActions(), ...self::bulkActions($trash)]
-                : [BulkActionGroup::make(self::bulkActions($trash))])
+                ? [self::bulkActionMenu($trash), ...MediaGrid::selectionActions(acrossPages: true)]
+                : [self::bulkActionMenu($trash)])
             ->when(! $trash, fn (Table $table) => EmptyState::apply(
                 $table,
                 __('No photos yet'),
@@ -127,6 +130,14 @@ class PhotosTable
         return DateRangeFilter::make('uploaded')
             ->label(__('Uploaded'))
             ->column('photos.created_at');
+    }
+
+    private static function bulkActionMenu(bool $trash): BulkActionGroup
+    {
+        return BulkActionGroup::make(self::bulkActions($trash))
+            ->label(__('Actions'))
+            ->icon(Heroicon::OutlinedEllipsisVertical)
+            ->button();
     }
 
     /** @return list<BulkAction> */
@@ -175,6 +186,7 @@ class PhotosTable
                 ])
                 ->action(fn (Collection $records, array $data) => self::setLicense($records, (int) $data['license_id']))
                 ->deselectRecordsAfterCompletion(),
+            ...PhotoBulkActions::all(),
             TrashActions::moveToTrashBulk()
                 ->modalDescription(__('The photos are removed from every album they are in. You can restore them from the trash.'))
                 ->authorizeIndividualRecords('delete'),

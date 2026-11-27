@@ -5,6 +5,7 @@ use App\Http\Controllers\BackgroundJobController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PhotoSelectionDownloadController;
 use App\Http\Controllers\PhotoUploadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SessionController;
@@ -63,6 +64,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/photos', [ProfileController::class, 'downloadPhotos'])
         ->middleware('throttle:5,1')
         ->name('profile.photos.download');
+    Route::get('/photo-downloads/{key}', PhotoSelectionDownloadController::class)
+        ->middleware('throttle:5,1')
+        ->name('media.selection.download');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
     Route::delete('/profile/sessions', [SessionController::class, 'destroyOthers'])
