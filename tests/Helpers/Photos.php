@@ -128,3 +128,21 @@ function postChunk(array $fields, string $content): TestResponse
         'chunk' => UploadedFile::fake()->createWithContent('chunk', $content),
     ]);
 }
+
+/** A real photo uploaded by $uploader into $album from the image file at $path (which compression may replace). */
+function photoFromFile(Album $album, string $path, ?User $uploader = null): Photo
+{
+    // The upload action removes the file it is given.
+    $upload = tempnam(sys_get_temp_dir(), 'og').'.'.pathinfo($path, PATHINFO_EXTENSION);
+    copy($path, $upload);
+
+    return app(AddPhotoToAlbum::class)->handle($album, $upload, 'Upload.'.pathinfo($path, PATHINFO_EXTENSION), $uploader);
+}
+
+/** The bytes of the stored original of $photo. */
+function storedOriginal(Photo $photo): string
+{
+    $media = $photo->original();
+
+    return Storage::disk($media->disk)->get($media->getPathRelativeToRoot());
+}

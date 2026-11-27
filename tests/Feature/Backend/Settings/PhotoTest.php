@@ -5,8 +5,10 @@ use App\Enums\PhotoOrder;
 use App\Enums\Role;
 use App\Filament\Clusters\Settings\Pages\PhotoSettings;
 use App\Models\Setting;
+use App\Support\PhotoCompression;
 use App\Support\PhotoUploads;
 use App\Support\SiteSettings;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -84,6 +86,100 @@ it('accepts slideshow seconds only within the allowed range', function (int $sec
     'the maximum' => [SiteSettings::SLIDESHOW_SECONDS_MAX, true],
     'above the maximum' => [SiteSettings::SLIDESHOW_SECONDS_MAX + 1, false],
 ]);
+
+describe('compression', function () {
+    it('is off by default and shows its options only once it is turned on', function () {
+        Livewire::test(PhotoSettings::class)
+            ->assertFormSet(['compression_enabled' => false, 'compression_resize' => true, 'compression_max_px' => 3840, 'compression_reencode' => true, 'compression_quality' => 80])
+            ->assertFormFieldHidden('compression_resize')
+            ->assertFormFieldHidden('compression_max_px')
+            ->assertFormFieldHidden('compression_reencode')
+            ->assertFormFieldHidden('compression_quality')
+            ->fillForm(['compression_enabled' => true])
+            ->assertFormFieldVisible('compression_resize')
+            ->assertFormFieldVisible('compression_max_px')
+            ->assertFormFieldVisible('compression_reencode')
+            ->assertFormFieldVisible('compression_quality')
+            ->fillForm(['compression_resize' => false, 'compression_reencode' => false])
+            ->assertFormFieldHidden('compression_max_px')
+            ->assertFormFieldHidden('compression_quality');
+
+        expect(SiteSettings::compressionEnabled())->toBeFalse()
+            ->and(PhotoCompression::isActive())->toBeFalse();
+    });
+
+    it('saves what to do with new photos', function () {
+        Livewire::test(PhotoSettings::class)
+            ->fillForm(['compression_enabled' => true, 'compression_resize' => true, 'compression_max_px' => 2560, 'compression_reencode' => true, 'compression_quality' => 70])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect(PhotoCompression::settings())->toBe(['max' => 2560, 'quality' => 70]);
+
+        Livewire::test(PhotoSettings::class)
+            ->assertFormSet(['compression_enabled' => true, 'compression_max_px' => 2560, 'compression_quality' => 70])
+            ->fillForm(['compression_resize' => false])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect(PhotoCompression::settings())->toBe(['max' => null, 'quality' => 70]);
+    });
+
+    it('accepts the longest side and the quality only within the allowed range', function (string $field, int $value, bool $accepted) {
+        $page = Livewire::test(PhotoSettings::class)
+            ->fillForm(['compression_enabled' => true, 'compression_resize' => true, 'compression_reencode' => true, $field => $value])
+            ->call('save');
+
+        $accepted ? $page->assertHasNoFormErrors() : $page->assertHasFormErrors([$field]);
+        expect(SiteSettings::compressionEnabled())->toBe($accepted);
+    })->with([
+        'longest side below the minimum' => ['compression_max_px', SiteSettings::COMPRESSION_MAX_PX_MIN - 1, false],
+        'the smallest longest side' => ['compression_max_px', SiteSettings::COMPRESSION_MAX_PX_MIN, true],
+        'the largest longest side' => ['compression_max_px', SiteSettings::COMPRESSION_MAX_PX_MAX, true],
+        'longest side above the maximum' => ['compression_max_px', SiteSettings::COMPRESSION_MAX_PX_MAX + 1, false],
+        'quality below the minimum' => ['compression_quality', SiteSettings::COMPRESSION_QUALITY_MIN - 1, false],
+        'the lowest quality' => ['compression_quality', SiteSettings::COMPRESSION_QUALITY_MIN, true],
+        'the highest quality' => ['compression_quality', SiteSettings::COMPRESSION_QUALITY_MAX, true],
+        'quality above the maximum' => ['compression_quality', SiteSettings::COMPRESSION_QUALITY_MAX + 1, false],
+    ]);
+
+    it('offers to compress existing photos only while the saved settings compress something, and starts the run', function () {
+        Livewire::test(PhotoSettings::class)
+            ->assertDontSee('Compress existing photos')
+            ->fillForm(['compression_enabled' => true])
+            ->assertDontSee('Compress existing photos');
+
+        Setting::put(SiteSettings::COMPRESSION_ENABLED, true);
+        Setting::put(SiteSettings::COMPRESSION_RESIZE, false);
+        Setting::put(SiteSettings::COMPRESSION_REENCODE, false);
+
+        Livewire::test(PhotoSettings::class)->assertDontSee('Compress existing photos');
+
+        Setting::put(SiteSettings::COMPRESSION_REENCODE, true);
+
+        $action = TestAction::make('compressExisting')->schemaComponent('compressionActions', schema: 'form');
+
+        Livewire::test(PhotoSettings::class)
+            ->assertSee('Compress existing photos')
+            ->assertSee('Photos stored before stay as they are')
+            ->mountAction($action);
+
+        expect(Setting::get(PhotoCompression::EXISTING_CURSOR))->toBeNull('asks for confirmation first');
+
+        Livewire::test(PhotoSettings::class)
+            ->callAction($action)
+            ->assertNotified(__('Existing photos are being compressed'))
+            ->assertSee('Existing photos are almost done.');
+
+        expect(Setting::get(PhotoCompression::EXISTING_CURSOR))->toBe(0);
+    });
+
+    it('refuses to start compressing existing photos while compression is off', function () {
+        Livewire::test(PhotoSettings::class)->call('compressExisting')->assertForbidden();
+
+        expect(Setting::get(PhotoCompression::EXISTING_CURSOR))->toBeNull();
+    });
+});
 
 describe('uploads', function () {
     beforeEach(function () {

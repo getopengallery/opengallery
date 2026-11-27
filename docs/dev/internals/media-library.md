@@ -20,7 +20,7 @@ Photos join and leave albums in these ways, with different logging:
 
 `addPhotos()` appends the photos at the end of the album and skips photos already in it; `attach()` does neither. A bulk action that adds or removes photos for one album goes through the album, so the log says "Ada added 3 photos to Best of", not one change per photo. Both create an `AlbumPhoto` pivot, whose `created` event takes the photo out of every "Unsorted uploads" album once it joins any other album, so all paths behave the same.
 
-`App\Actions\AddPhotoToAlbum::handle(Album, $path, $originalName, ?User)` turns a stored file into a photo: it reads the dimensions and EXIF (a short list of useful keys, and `taken_at`), creates the `Photo`, attaches the file to its `original` media collection on the `gallery` disk and adds it to the album, in one transaction. `App\Actions\StorePhotoUploads` calls it for every finished upload.
+`App\Actions\AddPhotoToAlbum::handle(Album, $path, $originalName, ?User)` turns a stored file into a photo: it reads the dimensions and EXIF (a short list of useful keys, and `taken_at`), compresses the file when [compression](uploads.md#photo-compression) is on, creates the `Photo`, attaches the file to its `original` media collection on the `gallery` disk (with the custom property `compression` when it was compressed) and adds it to the album, in one transaction. `App\Actions\StorePhotoUploads` calls it for every finished upload.
 
 ### Covers
 

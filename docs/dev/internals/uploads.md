@@ -28,6 +28,13 @@ One photo is processed per request, so time and memory per request stay bounded.
 
 If a step fails, the photo is removed again. When the database is busy (`DetectsConcurrencyErrors`), `StorePhotoUploads` passes the error on and keeps the file, so the browser's retry can finish it. Other errors discard the file and are shown to the uploader. A PHP timeout or out-of-memory error skips the normal error handling, so a shutdown function removes the unfinished photo. Only a process killed from outside leaves it behind, in its uploader's trash.
 
+## Photo compression
+
+`App\Support\PhotoCompression` shrinks photos as set in Admin → Settings → Photos (`SiteSettings::compressionMaxPx()` and `compressionQuality()`, each `null` while its part or compression is off; `PhotoCompression::isActive()` is true when either is set). `compress($path)` uses GD or Imagick, as chosen by `media-library.image_driver`, and only writes JPEG, WebP and PNG: PNG is lossless and only scaled down, GIF, HEIC, AVIF and animated WebP are left alone. A result that is not smaller is discarded and the original stays. Pixels keep their stored orientation. Imagick keeps the metadata itself; with GD the EXIF, XMP, ICC and IPTC segments or chunks are copied from the original, so `PhotoExif` and "remove location from downloads" keep working.
+
+- New uploads: `AddPhotoToAlbum` calls it after reading the EXIF and the memory check, before `addMedia()`, and stores the media custom property `compression` (`['max' => ?int, 'quality' => ?int]`, the settings used).
+- Existing photos: `startExisting()` sets the cursor setting `uploads.compression_existing` to 0 (the "Compress existing photos" action). The background job `compress-existing` (`BackgroundJobs::tasks()`, every pass) calls `compressExisting()`, which works through the media ids in batches of `BATCH` for up to `SECONDS` and clears the cursor when done or when compression was turned off. `hasWork()` makes AJAX passes start every minute (`BackgroundJobs::ajaxDue()`), and `remaining()` feeds the count on the settings page. `wouldChange()` skips photos whose stored `compression` property is already as strict as the current settings; a lower quality compresses them again.
+
 ## Limits and settings
 
 | Setting | Default | Meaning |

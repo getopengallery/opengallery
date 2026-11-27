@@ -41,7 +41,7 @@ class BackgroundJobs
     /** How long after a pass visitors' browsers start the next one (AJAX), in seconds. */
     public const AJAX_SECONDS = 300;
 
-    /** The same while thumbnails are made in the background or e-mails wait, so they do not wait long. */
+    /** The same while thumbnails are made in the background, e-mails wait or photos are compressed, so they do not wait long. */
     public const AJAX_QUEUE_SECONDS = 60;
 
     /** How long one pass works through queued jobs, in seconds. */
@@ -70,6 +70,8 @@ class BackgroundJobs
             'prune-uploads' => ['interval' => self::DAY, 'run' => fn () => PhotoUploads::prune()],
             // The `small` size for photos uploaded before it existed, a few seconds per pass.
             'small-thumbnails' => ['interval' => self::MIN_SECONDS, 'run' => fn () => SmallThumbnails::makeMissing()],
+            // Photos stored before compression was turned on, after an admin asked for it.
+            'compress-existing' => ['interval' => self::MIN_SECONDS, 'run' => fn () => PhotoCompression::compressExisting()],
             // The site health checks that scan tables and files, so the dashboard only reads them;
             // then people who change settings are told about new problems.
             'site-health' => ['interval' => SiteHealth::REFRESH_SECONDS, 'run' => function (): void {
@@ -160,7 +162,7 @@ class BackgroundJobs
         }
 
         return self::due(self::AJAX_SECONDS)
-            || (self::due(self::AJAX_QUEUE_SECONDS) && (self::worksQueue() || MailQueue::hasWork()));
+            || (self::due(self::AJAX_QUEUE_SECONDS) && (self::worksQueue() || MailQueue::hasWork() || PhotoCompression::hasWork()));
     }
 
     /**

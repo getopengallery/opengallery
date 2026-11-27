@@ -155,3 +155,106 @@ function expectPreviewCard(TestResponse $response, string $badge): void
         ->and(Storage::disk('local')->files(AlbumPreviewImage::DIRECTORY))->toHaveCount(1)
         ->and(Storage::disk('local')->files(AlbumPreviewImage::DIRECTORY)[0])->toContain("-{$badge}-");
 }
+
+/** A $width x $height image of smooth random noise, which does not compress well, so lowering the quality or the size makes the file smaller. */
+function noisyImage(int $width, int $height): GdImage
+{
+    $noise = imagecreatetruecolor(300, 225);
+
+    for ($x = 0; $x < 300; $x++) {
+        for ($y = 0; $y < 225; $y++) {
+            imagesetpixel($noise, $x, $y, random_int(0, 0xFFFFFF));
+        }
+    }
+
+    $image = imagecreatetruecolor($width, $height);
+    imagecopyresampled($image, $noise, 0, 0, 0, 0, $width, $height, 300, 225);
+
+    return $image;
+}
+
+/** The path of a noisy image of $width x $height pixels in $format ("jpeg", "png", "webp" or "gif"), saved at $quality where the format has one. */
+function noisyImageFile(int $width, int $height, string $format = 'jpeg', int $quality = 95): string
+{
+    $image = noisyImage($width, $height);
+    $path = tempnam(sys_get_temp_dir(), 'og').'.'.$format;
+
+    match ($format) {
+        'jpeg' => imagejpeg($image, $path, $quality),
+        'png' => imagepng($image, $path, 1),
+        'webp' => imagewebp($image, $path, $quality),
+        'gif' => imagegif($image, $path),
+    };
+
+    return $path;
+}
+
+/** A TIFF block with the camera make "Acme", the orientation, the time taken (2024:05:17 10:30:00) and a GPS position. */
+function cameraExif(int $orientation = 1): string
+{
+    $short = fn (int $value) => pack('v', $value);
+    $long = fn (int $value) => pack('V', $value);
+    $entry = fn (int $tag, int $type, int $count, string $value) => $short($tag).$short($type).$long($count).$value;
+    $rationals = fn (array $values) => implode('', array_map($long, $values));
+
+    return "II*\0".$long(8)
+        // First directory (62 bytes after the header): make, orientation, pointers to the EXIF and GPS blocks.
+        .$short(4)
+        .$entry(0x010F, 2, 5, $long(62))
+        .$entry(0x0112, 3, 1, $short($orientation)."\0\0")
+        .$entry(0x8769, 4, 1, $long(68))
+        .$entry(0x8825, 4, 1, $long(106))
+        .$long(0)
+        ."Acme\0\0"
+        // EXIF block: the time taken.
+        .$short(1)
+        .$entry(0x9003, 2, 20, $long(86))
+        .$long(0)
+        ."2024:05:17 10:30:00\0"
+        // GPS block: latitude and longitude with their references.
+        .$short(4)
+        .$entry(1, 2, 2, "N\0\0\0")
+        .$entry(2, 5, 3, $long(160))
+        .$entry(3, 2, 2, "E\0\0\0")
+        .$entry(4, 5, 3, $long(184))
+        .$long(0)
+        .$rationals([52, 1, 31, 1, 1234, 100])
+        .$rationals([13, 1, 24, 1, 5678, 100]);
+}
+
+/** The path of a noisy JPEG saved at $quality with the camera data of cameraExif() (orientation $orientation) in its EXIF segment. */
+function cameraJpegFile(int $width, int $height, int $orientation = 1, int $quality = 95): string
+{
+    $jpeg = (string) file_get_contents(noisyImageFile($width, $height, 'jpeg', $quality));
+    $payload = "Exif\0\0".cameraExif($orientation);
+    $path = tempnam(sys_get_temp_dir(), 'og').'.jpg';
+    file_put_contents($path, "\xFF\xD8\xFF\xE1".pack('n', strlen($payload) + 2).$payload.substr($jpeg, 2));
+
+    return $path;
+}
+
+/** The path of a lossless noisy WebP in the extended layout with the camera data of cameraExif() in an EXIF chunk. */
+function cameraWebpFile(int $width, int $height): string
+{
+    $image = '';
+    $bytes = (string) file_get_contents(noisyImageFile($width, $height, 'webp', 100));
+
+    for ($position = 12; $position + 8 <= strlen($bytes);) {
+        $length = unpack('V', substr($bytes, $position + 4, 4))[1];
+        $total = 8 + $length + $length % 2;
+
+        if (substr($bytes, $position, 4) !== 'VP8X') {
+            $image .= substr($bytes, $position, $total);
+        }
+
+        $position += $total;
+    }
+
+    $exif = cameraExif();
+    $header = 'VP8X'.pack('V', 10).chr(0x08)."\0\0\0".substr(pack('V', $width - 1), 0, 3).substr(pack('V', $height - 1), 0, 3);
+    $body = 'WEBP'.$header.$image.'EXIF'.pack('V', strlen($exif)).$exif.(strlen($exif) % 2 ? "\0" : '');
+    $path = tempnam(sys_get_temp_dir(), 'og').'.webp';
+    file_put_contents($path, 'RIFF'.pack('V', strlen($body)).$body);
+
+    return $path;
+}

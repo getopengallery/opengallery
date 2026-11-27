@@ -120,6 +120,21 @@ The symbols use the colours of the active theme. Messengers keep previews for a 
 - **Largest photo**: the biggest single photo that may be uploaded, in MB (50 MB by default, between 1 and 2048). Photos are sent in small pieces, so your host's upload limit does not matter here. Very large images still need enough server memory to make thumbnails (see [Large uploads](../getting-started/installation.md#large-uploads)).
 - **Accepted file types**: which formats can be uploaded: JPEG, PNG, WebP, GIF, HEIC / HEIF and AVIF. Formats your server cannot turn into thumbnails are greyed out and cannot be chosen. HEIC, the format of many phone photos, usually needs a server with the Imagick extension.
 
+### Compression
+
+Off by default. With **Compress uploaded photos** on, new photos are made smaller to save storage. The smaller file replaces the original for good, and downloads give the smaller file too. Camera, date, location and colour profile details stay in the file, so [photo information](#photo-information) and **Remove location from downloads** keep working. Choose one or both parts:
+
+- **Limit the resolution**: photos whose longest side is larger than **Longest side** are scaled down. The value is in pixels (3840 by default, between 640 and 20000). Smaller photos are never enlarged.
+- **Lower the quality**: JPEG and WebP photos are saved again at **Quality**, in percent (80 by default, between 1 and 100). PNG files are lossless, so they are only scaled down.
+
+GIF, HEIC, AVIF and animated WebP files are never changed. When the result would not be smaller, the original stays.
+
+![The Compression section of the photo settings](../../assets/settings-photos-compression.png) <!-- TODO: screenshot of Settings -> Photos -> Compression with both parts on -->
+
+Only photos uploaded after you save are compressed. Once compression is saved as on, **Compress existing photos** appears. After you confirm, the photos already stored are compressed with the saved settings, a few at a time by the [background jobs](#background-jobs), so these must be running. The section shows how many photos are still to be checked. The originals are replaced and cannot be restored. Photos that were already compressed with the same or stricter settings are skipped; if you lower the quality later, they are compressed again.
+
+![The button to compress existing photos with the number of photos still to check](../../assets/settings-photos-compress-existing.png) <!-- TODO: screenshot of the Compress existing photos button and the remaining count -->
+
 ### Downloads
 
 - **Albums can allow downloads**: off by default. While it is off, nobody can download photos or albums on the site: there is no download button in the photo viewer, no **Download all**, and visitors only get the photos in screen size. The **Visitors may download the photos** switch is then hidden in the album form. People who may edit a photo (its uploader, the people who manage its album and staff) still get the original, for example with **Download original** in the admin. When it is on, each album's own switch decides (see [Letting visitors download photos](../content/sharing.md#letting-visitors-download-photos)). When you update from an older version, it is turned on if any album already allowed downloads.

@@ -150,6 +150,32 @@ class SiteSettings
 
     public const SLIDESHOW_SECONDS_MAX = 60;
 
+    /** Shrink the stored originals of uploaded photos (App\Support\PhotoCompression). Off by default. */
+    public const COMPRESSION_ENABLED = 'uploads.compression_enabled';
+
+    /** While compression is on: scale photos down to COMPRESSION_MAX_PX on their longest side. */
+    public const COMPRESSION_RESIZE = 'uploads.compression_resize';
+
+    public const COMPRESSION_MAX_PX = 'uploads.compression_max_px';
+
+    public const COMPRESSION_MAX_PX_DEFAULT = 3840;
+
+    public const COMPRESSION_MAX_PX_MIN = 640;
+
+    public const COMPRESSION_MAX_PX_MAX = 20000;
+
+    /** While compression is on: save JPEG and WebP photos at COMPRESSION_QUALITY. */
+    public const COMPRESSION_REENCODE = 'uploads.compression_reencode';
+
+    /** JPEG/WebP quality in percent. */
+    public const COMPRESSION_QUALITY = 'uploads.compression_quality';
+
+    public const COMPRESSION_QUALITY_DEFAULT = 80;
+
+    public const COMPRESSION_QUALITY_MIN = 1;
+
+    public const COMPRESSION_QUALITY_MAX = 100;
+
     /** List of mime types (keys of PhotoUploads::TYPES). */
     public const UPLOAD_TYPES = 'uploads.accepted_types';
 
@@ -517,6 +543,35 @@ class SiteSettings
         $seconds = (int) Setting::get(self::SLIDESHOW_SECONDS, self::SLIDESHOW_SECONDS_DEFAULT);
 
         return max(self::SLIDESHOW_SECONDS_MIN, min(self::SLIDESHOW_SECONDS_MAX, $seconds ?: self::SLIDESHOW_SECONDS_DEFAULT));
+    }
+
+    public static function compressionEnabled(): bool
+    {
+        return (bool) Setting::get(self::COMPRESSION_ENABLED, false);
+    }
+
+    /** Longest side photos are scaled down to, or null when compression or this part of it is off. */
+    public static function compressionMaxPx(): ?int
+    {
+        if (! self::compressionEnabled() || ! Setting::get(self::COMPRESSION_RESIZE, true)) {
+            return null;
+        }
+
+        $pixels = (int) Setting::get(self::COMPRESSION_MAX_PX, self::COMPRESSION_MAX_PX_DEFAULT);
+
+        return max(self::COMPRESSION_MAX_PX_MIN, min(self::COMPRESSION_MAX_PX_MAX, $pixels ?: self::COMPRESSION_MAX_PX_DEFAULT));
+    }
+
+    /** JPEG/WebP quality photos are saved at, or null when compression or this part of it is off. */
+    public static function compressionQuality(): ?int
+    {
+        if (! self::compressionEnabled() || ! Setting::get(self::COMPRESSION_REENCODE, true)) {
+            return null;
+        }
+
+        $quality = (int) Setting::get(self::COMPRESSION_QUALITY, self::COMPRESSION_QUALITY_DEFAULT);
+
+        return max(self::COMPRESSION_QUALITY_MIN, min(self::COMPRESSION_QUALITY_MAX, $quality ?: self::COMPRESSION_QUALITY_DEFAULT));
     }
 
     public static function albumGuestsEnabled(): bool

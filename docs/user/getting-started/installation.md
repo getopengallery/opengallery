@@ -103,7 +103,7 @@ A few other `GALLERY_` values exist (for example for registration or public albu
 
 ## Background jobs
 
-Some housekeeping runs regularly in the background: deleting activity log entries that are older than the retention period, removing uploads that were interrupted and never finished, making the small thumbnails phones use for photos uploaded before they existed, and (only with [thumbnails in the background](#thumbnails-in-the-background-optional)) making waiting thumbnails. Under **System → Background jobs** you choose what starts it (see [Site settings](../administration/settings.md#background-jobs)):
+Some housekeeping runs regularly in the background: deleting activity log entries that are older than the retention period, removing uploads that were interrupted and never finished, making the small thumbnails phones use for photos uploaded before they existed, [compressing photos](../administration/settings.md#compression) already stored when you ask for it, and (only with [thumbnails in the background](#thumbnails-in-the-background-optional)) making waiting thumbnails. Under **System → Background jobs** you choose what starts it (see [Site settings](../administration/settings.md#background-jobs)):
 
 - **AJAX** (the default): runs when someone opens a page. Nothing to set up, but nothing happens while nobody visits the site.
 - **Webcron**: an outside service, for example your host's or cron-job.org, opens a secret address every few minutes. The settings page shows the address.
