@@ -54,7 +54,7 @@ Under **Users & access → Roles** you can change what each role may do, and cre
 
 Open a role to tick its permissions. They are grouped like in the list below; **Select all** and **Deselect all** switch a whole group at once.
 
-![Editing the moderator role: its permissions, grouped](../../assets/roles-edit.png)
+![Editing the moderator role: its permissions, grouped](../../assets/roles-edit.webp)
 
 Below the form, **Users with this role** lists who has it: search for people to add them, or use **Remove role**.
 

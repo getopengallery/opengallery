@@ -28,6 +28,7 @@
             hash: null,
             fromArticle: false,
             anchor: null,
+            zoom: null,
             init() {
                 this.guide = this.guideOf(this.$wire.doc);
                 this.title = document.querySelector('.fi-header-heading')?.textContent.trim() ?? null;
@@ -55,6 +56,11 @@
                 return doc.includes('/') && this.guides.includes(first) ? first : (this.guides[0] ?? null);
             },
             follow(event) {
+                const image = event.target.closest('.og-docs-body img');
+                if (image && ! image.closest('a[href]')) {
+                    this.zoom = { src: image.currentSrc || image.src, alt: image.alt };
+                    return;
+                }
                 const link = event.target.closest('a[href]');
                 if (! link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target || link.getAttribute('href').startsWith('#')) return;
                 const url = new URL(link.href, window.location.href);
@@ -85,6 +91,7 @@
                     heading.focus({ preventScroll: true });
                 }
                 this.anchor = null;
+                this.zoom = null;
                 this.fromArticle = false;
                 this.track();
             },
@@ -112,7 +119,7 @@
                 this.$nextTick(() => this.$refs['tab-' + index]?.focus());
             },
         }"
-        x-on:keydown.escape.window="open = false"
+        x-on:keydown.escape.window="zoom ? (zoom = null) : (open = false)"
         x-on:click="follow($event)"
     >
         {{-- Below wide screens: where you are, and the way into the contents. --}}
@@ -233,6 +240,24 @@
                 </div>
             </div>
         </nav>
+
+        {{-- A screenshot opened bigger, by clicking it in the article. --}}
+        <template x-if="zoom">
+            <div
+                class="og-docs-zoom"
+                role="dialog"
+                aria-modal="true"
+                x-bind:aria-label="zoom.alt || @js(__('Screenshot'))"
+                x-trap.noscroll="zoom"
+                x-on:click="zoom = null"
+            >
+                <img x-bind:src="zoom.src" x-bind:alt="zoom.alt">
+                <button type="button" class="og-docs-zoom-close" x-on:click.stop="zoom = null">
+                    <x-filament::icon icon="heroicon-m-x-mark" class="og-docs-zoom-icon" />
+                    <span class="sr-only">{{ __('Close') }}</span>
+                </button>
+            </div>
+        </template>
 
         <div class="og-docs-main" wire:loading.class="is-loading" wire:target="open">
             <x-filament::section class="og-docs-section">

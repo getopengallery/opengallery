@@ -69,7 +69,7 @@ Pages are rendered with CommonMark plus the GitHub extensions (tables, strikethr
 Write links relative to the current file, exactly as they work when browsing the repository. From `docs/user/content/albums.md`:
 
 ```markdown
-See [Site settings](../administration/settings.md#albums) and ![Upload dialog](../../assets/albums-upload.png)
+See [Site settings](../administration/settings.md#albums) and ![Upload dialog](../../assets/albums-upload.webp)
 ```
 
 When rendered, links to other `.md` files point to the Documentation page (fragments included) and images point to the `docs.asset` route, which serves PNG, JPEG, GIF and WebP files from `docs/assets` to users who can access the admin. Both use host-relative URLs, so they work whatever address the admin is opened on. Absolute URLs and `#fragment` links are left as they are.
@@ -78,10 +78,22 @@ When rendered, links to other `.md` files point to the Documentation page (fragm
 
 ## Screenshots
 
-Store images in `docs/assets/` with lowercase, hyphenated names like `albums-upload.png` (`{area}-{action}.png`). Take them from the [demo data](demo-data.md) in a browser window of 1440 × 900 at 2× pixel density, so every screenshot has the same scale; crop to the relevant part where that helps. Never show real personal data or secrets. When a screenshot is still missing, reference it anyway and add a TODO comment next to it so it can be captured later. Until the file exists, the page shows a dashed "Screenshot missing" note with the image's alt text in its place instead of a broken image:
+Store images in `docs/assets/` as WebP with lowercase, hyphenated names like `albums-upload.webp` (`{area}-{action}.webp`). They show the [demo data](demo-data.md) in a browser window of 1440 × 900 at 2× pixel density, so every screenshot has the same scale, and are stored at most 1600 px wide so the pages load quickly. Never show real personal data or secrets.
+
+The screenshots are taken by a script, not by hand. `.claude/skills/docs-screenshots/shots.json` describes each image (page, demo user, clicks, crop), and `shots.py` takes it from a separate demo copy in `storage/docs-screenshots/`, so your own gallery is never touched. It needs Python 3 with Playwright and Pillow:
+
+```bash
+python3 .claude/skills/docs-screenshots/shots.py setup               # build or update the demo copy
+python3 .claude/skills/docs-screenshots/shots.py status              # missing, flagged and unlisted images
+python3 .claude/skills/docs-screenshots/shots.py capture albums-list  # retake one image (--all for every one)
+```
+
+`.claude/skills/docs-screenshots/SKILL.md` lists every field. The welcome screen of the setup (`setup-welcome.webp`) is the only image taken by hand; convert such images with `shots.py shrink`.
+
+When a screenshot is still missing, reference it anyway and add a TODO comment next to it so it can be captured later. Until the file exists, the page shows a dashed "Screenshot missing" note with the image's alt text in its place instead of a broken image:
 
 ```markdown
-![Upload dialog](../../assets/albums-upload.png) <!-- TODO: screenshot of the upload dialog -->
+![Upload dialog](../../assets/albums-upload.webp) <!-- TODO: screenshot of the upload dialog -->
 ```
 
 Only images with such a TODO comment on the same line may point to a file that does not exist yet.

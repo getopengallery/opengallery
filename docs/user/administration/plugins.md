@@ -10,7 +10,7 @@ Plugins add features to OpenGallery without changing its core. They are managed 
 
 The installed plugins are listed with their name and description, version and author (on a phone only the name and description). Use the **Active** switch in a plugin's row to turn it on or off; the page then reloads, so the plugin's settings and any pages it adds are there right away. On a live site the next page or two may load a little slower while the gallery prepares its [speed-up files](../getting-started/installation.md#prepared-files) again. Search the list by name or description, or filter it by **Status** with the funnel icon.
 
-![The plugins list with the Active switches](../../assets/plugins-list.png)
+![The plugins list with the Active switches](../../assets/plugins-list.webp)
 
 - A plugin with settings shows a gear icon in its row while it is on. Click the row (or the gear) to open its settings.
 - Some plugins are switched on in the server configuration. Their switch is locked (hover over it: "Enabled in the server configuration"), and they cannot be turned off in the admin.
@@ -24,7 +24,7 @@ Click **Upload plugin** at the top of the list and choose the plugin's zip file.
 - Only install and turn on plugins from sources you trust: they have full access to the site. Uploading needs the permission "Upload themes and plugins". The button is not there without it, or when uploads are turned off in the [server configuration](../getting-started/installation.md#the-server-configuration-file).
 - The zip may be at most 50 MB (less if your server limits uploads further) and must not hold more than 5,000 files. Zips with links or with files that would land outside the plugin folder are refused.
 
-![The Upload plugin dialog with the zip file field and the Replace switch](../../assets/plugins-upload.png)
+![The Upload plugin dialog with the zip file field and the Replace switch](../../assets/plugins-upload.webp)
 
 Instead of uploading, you (or your host) can also copy the plugin folder into the `plugins` folder of your installation.
 
@@ -39,7 +39,7 @@ OpenGallery ships with two plugins:
 
 The **Identity providers** plugin lets people log in with an external account, for example Keycloak, Authentik, Microsoft Entra ID, Google, GitHub or any other OpenID Connect or OAuth 2.0 service. Turn the plugin on, reload the page and open its settings with the gear icon.
 
-![Identity provider settings](../../assets/plugins-identity-providers.png)
+![Identity provider settings](../../assets/plugins-identity-providers.webp)
 
 You can add several providers. For each one:
 

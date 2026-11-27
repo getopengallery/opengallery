@@ -17,7 +17,7 @@ You can tag what you may edit:
 
 Click into the field to open a list of existing tags, scroll through it and click one to add it. To create a new tag, type its name and choose **Create tag** in the list, or press Enter or type a comma. Text you leave in the field without confirming it is discarded. To remove a tag, click the **x** on it. Changes are stored when you save the form.
 
-![The Tags field of an album with three tags and the switch that applies them to sub-albums](../../assets/tags-field.png)
+![The Tags field of an album with three tags and the switch that applies them to sub-albums](../../assets/tags-field.webp)
 
 A tag can have up to 50 characters and needs at least one letter or number. An album or photo can have up to 30 tags.
 
@@ -34,7 +34,7 @@ To find the photos first, use the **Tags** and **Tagged** filters of the media l
 
 While you type, the list narrows to matching tags, so typing "Ho" brings up "Holiday". It also finds tags written differently: typing "pet1" shows "Pet 1" and "PET-1". Picking one of them keeps the same thing under one tag, so it is easier to find later. You can also move through the list with the arrow keys and press Enter.
 
-![Typing "Su" in the Tags field lists Summer and Sunrise, with an option to create a new tag](../../assets/tags-dropdown.png)
+![Typing "Su" in the Tags field lists Summer and Sunrise, with an option to create a new tag](../../assets/tags-dropdown.webp)
 
 If you want a different tag anyway, press Enter without choosing a row to use what you typed. Only differences in capitals and extra spaces count as the same tag: "pet 1" is added as the existing "Pet 1", while "pet1" would be a new tag.
 
@@ -57,6 +57,6 @@ The edit pages of a photo and of a sub-album list the tags they get from other a
 
 The search field on the [home page](../members-and-visitors/the-site.md#the-home-page) finds albums and photos by tag. Capitals, spaces and punctuation do not matter, and part of a tag is enough: "pet" finds "Pet 1".
 
-![Search results for "hiking" with matching albums and photos](../../assets/tags-search.png)
+![Search results for "hiking" with matching albums and photos](../../assets/tags-search.webp)
 
 The search only shows what the visitor may open. Albums and photos behind a password are not found by their tags until the password has been entered, and a tag on a private album never reveals a photo that is also in a public album.

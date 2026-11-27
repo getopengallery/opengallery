@@ -1,0 +1,122 @@
+{
+  "_readme": "One entry per image in docs/assets (key = file name without .webp). See SKILL.md for the fields. setup-welcome is taken by hand (the setup only runs on a fresh install).",
+
+  "dashboard-admin": { "url": "/admin", "as": "admin@example.com" },
+  "dashboard-uploader": { "url": "/admin", "as": "priya@example.com" },
+  "dashboard-customize": { "url": "/admin", "as": "admin@example.com", "steps": [{ "click": "button[wire\\:click^=\"mountAction('customize'\"]" }, { "wait": 800 }] },
+  "dashboard-site-health": {
+    "url": "/admin", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('jobs.last_run', null);",
+    "after_php": "App\\Support\\BackgroundJobs::run(App\\Enums\\BackgroundJobMode::Cron);",
+    "clip": ["section.fi-section:has(h2:text-is('Site health')) > header", "section.fi-section:has(h2:text-is('Site health')) .fi-section-content"], "pad": 8
+  },
+  "activity-dashboard": {
+    "url": "/admin", "as": "admin@example.com",
+    "steps": [{ "scroll": "h2:text-is('Recent activity')" }, { "wait": 1500 }, { "eval": "window.scrollTo(0, 0)" }],
+    "full_page": true
+  },
+  "activity-log": { "url": "/admin/activity", "as": "admin@example.com" },
+
+  "admin-navigation": { "url": "/admin", "as": "admin@example.com", "clip": ".fi-sidebar-nav", "pad": 0, "viewport": [1440, 1500] },
+  "admin-user-menu": { "url": "/admin", "as": "admin@example.com", "steps": [{ "click": ".og-account-trigger" }, { "wait": 400 }], "clip": [".og-account-trigger", ".og-account .fi-dropdown-panel"], "pad": 8 },
+  "admin-global-search": {
+    "url": "/admin", "as": "admin@example.com",
+    "steps": [{ "type": [".fi-global-search-field input", "album"] }, { "wait": ".fi-global-search-results-ctn" }, { "wait": 600 }],
+    "clip": [".fi-global-search-field", ".fi-global-search-results-ctn"], "pad": 0
+  },
+  "admin-list-filters": { "url": "/admin/albums", "as": "admin@example.com", "steps": [{ "click": "button[aria-label='Filter']" }, { "wait": 500 }] },
+
+  "albums-list": { "url": "/admin/albums", "as": "admin@example.com" },
+  "albums-create": { "url": "/admin/albums/create", "as": "admin@example.com" },
+  "albums-add-photos": { "url": "/admin/albums/{album:Landscapes}/edit", "as": "admin@example.com", "steps": [{ "click": "button[wire\\:click^=\"mountAction('addFromLi\"]" }, { "wait": 1200 }] },
+  "albums-photos-section": {
+    "url": "/admin/albums/{album:Landscapes}/edit", "as": "admin@example.com",
+    "steps": [{ "scroll": ".fi-ta:has(h2.fi-ta-header-heading:text-is('Photos'))" }, { "click": ".fi-ta:has(h2.fi-ta-header-heading:text-is('Photos')) button.og-pick-photo >> nth=1" }, { "wait": 500 }],
+    "clip": ".fi-ta:has(h2.fi-ta-header-heading:text-is('Photos'))", "pad": 8, "viewport": [1440, 1200]
+  },
+  "sharing-settings": { "url": "/admin/albums/{album:Product launch}/edit", "as": "admin@example.com", "clip": "section.fi-section:has(h2[id*='visibility-sharing'])", "pad": 8 },
+  "sharing-collaborators": {
+    "url": "/admin/albums/{album:Editorial picks}/edit", "as": "admin@example.com",
+    "php": "$a = App\\Models\\Album::where('title', 'Editorial picks')->first(); $a->collaborators()->syncWithoutDetaching([App\\Models\\User::where('email', 'jonas@example.com')->value('id') => ['role' => 'editor'], App\\Models\\User::where('email', 'priya@example.com')->value('id') => ['role' => 'contributor']]);",
+    "clip": ["section.fi-section:has(h2[id*='collaborators']) > header", "section.fi-section:has(h2[id*='collaborators']) .fi-section-content"], "pad": 8
+  },
+  "tags-field": {
+    "url": "/admin/albums/{album:Landscapes}/edit", "as": "admin@example.com",
+    "clip": [".fi-fo-field:has(.og-tags)", ".fi-fo-field:has([id='form.tags_apply_to_sub_albums-helper-text'])"], "pad": 12
+  },
+  "tags-dropdown": {
+    "url": "/admin/albums/{album:Landscapes}/edit", "as": "admin@example.com",
+    "steps": [{ "type": [".og-tags input", "Su"] }, { "wait": 500 }],
+    "clip": [".fi-fo-field:has(.og-tags) .og-tags-combobox", ".og-tags-dropdown"], "pad": 6
+  },
+
+  "photos-media-grid": { "url": "/admin/media", "as": "admin@example.com", "steps": [{ "click": "button[aria-label='Filter']" }, { "wait": 500 }] },
+  "photos-edit": {
+    "url": "/admin/media/{php:App\\Models\\Photo::whereNotNull('exif')->whereHas('albums', fn ($q) => $q->where('title', 'Mountains'))->value('id')}/edit", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('licenses.enabled', true); App\\Models\\Setting::put('licenses.default', App\\Models\\License::where('name', 'CC BY 4.0')->value('id')); App\\Models\\Photo::whereNull('license_id')->update(['license_id' => App\\Models\\License::where('name', 'CC BY 4.0')->value('id')]);",
+    "full_page": true
+  },
+  "photos-view": { "url": "/admin/media/{php:App\\Models\\Photo::onlyTrashed()->value('id')}", "as": "admin@example.com" },
+  "licenses-field": {
+    "url": "/admin/media/{php:App\\Models\\Photo::whereNotNull('license_id')->value('id')}/edit", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('licenses.enabled', true);",
+    "clip": ".fi-fo-field:has([id='form.license_id-helper-text'])", "pad": 12
+  },
+  "licenses-viewer": {
+    "url": "/albums/{album:Mountains}", "as": null,
+    "php": "App\\Models\\Setting::put('licenses.enabled', true); App\\Models\\Setting::put('photos.info_enabled', true);",
+    "steps": [{ "click": "section[aria-label='Photos'] a" }, { "wait": 1000 }, { "click": "button[aria-label='Photo information'] >> visible=true" }, { "wait": 600 }]
+  },
+
+  "pages-editor": { "url": "/admin/pages/{page:About}/edit", "as": "admin@example.com" },
+  "roles-edit": { "url": "/admin/roles/{php:App\\Models\\Role::where('name', 'moderator')->value('id')}/edit", "as": "admin@example.com" },
+
+  "settings-page": { "url": "/admin/settings/general", "as": "admin@example.com" },
+  "settings-search-engines": { "url": "/admin/settings/search-engines", "as": "admin@example.com" },
+  "settings-tags": { "url": "/admin/settings/tags", "as": "admin@example.com" },
+  "settings-licenses": {
+    "url": "/admin/settings/licenses", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('licenses.enabled', true); App\\Models\\Setting::put('licenses.default', App\\Models\\License::where('name', 'CC BY 4.0')->value('id'));"
+  },
+  "settings-photos-compression": {
+    "url": "/admin/settings/photos", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('uploads.compression_enabled', true); App\\Models\\Setting::put('uploads.compression_resize', true); App\\Models\\Setting::put('uploads.compression_reencode', true); App\\Models\\Setting::put('uploads.compression_existing', null);",
+    "after_php": "App\\Models\\Setting::put('uploads.compression_enabled', false);",
+    "clip": "section.fi-section:has(h2[id*='compression::data'])", "pad": 8
+  },
+  "settings-photos-compress-existing": {
+    "url": "/admin/settings/photos", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('uploads.compression_enabled', true); App\\Models\\Setting::put('uploads.compression_resize', true); App\\Models\\Setting::put('uploads.compression_reencode', true); App\\Support\\PhotoCompression::startExisting();",
+    "after_php": "App\\Models\\Setting::put('uploads.compression_existing', null); App\\Models\\Setting::put('uploads.compression_enabled', false);",
+    "clip": ["section.fi-section:has(h2[id*='compression::data']) :text('still to check')", "[id='form.compressionActions']"], "pad": 16, "max_width": 1200
+  },
+
+  "plugins-list": { "url": "/admin/plugins", "as": "admin@example.com" },
+  "plugins-upload": { "url": "/admin/plugins", "as": "admin@example.com", "steps": [{ "click": "button:has-text('Upload plugin')" }, { "wait": 600 }] },
+  "plugins-identity-providers": {
+    "url": "/admin/plugins", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('plugins.enabled', array_values(array_unique([...(array) App\\Models\\Setting::get('plugins.enabled', []), 'identity-providers'])));",
+    "after_php": "App\\Models\\Setting::put('plugins.enabled', array_values(array_diff((array) App\\Models\\Setting::get('plugins.enabled', []), ['identity-providers'])));",
+    "steps": [{ "click": "tr:has-text('Identity providers') a, tr:has-text('Identity providers') [title*='ettings']" }, { "wait": 800 }, { "click": "button:has-text('Add identity provider')" }, { "wait": 800 }]
+  },
+  "themes-list": { "url": "/admin/themes", "as": "admin@example.com" },
+  "themes-settings": { "url": "/admin/themes/settings", "as": "admin@example.com" },
+  "themes-upload": { "url": "/admin/themes", "as": "admin@example.com", "steps": [{ "click": "button:has-text('Upload theme')" }, { "wait": 600 }] },
+  "themes-scrapbook": {
+    "url": "/", "as": null,
+    "php": "App\\Models\\Setting::put('theme', 'scrapbook');",
+    "after_php": "App\\Models\\Setting::put('theme', 'default');"
+  },
+
+  "site-home": { "url": "/", "as": null },
+  "site-login": { "url": "/login", "as": null },
+  "site-lightbox": { "url": "/albums/{album:Mountains}", "as": null, "steps": [{ "click": "section[aria-label='Photos'] a" }, { "wait": 1000 }] },
+  "site-my-albums": { "url": "/my-albums", "as": "hana@example.com" },
+  "site-notifications": {
+    "url": "/notifications", "as": "hana@example.com",
+    "php": "$u = App\\Models\\User::where('email', 'hana@example.com')->first(); $u->notifications()->delete(); $u->notifyNow(new App\\Notifications\\PasswordChanged()); $u->notifyNow(new App\\Notifications\\AlbumShared(App\\Models\\Album::where('title', 'Editorial picks')->first(), 'Mira Okafor')); $u->notifyNow(new App\\Notifications\\AlbumCollaboratorAdded(App\\Models\\Album::where('title', 'Editorial picks')->first(), 'Mira Okafor', App\\Enums\\CollaboratorRole::Contributor)); $n = $u->notifications()->orderBy('created_at')->orderBy('id')->get(); foreach ($n as $i => $item) { $item->forceFill(['created_at' => now()->subDays(12 - 5 * $i)->subHours($i), 'read_at' => $i < 2 ? now()->subDays(3) : null])->save(); }"
+  },
+  "sharing-password-prompt": { "url": "/albums/{album:Product launch}", "as": "hana@example.com" },
+  "tags-search": { "url": "/?q=hiking", "as": null },
+  "profile-page": { "url": "/profile", "as": "mira@example.com", "full_page": true }
+}

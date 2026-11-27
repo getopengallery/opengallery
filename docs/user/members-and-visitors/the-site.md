@@ -30,7 +30,7 @@ What visitors who are not logged in see depends on the [site settings](../admini
 - With **Show public albums to visitors who are not logged in** turned on, they see the public albums.
 - With it turned off, they see a landing page or the login page, as chosen in **What visitors who are not logged in see**. The landing page shows a heading, a text, an optional image and buttons to log in and, while sign-up is open, to create an account. Its content and layout are set in the theme settings.
 
-![The home page with the album list](../../assets/site-home.png)
+![The home page with the album list](../../assets/site-home.webp)
 
 ## Albums and photos
 
@@ -55,7 +55,7 @@ While a photo is open, the address in the browser points to that photo. Copy it 
 
 The buttons are large enough to tap on a phone, and the photo view keeps clear of the notch and the home bar. Full-screen cover layouts of the start and login pages fit the visible screen, so they do not run under the browser's address bar.
 
-![A photo opened large on the site](../../assets/site-lightbox.png)
+![A photo opened large on the site](../../assets/site-lightbox.webp)
 
 If an album asks for a password, visitors enter it once per browser session. If a share link has expired, they see "This link has expired". People who are logged in but may not see an album get a page that says it has not been shared with them, with a way back to the gallery; visitors who are not logged in are told the page does not exist, so they do not learn that the album exists. See [Sharing albums](../content/sharing.md).
 
@@ -75,7 +75,7 @@ The login page asks for the e-mail address and password. **Remember me** keeps t
 
 If the gallery offers sign-in with other accounts, the login page also shows a button for each of them, for example "Log in with Keycloak". If one of them is the default login, **Log in** goes straight to that provider; the password form stays available at `/login?local=1`. See [Plugins and sign-in](../administration/plugins.md#single-sign-on).
 
-![The login page](../../assets/site-login.png)
+![The login page](../../assets/site-login.webp)
 
 After logging in, people land on **My albums**, or on the page they were trying to open.
 
@@ -87,7 +87,7 @@ People who may create albums and open the admin area also see a **New album** bu
 
 People who cannot create albums only see the albums shared with them. Until there are any, the page explains that shared albums will appear there.
 
-![My albums with the albums shared with you](../../assets/site-my-albums.png)
+![My albums with the albums shared with you](../../assets/site-my-albums.webp)
 
 ### Favorites
 

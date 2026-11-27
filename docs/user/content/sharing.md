@@ -8,7 +8,7 @@ Every album has its own visibility, and the photos inside an album can be seen b
 
 Visibility and sharing are set in the **Visibility & sharing** section when you create or edit an album.
 
-![Visibility and sharing settings of an album](../../assets/sharing-settings.png)
+![Visibility and sharing settings of an album](../../assets/sharing-settings.webp)
 
 ## Visibility
 
@@ -98,7 +98,7 @@ No collaborator can change the owner or the list of collaborators, or move the a
 
 On a new album or an existing one, find the **Collaborators** card next to **Visibility & sharing**. It lists people and groups together. Click **Add people or groups**, search by name, choose a role and click **Add**. Each row has a list to change the role and a button to remove the person or group. On an existing album these changes apply right away, without **Save changes**. On a new album, the people and groups you choose are invited when you click **Create**.
 
-![The Collaborators card of an album](../../assets/sharing-collaborators.png)
+![The Collaborators card of an album](../../assets/sharing-collaborators.webp)
 
 To invite, you need to own the album and have the permission "Invite collaborators", or have the permission "Edit every album". Owners without the permission see the list but cannot change it. System albums have no collaborators.
 
@@ -148,7 +148,7 @@ Albums with a password show a lock icon in the albums list. Wrong passwords are 
 
 Visitors see the album's title and a password field instead of the photos. After ten tries within a minute they have to wait a moment before trying again.
 
-![The password prompt of a protected album](../../assets/sharing-password-prompt.png)
+![The password prompt of a protected album](../../assets/sharing-password-prompt.webp)
 
 ## Sharing until a date
 

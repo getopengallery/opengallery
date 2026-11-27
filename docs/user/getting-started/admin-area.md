@@ -14,7 +14,7 @@ Log in on the site. If you may use the admin, the menu under your picture and na
 
 The navigation on the left groups the admin's screens. You only see the entries you have permission for, so a moderator sees fewer than an administrator.
 
-![The admin navigation with its groups](../../assets/admin-navigation.png)
+![The admin navigation with its groups](../../assets/admin-navigation.webp)
 
 | Entry | What it is for | Permission needed |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ The top right corner of the admin looks like the site header. The bell opens you
 
 Next to it, your picture (or your initials) and your name open your menu with **Profile** and **Log out**. On a phone only the picture is shown.
 
-![The account menu with Profile and Log out, next to the light/dark switch](../../assets/admin-user-menu.png)
+![The account menu with Profile and Log out, next to the light/dark switch](../../assets/admin-user-menu.webp)
 
 To change your name, picture, language or password, use your [profile](../members-and-visitors/profile.md) on the site.
 
@@ -57,7 +57,7 @@ The search field in the middle of the admin's top bar finds anything you are all
 - **Pages**, **Users**, **Groups** and **Roles**: by name or title; users also by e-mail address, pages also by their text.
 - **Documentation**: guide pages that mention every word you typed, with a short excerpt.
 
-![Search results for "album": admin screens first, then albums](../../assets/admin-global-search.png)
+![Search results for "album": admin screens first, then albums](../../assets/admin-global-search.webp)
 
 Click a result, or move to it with the arrow keys and press Enter, to open it.
 
@@ -72,7 +72,7 @@ Every list in the admin (albums, media, pages, users, groups, roles and the acti
 - Lists with a trash (albums and media) show only what is not in the trash. While the trash holds something, a trash can button (**Trash**) with the number of items appears at the top; it opens the trash, which offers **Restore** and **Delete permanently** (and **View** for photos).
 - **Move to trash** can be undone from the trash. **Delete** (for pages, users, groups and roles, which have no trash) and **Delete permanently** cannot; their confirmation says so.
 
-![The albums list with its filters opened from the funnel icon](../../assets/admin-list-filters.png)
+![The albums list with its filters opened from the funnel icon](../../assets/admin-list-filters.webp)
 
 The icon next to the funnel, where a list has one, shows or hides columns.
 
@@ -106,6 +106,7 @@ Everyone with the permission "Open the admin area" finds this documentation unde
 - **Guides**: switch between **User guide** and **Developer guide** at the top of the contents. Each guide is divided into topics; click a topic to fold it open or closed, and **Overview** inside it for its introduction.
 - **On this page**: the open page lists its sections below its name, and marks the one you are reading. Click a section to jump to it.
 - **Filter pages**: type part of a page title to list matching pages from both guides. The search at the top of the admin also looks inside pages.
+- **Screenshots**: click an image to see it larger over the whole window. Click anywhere, use the close button, or press Escape to close it.
 - **Previous** and **Next** at the end of a page lead through the guide in order.
 
 Pages open without reloading the screen, so the contents stay where you scrolled them. The address in the browser changes with each page, so you can bookmark or share it, and the browser's back button returns to the page before.

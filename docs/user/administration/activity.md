@@ -20,7 +20,7 @@ These panels of the [dashboard](dashboard.md) read the activity log:
 - **Recent activity**: the latest logins, album views and changes, leaving out albums and photos you cannot open.
 - **Most viewed albums**: the albums opened most often in the last 30 days, among those you may see.
 
-![The activity panels of the dashboard](../../assets/activity-dashboard.png) <!-- TODO: re-capture with the Trends panel and the new layout -->
+![The activity panels of the dashboard](../../assets/activity-dashboard.webp)
 
 Album views and logins only appear if the activity log records them. The figures are updated at most every ten minutes.
 
@@ -43,7 +43,7 @@ The **What** column uses these descriptions:
 
 **Details** says what was changed, for example which fields of an album or which people were added to a group. Passwords and other secret values are only recorded as "changed", never with their value. "Signed out sessions" says how many devices were signed out; the entry names the person who did it, which is an administrator when they signed someone else out.
 
-![The activity log with its columns](../../assets/activity-log.png)
+![The activity log with its columns](../../assets/activity-log.webp)
 
 Several changes to the same item by the same person within a short time are combined into one entry. If they cancel each other out (for example, a member removed and added again), no entry is kept.
 

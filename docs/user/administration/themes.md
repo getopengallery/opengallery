@@ -14,7 +14,7 @@ The installed themes are listed like plugins, with their name and description, a
 
 A theme with settings has a gear icon in its row. Click the row (or the gear) to customize the theme. This works for inactive themes too, so you can prepare a theme before switching to it.
 
-![The themes list with the colour previews, the Active mark, the Activate buttons and the gear icons](../../assets/themes-list.png)
+![The themes list with the colour previews, the Active mark, the Activate buttons and the gear icons](../../assets/themes-list.webp)
 
 ## Installing a theme
 
@@ -25,7 +25,7 @@ Click **Upload theme** at the top of the list and choose the theme's zip file. T
 - Themes can contain code that runs on the server: only upload themes from sources you trust. Uploading needs the permission "Upload themes and plugins". The button is not there without it, or when uploads are turned off in the [server configuration](../getting-started/installation.md#the-server-configuration-file).
 - The zip may be at most 50 MB (less if your server limits uploads further) and must not hold more than 5,000 files. Zips with links or with files that would land outside the theme folder are refused.
 
-![The Upload theme dialog with the zip file field and the Replace switch](../../assets/themes-upload.png)
+![The Upload theme dialog with the zip file field and the Replace switch](../../assets/themes-upload.webp)
 
 Instead of uploading, you (or your host) can also copy the theme folder into the `themes` folder of your installation.
 
@@ -39,7 +39,7 @@ Each theme decides which of these it offers, so the settings page looks differen
 
 The Default theme shows what themes can do and has the settings below. Other themes may offer different ones. Click **Save** when you are done, or **View site** to check the result.
 
-![The settings of the Default theme, starting with colours and the header](../../assets/themes-settings.png)
+![The settings of the Default theme, starting with colours and the header](../../assets/themes-settings.webp)
 
 ### Colours
 
@@ -98,7 +98,7 @@ Add your own CSS to fine-tune the site. It applies to the site only, not to the 
 
 Scrapbook is the loud opposite of the Default theme: photos taped in at an angle like prints in a scrapbook, links on colourful stickers, bunting along the top, a scrolling ticker under the header and doodles everywhere. Use it for a playful site, or to see how differently a theme can present the same albums.
 
-![The Scrapbook theme: albums as taped-in polaroids under a yellow header](../../assets/themes-scrapbook.png)
+![The Scrapbook theme: albums as taped-in polaroids under a yellow header](../../assets/themes-scrapbook.webp)
 
 It changes some wording on the site too, for example an empty album says "Nothing glued in here yet. Bring the glitter!".
 
