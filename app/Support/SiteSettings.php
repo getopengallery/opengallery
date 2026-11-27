@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\ActivityLevel;
 use App\Enums\BackgroundJobMode;
+use App\Enums\LightboxFooter;
 use App\Enums\MailDelivery;
 use App\Enums\PhotoOrder;
 use App\Enums\UpdateChannel;
@@ -133,6 +134,9 @@ class SiteSettings
 
     /** The lightbox's "i" button shows a photo's description and camera details. On by default. */
     public const PHOTO_INFO_ENABLED = 'photos.info_enabled';
+
+    /** What the lightbox shows below the photo (App\Enums\LightboxFooter). Description and date taken by default. */
+    public const LIGHTBOX_FOOTER = 'photos.lightbox_footer';
 
     /** The lightbox can play the photos as a slideshow. On by default. */
     public const SLIDESHOW_ENABLED = 'photos.slideshow_enabled';
@@ -496,6 +500,11 @@ class SiteSettings
     public static function photoInfoEnabled(): bool
     {
         return (bool) Setting::get(self::PHOTO_INFO_ENABLED, true);
+    }
+
+    public static function lightboxFooter(): LightboxFooter
+    {
+        return LightboxFooter::tryFrom((string) Setting::get(self::LIGHTBOX_FOOTER)) ?? LightboxFooter::DescriptionAndTaken;
     }
 
     public static function slideshowEnabled(): bool

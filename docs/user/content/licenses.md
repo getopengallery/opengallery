@@ -29,6 +29,7 @@ To give many photos a license at once, select them in the media library and choo
 
 - On the photo page in the admin, also when it is read-only.
 - On the site, in the **i** panel of the photo viewer: the license is shown with a link to its text. Pointing at its name shows the full name. It is only shown while licenses and [photo information](../administration/settings.md#photo-information) are both turned on, and not for photos without a license.
+- On the site, below the photo in the viewer, when an administrator chose **License** for **Below the photo** (see [Photo information](../administration/settings.md#photo-information)). It is shown as a link to the license text, only while licenses are turned on (the photo information switch does not matter here), and not for photos without a license.
 
 ![The photo information panel in the viewer, showing the license](../../assets/licenses-viewer.png) <!-- TODO: screenshot of the photo viewer's information panel with a license -->
 

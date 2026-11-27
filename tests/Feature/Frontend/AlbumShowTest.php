@@ -2,6 +2,7 @@
 
 use App\Actions\AddPhotoToAlbum;
 use App\Enums\CollaboratorRole;
+use App\Enums\LightboxFooter;
 use App\Enums\PhotoOrder;
 use App\Enums\Role;
 use App\Enums\Visibility;
@@ -14,6 +15,7 @@ use App\Models\User;
 use App\Support\AlbumAccess;
 use App\Support\AlbumDeletion;
 use App\Support\AlbumPreviewImage;
+use App\Support\DateFormat;
 use App\Support\PageMeta;
 use App\Support\PhotoExif;
 use App\Support\PhotoGridItems;
@@ -398,6 +400,83 @@ describe('the lightbox', function () {
 
         expect(PhotoGridItems::from([$photo->fresh()])[0]['lightbox']['license'])->toBeNull();
     });
+
+    it('shows below the photo what the setting chooses, and nothing when that is empty', function (LightboxFooter $option, array $photoData, ?array $expected) {
+        $album = frontendPublicAlbum();
+        $photo = tap(galleryPhoto($album, name: 'Beach day.jpg'))->update([
+            'title' => 'Sunset',
+            'description' => 'Golden hour',
+            'taken_at' => '2024-06-01 18:30:00',
+            'exif' => ['Make' => 'Acme', 'Model' => 'Pro 5', 'FocalLength' => '50/1', 'ISOSpeedRatings' => 400, 'GPSLatitude' => ['52/1', '31/1', '0/1']],
+            'license_id' => packLicense('CC BY 4.0')->id,
+            ...$photoData,
+        ]);
+        enableLicensing();
+        Setting::put(SiteSettings::LIGHTBOX_FOOTER, $option->value);
+        $taken = 'Taken '.DateFormat::date($photo->fresh()->taken_at);
+        $license = ['name' => 'CC BY 4.0', 'title' => 'Creative Commons Attribution 4.0 International', 'url' => 'https://creativecommons.org/licenses/by/4.0/'];
+
+        $footer = PhotoGridItems::from($album->photos()->get())[0]['lightbox']['footer'];
+        $expected = $expected === null ? null : array_map(fn ($value) => match ($value) {
+            '{taken}' => $taken,
+            '{license}' => $license,
+            default => $value,
+        }, $expected);
+
+        expect($footer)->toBe($expected);
+
+        $this->getJson(route('albums.photos', $album))->assertOk()->assertJsonPath('items.0.footer', $expected);
+    })->with([
+        'description and date taken' => [LightboxFooter::DescriptionAndTaken, [], ['text' => 'Golden hour', 'note' => '{taken}', 'license' => null]],
+        'description without a date taken' => [LightboxFooter::DescriptionAndTaken, ['taken_at' => null], ['text' => 'Golden hour', 'note' => null, 'license' => null]],
+        'the image name' => [LightboxFooter::Title, [], ['text' => 'Sunset', 'note' => null, 'license' => null]],
+        'the image name, else the file name' => [LightboxFooter::Title, ['title' => null], ['text' => 'beach-day.jpg', 'note' => null, 'license' => null]],
+        'the file name' => [LightboxFooter::FileName, [], ['text' => 'beach-day.jpg', 'note' => null, 'license' => null]],
+        'the description' => [LightboxFooter::Description, [], ['text' => 'Golden hour', 'note' => null, 'license' => null]],
+        'the date taken' => [LightboxFooter::Taken, [], ['text' => null, 'note' => '{taken}', 'license' => null]],
+        'the license' => [LightboxFooter::License, [], ['text' => null, 'note' => null, 'license' => '{license}']],
+        'the camera, without the make and the position' => [LightboxFooter::Camera, [], ['text' => 'Pro 5 · 50 mm · ISO 400', 'note' => null, 'license' => null]],
+        'nothing' => [LightboxFooter::None, [], null],
+        'an empty description' => [LightboxFooter::Description, ['description' => null], null],
+        'a missing date taken' => [LightboxFooter::Taken, ['taken_at' => null], null],
+        'a photo without a license' => [LightboxFooter::License, ['license_id' => null], null],
+        'a camera without data' => [LightboxFooter::Camera, ['exif' => null], null],
+    ]);
+
+    it('leaves the license out of the footer while licensing is off, and the camera while the photo information is off', function (LightboxFooter $option, array $setting) {
+        $photo = photoWithCameraData(['Make' => 'Acme']);
+        $photo->update(['license_id' => packLicense('CC BY 4.0')->id]);
+        enableLicensing(settings: [SiteSettings::LICENSING => true]);
+        Setting::put(SiteSettings::LIGHTBOX_FOOTER, $option->value);
+        Setting::put(...$setting);
+
+        expect(PhotoGridItems::from([$photo->fresh()])[0]['lightbox']['footer'])->toBeNull();
+    })->with([
+        'license' => [LightboxFooter::License, [SiteSettings::LICENSING, false]],
+        'camera' => [LightboxFooter::Camera, [SiteSettings::PHOTO_INFO_ENABLED, false]],
+    ]);
+
+    it('shows the license in the footer even while the photo information is off', function () {
+        $photo = photoWithCameraData([]);
+        $photo->update(['license_id' => packLicense('CC BY 4.0')->id]);
+        enableLicensing();
+        Setting::put(SiteSettings::PHOTO_INFO_ENABLED, false);
+        Setting::put(SiteSettings::LIGHTBOX_FOOTER, LightboxFooter::License->value);
+
+        $lightbox = PhotoGridItems::from([$photo->fresh()])[0]['lightbox'];
+
+        expect($lightbox['footer']['license']['name'])->toBe('CC BY 4.0')
+            ->and($lightbox['license'])->toBeNull();
+    });
+
+    it('sums the camera up on one line', function (array $exif, ?string $expected) {
+        expect(PhotoExif::summary(photoWithCameraData($exif)))->toBe($expected);
+    })->with([
+        'the make alone' => [['Make' => 'Acme'], 'Acme'],
+        'the model instead of the make' => [['Make' => 'Acme', 'Model' => 'Pro 5'], 'Pro 5'],
+        'every setting' => [['Model' => 'Pro 5', 'LensModel' => '50mm F1.8', 'FocalLength' => '50/1', 'FNumber' => '28/10', 'ExposureTime' => '1/250', 'ISOSpeedRatings' => 400], 'Pro 5 · 50mm F1.8 · 50 mm · f/2.8 · 1/250 s · ISO 400'],
+        'only a position' => [['GPSLatitude' => ['52/1', '31/1', '0/1']], null],
+    ]);
 
     it('carries the heart and whether the photo is liked for logged-in people', function () {
         $user = User::factory()->create();

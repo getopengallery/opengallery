@@ -57,4 +57,29 @@ class PhotoExif
             default => (string) $value,
         };
     }
+
+    /**
+     * The camera and its settings on one line, as the lightbox can show them
+     * below the photo: "Canon EOS R5 · 50 mm · f/1.8 · 1/200 s · ISO 100".
+     * The make is left out when the camera name is known (it usually repeats it).
+     */
+    public static function summary(Photo $photo): ?string
+    {
+        $exif = (array) $photo->exif;
+        $parts = [];
+
+        foreach (array_keys(self::LABELS) as $key) {
+            if ($key === 'Make' && filled($exif['Model'] ?? null)) {
+                continue;
+            }
+
+            $value = self::value($key, $exif[$key] ?? null);
+
+            if (filled($value)) {
+                $parts[] = $key === 'ISOSpeedRatings' ? 'ISO '.$value : $value;
+            }
+        }
+
+        return $parts ? implode(' · ', $parts) : null;
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\LightboxFooter;
 use App\Enums\PhotoOrder;
 use App\Enums\Role;
 use App\Filament\Clusters\Settings\Pages\PhotoSettings;
@@ -45,6 +46,29 @@ it('saves the lightbox and download options, showing the seconds only with the s
         ->and(SiteSettings::photoInfoEnabled())->toBeFalse()
         ->and(SiteSettings::slideshowEnabled())->toBeTrue()
         ->and(SiteSettings::slideshowSeconds())->toBe(12);
+});
+
+it('saves what the lightbox shows below the photo, starting with description and date taken, and refuses other values', function () {
+    Livewire::test(PhotoSettings::class)
+        ->assertFormSet(['lightbox_footer' => LightboxFooter::DescriptionAndTaken])
+        ->fillForm(['lightbox_footer' => 'nonsense'])
+        ->call('save')
+        ->assertHasFormErrors(['lightbox_footer']);
+
+    expect(Setting::get(SiteSettings::LIGHTBOX_FOOTER))->toBeNull();
+
+    Livewire::test(PhotoSettings::class)
+        ->fillForm(['lightbox_footer' => LightboxFooter::Camera->value])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(SiteSettings::lightboxFooter())->toBe(LightboxFooter::Camera);
+
+    Setting::put(SiteSettings::LIGHTBOX_FOOTER, 'removed_option');
+
+    expect(SiteSettings::lightboxFooter())->toBe(LightboxFooter::DescriptionAndTaken);
+
+    Livewire::test(PhotoSettings::class)->assertFormSet(['lightbox_footer' => LightboxFooter::DescriptionAndTaken]);
 });
 
 it('accepts slideshow seconds only within the allowed range', function (int $seconds, bool $accepted) {

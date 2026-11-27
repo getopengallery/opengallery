@@ -38,7 +38,7 @@ An album's page shows its title and description, the albums inside it that the v
 
 When downloads are turned on for the site and an album lets visitors download photos, everyone who may open it also sees **Download all**, which downloads all its photos as one zip file. People who manage the album also see buttons at the top of its page: **Add photos** (with the permission "Upload photos") opens the album in the admin with the photo picker already open, **Edit album** opens its settings, and for unlisted albums **Copy link** copies the link to send. Visitors never see these buttons.
 
-Click a photo to view it large, on a dark background with its title and its position in the album (for example "62 / 140", counted across all pages). Below the photo are its description and the date it was taken, when there are any. In this view:
+Click a photo to view it large, on a dark background with its title and its position in the album (for example "62 / 140", counted across all pages). Below the photo, the viewer shows its description and the date it was taken, when there are any; an administrator can choose another detail, such as the image name, the license or the camera settings, or nothing (see [Photo information](../administration/settings.md#photo-information)). Photos and galleries placed in a page show nothing below the photo. In this view:
 
 - the arrows on the sides, the left and right arrow keys, or swiping left and right on a phone or tablet move to the next or previous photo;
 - tapping or clicking the photo shows the next one;

@@ -93,8 +93,15 @@
         </aside>
     </div>
 
-    <div x-show="current?.description || current?.taken" class="shrink-0 px-4 pb-6 text-center text-sm sm:px-16">
-        <p x-show="current?.description" x-text="current?.description" class="mx-auto max-w-2xl whitespace-pre-line text-white/80"></p>
-        <p x-show="current?.taken" class="mt-1 text-white/50">{{ __('Taken') }} <span x-text="current?.taken"></span></p>
+    {{-- What shows below the photo is chosen in Settings → Photos; each item carries it as `footer` (text, note, license). --}}
+    <div x-show="!! current?.footer" class="shrink-0 px-4 pb-6 text-center text-sm sm:px-16">
+        <p x-show="!! current?.footer?.text" x-text="current?.footer?.text" class="mx-auto max-w-2xl whitespace-pre-line text-white/80"></p>
+        <p x-show="!! current?.footer?.note" x-text="current?.footer?.note" class="mt-1 text-white/50"></p>
+        <p x-show="!! current?.footer?.license" class="text-white/70">
+            <span class="text-white/50">{{ __('License') }}</span>
+            <a x-show="!! current?.footer?.license?.url" :href="current?.footer?.license?.url" :title="current?.footer?.license?.title" target="_blank" rel="license noopener noreferrer"
+               class="underline decoration-white/40 underline-offset-2 hover:decoration-white focus-visible:outline-white" x-text="current?.footer?.license?.name"></a>
+            <span x-show="! current?.footer?.license?.url" :title="current?.footer?.license?.title" x-text="current?.footer?.license?.name"></span>
+        </p>
     </div>
 </div>

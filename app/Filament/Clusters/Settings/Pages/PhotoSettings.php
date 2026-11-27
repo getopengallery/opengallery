@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters\Settings\Pages;
 
+use App\Enums\LightboxFooter;
 use App\Enums\PhotoOrder;
 use App\Filament\Clusters\Settings\SettingsPage;
 use App\Filament\Navigation\NavigationGroup;
@@ -16,7 +17,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
-/** Settings → Photos: the default photo order, uploads, downloads and what the lightbox offers. */
+/** Settings → Photos: the default photo order, uploads, downloads and what the lightbox offers and shows below the photo. */
 class PhotoSettings extends SettingsPage
 {
     protected const FIELDS = [
@@ -27,6 +28,7 @@ class PhotoSettings extends SettingsPage
         'remove_location' => [SiteSettings::REMOVE_PHOTO_LOCATION, 'Remove location from downloads'],
         'favorites_enabled' => [SiteSettings::FAVORITES_ENABLED, 'Users can favorite photos'],
         'photo_info_enabled' => [SiteSettings::PHOTO_INFO_ENABLED, 'Show photo information'],
+        'lightbox_footer' => [SiteSettings::LIGHTBOX_FOOTER, 'Below the photo'],
         'slideshow_enabled' => [SiteSettings::SLIDESHOW_ENABLED, 'Slideshow'],
         'slideshow_seconds' => [SiteSettings::SLIDESHOW_SECONDS, 'Seconds per photo'],
     ];
@@ -56,6 +58,7 @@ class PhotoSettings extends SettingsPage
             'remove_location' => SiteSettings::removesPhotoLocation(),
             'favorites_enabled' => SiteSettings::favoritesEnabled(),
             'photo_info_enabled' => SiteSettings::photoInfoEnabled(),
+            'lightbox_footer' => SiteSettings::lightboxFooter()->value,
             'slideshow_enabled' => SiteSettings::slideshowEnabled(),
             'slideshow_seconds' => SiteSettings::slideshowSeconds(),
         ];
@@ -121,6 +124,12 @@ class PhotoSettings extends SettingsPage
                     Toggle::make('photo_info_enabled')
                         ->label(__('Show photo information'))
                         ->helperText(__('An "i" button in the lightbox shows the photo\'s description and camera details. Location data is never shown there.')),
+                    Select::make('lightbox_footer')
+                        ->label(__('Below the photo'))
+                        ->options(LightboxFooter::class)
+                        ->selectablePlaceholder(false)
+                        ->required()
+                        ->helperText(__('What the lightbox shows under each photo. Camera details need photo information to be on, and the license needs licenses to be on. Nothing is shown when a photo has no such detail.')),
                 ]),
 
             Section::make(__('Slideshow'))
