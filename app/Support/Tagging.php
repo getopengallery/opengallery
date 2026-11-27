@@ -172,8 +172,82 @@ class Tagging
 
         $changes = $record->tags()->sync($ids);
 
-        // A tag nothing uses any more is gone, so a typo is not suggested to the next person.
-        Tag::query()->whereKey($changes['detached'])->doesntHave('albums')->doesntHave('photos')->delete();
+        self::deleteUnused($changes['detached']);
+    }
+
+    /**
+     * Adds these tags to the record's own tags (bulk tagging), keeping the
+     * ones it has. Names that may not be used are left out, and so are tags
+     * past the limit per item.
+     *
+     * @param  array<int, mixed>  $names
+     * @return bool whether every tag fit within the limit
+     */
+    public static function add(Album|Photo $record, array $names, User $user): bool
+    {
+        $current = $record->tags()->pluck('normalized')->all();
+        $allowsCustom = SiteSettings::allowsCustomTags();
+        $predefined = [];
+
+        foreach (SiteSettings::predefinedTags() as $name) {
+            $predefined[Tag::normalize($name)] = $name;
+        }
+
+        $ids = [];
+        $fits = true;
+
+        foreach (self::uniqueNames($names) as $name) {
+            $key = Tag::normalize($name);
+
+            if (in_array($key, $current, true) || ! ($allowsCustom || isset($predefined[$key]))) {
+                continue;
+            }
+
+            if (count($current) >= self::MAX_PER_ITEM) {
+                $fits = false;
+
+                continue;
+            }
+
+            $current[] = $key;
+            $ids[] = Tag::firstOrCreate(['normalized' => $key], ['name' => $predefined[$key] ?? $name, 'created_by' => $user->id])->id;
+        }
+
+        $record->tags()->syncWithoutDetaching($ids);
+
+        return $fits;
+    }
+
+    /**
+     * Takes these tags off the record's own tags (bulk tagging); tags it
+     * gets from its albums stay.
+     *
+     * @param  array<int, mixed>  $names
+     * @return bool whether the record had any of them
+     */
+    public static function remove(Album|Photo $record, array $names): bool
+    {
+        $keys = array_map(Tag::normalize(...), self::uniqueNames($names));
+        $ids = $record->tags()->whereIn('normalized', $keys)->pluck('tags.id')->all();
+
+        if ($ids === []) {
+            return false;
+        }
+
+        $record->tags()->detach($ids);
+        self::deleteUnused($ids);
+
+        return true;
+    }
+
+    /**
+     * A tag nothing uses any more is gone, so a typo is not suggested to the next person.
+     *
+     * @param  array<int, int>  $ids
+     */
+    private static function deleteUnused(array $ids): void
+    {
+        Tag::query()->whereKey($ids)->doesntHave('albums')->doesntHave('photos')->delete();
     }
 
     /**

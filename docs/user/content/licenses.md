@@ -23,7 +23,7 @@ Open the photo in the media library (see [A single photo](photos.md#a-single-pho
 - When the administrator has turned off **Uploaders choose the license**, the field is read-only. People with the permission "Change site settings" can still pick any active license.
 - A photo whose license was deactivated later still shows it, and keeps it until you choose another.
 
-To give many photos a license at once, select them in the media library and choose **Set license** (only shown while you may choose a license; see [Working with several photos](photos.md#working-with-several-photos)). Photos you may not edit are left out, and you are told how many.
+To give many photos a license at once, select them in the media library and choose **Set license** (only shown while you may choose a license; see [Working with several photos](photos.md#working-with-several-photos)). Photos you may not edit are left out, and you are told how many. To find photos by license, use the **License** filter of the media library (see [Finding photos](photos.md#finding-photos)).
 
 ## Where the license is shown
 

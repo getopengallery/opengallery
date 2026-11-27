@@ -196,6 +196,14 @@ The album form uses the dashboard's grid (`DashboardLayout::GRID_COLUMNS`, `WIDE
 
 The site uses `Album::removePhotos($photos, moveLastCopies: true)`: a photo in no other album moves to the "Unsorted uploads" of its uploader, or of the album's owner if the uploader is gone, so the rule that every photo stays in one album holds and nothing goes to the trash. Before albums are deleted for good, `AlbumCollaboration::keepCollaboratorUploads()` moves collaborators' uploads to their own "Unsorted uploads", also when "delete these photos" is chosen.
 
+### Media library bulk actions
+
+The media library's bulk actions (`PhotoBulkActions`, see [Bulk actions](../internals/media-library.md#bulk-actions)) check `PhotoPolicy` per record, so they only touch what the person may change and report the rest as left out. Three rules sit on top:
+
+- "Change uploader" needs `Permission::EditAnyAlbum`, and the new uploader must hold `Permission::UploadPhotos` or be a super admin. The uploader is the basis of `PhotoPolicy::update()` and `delete()`, so the new uploader gains those rights and the old one keeps them only through albums they may edit.
+- "Remove from all albums" needs `PhotoPolicy::delete()` for each photo, because it takes the photo out of every album (what trashing does, without the trash). Like the site's removal above, it keeps each photo in one album: the "Unsorted uploads" of its uploader, or of the person acting when the uploader is gone.
+- "Download" only includes photos that pass `AlbumAccess::canDownload()` and hides GPS data with `PhotoLocation::isHiddenFrom()`, like the other downloads.
+
 ### Telling people
 
 `App\Support\CollaboratorNotices::around()` compares effective roles before and after a change and sends `AlbumCollaboratorAdded` to people whose role is new or higher, never to the person making the change or the owner. Mail goes out during the request, like share notices, so adding a very large group can take long on shared hosting.
