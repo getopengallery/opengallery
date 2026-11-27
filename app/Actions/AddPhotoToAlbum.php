@@ -6,14 +6,15 @@ use App\Models\Album;
 use App\Models\Photo;
 use App\Models\User;
 use App\Support\Licensing;
+use App\Support\PhotoCompression;
 use App\Support\PhotoUploads;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
- * Creates a Photo in $album from a local file: extracts EXIF, stores the
- * original via media library (which generates thumb/preview conversions)
+ * Creates a Photo in $album from a local file: extracts EXIF, compresses
+ * the file when that is on (PhotoCompression), stores it via media library (which generates thumb/preview conversions)
  * and sets the album cover if it has none yet.
  */
 class AddPhotoToAlbum
@@ -28,15 +29,19 @@ class AddPhotoToAlbum
     public function handle(Album $album, string $path, string $originalName, ?User $uploader = null): Photo
     {
         $exif = $this->readExif($path);
-        [$width, $height] = @getimagesize($path) ?: [null, null];
 
         // Stored turned (EXIF orientation 6 or 8, e.g. phones held upright): width and height as shown.
-        if (in_array((int) ($exif['Orientation'] ?? 1), Photo::TURNED_ORIENTATIONS, true)) {
-            [$width, $height] = [$height, $width];
-        }
+        [$width, $height] = PhotoCompression::shownSize($path, $exif['Orientation'] ?? 1);
 
         // Refuse images GD cannot decode in this process before anything is stored.
         PhotoUploads::ensureMemoryFor((int) $width, (int) $height);
+
+        // Replaces the uploaded file with a smaller one when compression is on; the metadata stays in it.
+        $compression = PhotoCompression::isActive() ? PhotoCompression::settings() : null;
+
+        if ($compression && PhotoCompression::compress($path)) {
+            [$width, $height] = PhotoCompression::shownSize($path, $exif['Orientation'] ?? 1);
+        }
 
         // In the trash until it is ready, so no grid shows it without its images.
         $photo = new Photo([
@@ -64,6 +69,7 @@ class AddPhotoToAlbum
             $photo->addMedia($path)
                 ->preservingOriginal()
                 ->usingFileName($this->safeFileName($originalName))
+                ->withCustomProperties($compression ? [PhotoCompression::PROPERTY => $compression] : [])
                 ->toMediaCollection(Photo::COLLECTION);
 
             DB::transaction(function () use ($album, $photo) {

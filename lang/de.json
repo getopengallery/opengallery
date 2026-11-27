@@ -1496,5 +1496,21 @@
     "Uploaded file name (without extension)": "Hochgeladener Dateiname (ohne Endung)",
     "With tags": "Mit Tags",
     "Without tags": "Ohne Tags",
-    "Actions": "Aktionen"
+    "Actions": "Aktionen",
+    "Compress uploaded photos": "Hochgeladene Fotos komprimieren",
+    "Limit the resolution": "Auflösung begrenzen",
+    "Longest side": "Längste Seite",
+    "Lower the quality": "Qualität verringern",
+    "Quality": "Qualität",
+    "Compression": "Komprimierung",
+    "px": "px",
+    "Makes photo files smaller to save storage. The smaller file replaces the original for good; camera, date and location details stay in it. GIF, HEIC and AVIF files are not changed.": "Macht Fotodateien kleiner, um Speicherplatz zu sparen. Die kleinere Datei ersetzt das Original endgültig; Kamera-, Datums- und Ortsangaben bleiben darin erhalten. GIF-, HEIC- und AVIF-Dateien werden nicht verändert.",
+    "Larger photos are scaled down; smaller ones stay as they are.": "Größere Fotos werden verkleinert, kleinere bleiben, wie sie sind.",
+    "JPEG and WebP photos are saved again at this quality. PNG files have no quality setting and are only scaled down.": "JPEG- und WebP-Fotos werden in dieser Qualität neu gespeichert. PNG-Dateien haben keine Qualitätsstufe und werden nur verkleinert.",
+    "Compress existing photos": "Vorhandene Fotos komprimieren",
+    "All photos already stored are compressed with the saved settings, a few at a time in the background jobs. The originals are replaced and cannot be restored.": "Alle bereits gespeicherten Fotos werden mit den gespeicherten Einstellungen komprimiert, nach und nach in den Hintergrundaufgaben. Die Originale werden ersetzt und lassen sich nicht wiederherstellen.",
+    "Existing photos are being compressed": "Vorhandene Fotos werden komprimiert",
+    "This runs in the background jobs and may take a while for a large library.": "Das läuft in den Hintergrundaufgaben und kann bei einer großen Mediathek eine Weile dauern.",
+    "{0} Existing photos are almost done.|{1} Existing photos: 1 photo still to check.|[2,*] Existing photos: :count photos still to check.": "{0} Vorhandene Fotos sind fast fertig.|{1} Vorhandene Fotos: noch 1 Foto zu prüfen.|[2,*] Vorhandene Fotos: noch :count Fotos zu prüfen.",
+    "New uploads are compressed with the saved settings. Photos stored before stay as they are until you compress them too.": "Neue Uploads werden mit den gespeicherten Einstellungen komprimiert. Bereits gespeicherte Fotos bleiben unverändert, bis du sie ebenfalls komprimierst."
 }

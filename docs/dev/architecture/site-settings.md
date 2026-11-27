@@ -41,6 +41,11 @@ The site settings (pages of the cluster `App\Filament\Clusters\Settings\Settings
 | `DEFAULT_PHOTO_ORDER` | `albums.default_photo_order` | `config('gallery.default_photo_order')`, `SiteSettings::defaultPhotoOrder()` |
 | `UPLOAD_MAX_MB` | `uploads.max_mb` | `config('gallery.max_upload_kb')` and `config('media-library.max_file_size')` |
 | `UPLOAD_TYPES` | `uploads.accepted_types` | `config('gallery.accepted_mime_types')`, `SiteSettings::uploadTypes()` |
+| `COMPRESSION_ENABLED` | `uploads.compression_enabled` | Main switch (off by default); `SiteSettings::compressionEnabled()` |
+| `COMPRESSION_RESIZE` | `uploads.compression_resize` | Part "limit the resolution" (on by default once compression is on) |
+| `COMPRESSION_MAX_PX` | `uploads.compression_max_px` | Longest side in px (3840 by default, 640 to 20000); `SiteSettings::compressionMaxPx()` is `null` while compression or this part is off |
+| `COMPRESSION_REENCODE` | `uploads.compression_reencode` | Part "lower the quality" |
+| `COMPRESSION_QUALITY` | `uploads.compression_quality` | JPEG/WebP quality in % (80 by default, 1 to 100); `SiteSettings::compressionQuality()` is `null` while compression or this part is off. See [Photo compression](../internals/uploads.md#photo-compression) |
 | `REMOVE_PHOTO_LOCATION` | `photos.remove_location` | `SiteSettings::removesPhotoLocation()` (on by default) |
 | `DOWNLOADS_ENABLED` | `photos.downloads_enabled` | `SiteSettings::downloadsEnabled()` (off by default; master switch above each album's `allow_downloads`, see [Downloads and favourites](access-model.md#downloads-and-favourites)) |
 | `FAVORITES_ENABLED` | `photos.favorites_enabled` | `SiteSettings::favoritesEnabled()` (on by default; `Favorites::enabledFor()` also needs a logged-in user) |

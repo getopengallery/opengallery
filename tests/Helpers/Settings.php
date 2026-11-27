@@ -42,3 +42,13 @@ function saveSettingsPage(array $data, string $page = EmailSettings::class): mix
 {
     return Livewire::test($page)->fillForm($data)->call('save');
 }
+
+/** Turns photo compression on, scaling to $maxPx on the longest side (null: not) and saving at $quality percent (null: not). */
+function useCompression(?int $maxPx = null, ?int $quality = null): void
+{
+    Setting::put(SiteSettings::COMPRESSION_ENABLED, true);
+    Setting::put(SiteSettings::COMPRESSION_RESIZE, $maxPx !== null);
+    Setting::put(SiteSettings::COMPRESSION_MAX_PX, $maxPx ?? SiteSettings::COMPRESSION_MAX_PX_DEFAULT);
+    Setting::put(SiteSettings::COMPRESSION_REENCODE, $quality !== null);
+    Setting::put(SiteSettings::COMPRESSION_QUALITY, $quality ?? SiteSettings::COMPRESSION_QUALITY_DEFAULT);
+}

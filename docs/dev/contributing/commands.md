@@ -67,6 +67,7 @@ Defined in `routes/console.php`; makes one pass of the background jobs (`App\Sup
    | `UpdateCheck::run()` | daily | Reads the newest releases while the admin has update checks on; see [Update checks](frontend-build.md#update-checks) |
    | `UpdateInstaller::prune()` | daily | Update preparations nobody finished and leftovers of a finished update |
    | `SmallThumbnails::makeMissing()` | every pass | The `small` size for photos uploaded before it existed, made from their `thumb`, at most 15 s per pass |
+   | `PhotoCompression::compressExisting()` | every pass | Compresses stored photos after an admin pressed "Compress existing photos" (cursor setting `uploads.compression_existing`), up to `PhotoCompression::SECONDS` (15 s) and `BATCH` (50) photos per pass; does nothing without a cursor |
    | `SiteHealth::refresh()` | `SiteHealth::REFRESH_SECONDS` (5 min) | The site health checks that scan tables and files (pending migrations, stuck and failed jobs, missing thumbnails), cached for `LATE_SECONDS`; the widget only reads them and runs them itself only when no result is cached. Then `SiteHealthNotices::check()` tells people who change settings about new problems |
    | `Inbox::prune()` | daily | Notifications older than `Inbox::KEEP_DAYS` (180 days) |
 
@@ -81,7 +82,7 @@ What starts a pass is chosen in Admin → System → Background jobs (`SiteSetti
 
 | Mode | Trigger |
 | --- | --- |
-| `ajax` | `resources/views/partials/background-jobs.blade.php` (in both site layouts and the admin's `SCRIPTS_AFTER` render hook) prints a `navigator.sendBeacon()` to `POST /background-jobs` (`background-jobs.ajax`) while `BackgroundJobs::ajaxDue()`: 5 minutes after the last pass, 1 minute while the queue is worked |
+| `ajax` | `resources/views/partials/background-jobs.blade.php` (in both site layouts and the admin's `SCRIPTS_AFTER` render hook) prints a `navigator.sendBeacon()` to `POST /background-jobs` (`background-jobs.ajax`) while `BackgroundJobs::ajaxDue()`: 5 minutes after the last pass, 1 minute while the queue is worked, e-mails wait or `PhotoCompression::hasWork()` |
 | `webcron` | `GET` or `POST /cron/{token}` (`background-jobs.webcron`); 404 unless the mode is `webcron` and the token matches the setting `jobs.webcron_token` (`renewWebcronToken()` replaces it) |
 | `cron` | `routes/console.php` schedules `gallery:background-jobs` every minute; `schedule:run` from cron starts it in every mode |
 
