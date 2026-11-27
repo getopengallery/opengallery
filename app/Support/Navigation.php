@@ -31,10 +31,4 @@ class Navigation
     {
         return auth()->user()?->opensAdmin() ? url('/admin') : null;
     }
-
-    /** The landing page carries its own log-in / sign-up buttons. */
-    public static function onLanding(): bool
-    {
-        return auth()->guest() && ! config('gallery.public_albums_enabled') && request()->routeIs('home');
-    }
 }
