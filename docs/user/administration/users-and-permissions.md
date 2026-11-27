@@ -28,6 +28,7 @@ For each user you can set:
 - **Language**: the language the user sees and gets e-mails in. Leave it empty to follow the site's default language (see [Site settings](settings.md#language)). Users can change it themselves in their profile.
 - **Roles**: what the user may do on the site.
 - **Groups**: which albums shared with groups the user can see.
+- **Storage**: only shown while [storage limits](#storage-limits) are on.
 
 People who register on the site themselves get the role "user". If you want to hear about them, turn on the e-mail about new accounts in the [site settings](settings.md#access).
 
@@ -47,6 +48,21 @@ The same applies when you delete several users at once: all their albums go to t
 People can also delete their own account in their profile. There, albums they own are deleted with the account if they confirm it (see [Deleting your account](../members-and-visitors/profile.md#deleting-your-account)).
 
 Search the list by name or e-mail address, or filter it by **Role**, **Group**, **E-mail address** (verified or not) and **Registered** (a date range). See [Searching and filtering lists](../getting-started/admin-area.md#searching-and-filtering-lists).
+
+### Storage limits
+
+With **Limit storage per user** turned on in the [site settings](settings.md#storage), every person may only store photos up to a limit. In a user's account (when adding or editing), the **Storage** section sets theirs:
+
+![The Storage section of a user's page](../../assets/users-storage.webp)
+
+- **Unlimited storage**: this person can upload without a limit.
+- **Storage limit**: in GB (between 1 and 1,000,000). Leave it empty to follow the default limit, shown in the field as "Default (10 GB)"; when you change the default, they follow it. **Reset to default** next to the field empties it.
+
+People who existed before storage limits were added are set to unlimited, so nothing changes for them until you set a limit. New accounts follow the default limit. The section is hidden while limits are off, and nobody is limited then.
+
+What counts is the size of the originals and of the thumbnails and previews made from them, for every photo the person uploaded. Photos in the trash count until they are deleted for good. Choosing someone else as the uploader of photos with **Change uploader** is not checked against limits, so it can put that person over theirs; they then cannot upload more until they are below it again.
+
+A photo that does not fit is refused with "Not enough storage left. You can store up to 10 GB of photos." A photo that exactly fills the limit is accepted. The upload is refused as soon as it starts when the file is too big for the space left. While [compression](settings.md#compression) is on, the file may become smaller, so it is only refused at the start when nothing is left at all, and the exact size is checked after compression.
 
 ## Roles
 

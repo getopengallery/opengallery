@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Notifications\EmailResults;
+use App\Filament\Resources\Users\Schemas\UserForm;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use App\Support\Invitations;
@@ -33,7 +34,10 @@ class CreateUser extends CreateRecord
     protected function afterCreate(): void
     {
         // People added by an administrator count as confirmed unless the field was cleared.
-        $this->getRecord()->forceFill(['email_verified_at' => $this->verifiedAt])->saveQuietly();
+        $this->getRecord()->forceFill([
+            'email_verified_at' => $this->verifiedAt,
+            ...UserForm::storageAttributes($this->data),
+        ])->saveQuietly();
 
         if ($this->data['send_invitation'] ?? false) {
             /** @var User $user */

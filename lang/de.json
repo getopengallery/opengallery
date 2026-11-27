@@ -1571,5 +1571,17 @@
     "saved by compression": "durch Komprimierung gespart",
     "{0} Every album was opened in this period.|{1} :count album older than this period was not opened in it.|[2,*] :count albums older than this period were not opened in it.": "{0} Jedes Album wurde in diesem Zeitraum geöffnet.|{1} :count Album, älter als dieser Zeitraum, wurde darin nicht geöffnet.|[2,*] :count Alben, älter als dieser Zeitraum, wurden darin nicht geöffnet.",
     "{1} :count album, without personal system albums and the trash.|[0,*] :count albums, without personal system albums and the trash.": "{1} :count Album, ohne persönliche Systemalben und Papierkorb.|[0,*] :count Alben, ohne persönliche Systemalben und Papierkorb.",
-    "{1} :count member, by their last login.|[0,*] :count members, by their last login.": "{1} :count Mitglied, nach letzter Anmeldung.|[0,*] :count Mitglieder, nach letzter Anmeldung."
+    "{1} :count member, by their last login.|[0,*] :count members, by their last login.": "{1} :count Mitglied, nach letzter Anmeldung.|[0,*] :count Mitglieder, nach letzter Anmeldung.",
+    "Not enough storage left. You can store up to :quota of photos.": "Nicht genug Speicherplatz frei. Du kannst bis zu :quota an Fotos speichern.",
+    "Storage": "Speicherplatz",
+    "Storage per user": "Speicherplatz pro Benutzer",
+    "Limit storage per user": "Speicherplatz pro Benutzer begrenzen",
+    "Each user may only store photos up to a limit; uploads past it are refused. When off, everyone can upload without a limit.": "Jeder Benutzer darf Fotos nur bis zu einem Limit speichern; Uploads darüber hinaus werden abgelehnt. Wenn aus, können alle ohne Limit hochladen.",
+    "Default limit": "Standardlimit",
+    "Applies to every user without their own limit, so changing it changes theirs too. Users who existed before storage limits were added have unlimited storage; set their limit on their user page.": "Gilt für alle Benutzer ohne eigenes Limit; wenn du es änderst, ändert es sich auch für sie. Benutzer, die es schon vor den Speicherlimits gab, haben unbegrenzten Speicherplatz; ihr Limit legst du auf ihrer Benutzerseite fest.",
+    "Unlimited storage": "Unbegrenzter Speicherplatz",
+    "This user can upload without a limit.": "Dieser Benutzer kann ohne Limit hochladen.",
+    "Storage limit": "Speicherlimit",
+    "Default (:size GB)": "Standard (:size GB)",
+    "How much space this user's photos may take, thumbnails included. Leave empty to use the default limit from the storage settings.": "Wie viel Platz die Fotos dieses Benutzers samt Vorschaubildern belegen dürfen. Leer lassen, um das Standardlimit aus den Speicher-Einstellungen zu verwenden."
 }

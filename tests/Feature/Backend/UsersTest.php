@@ -252,6 +252,122 @@ describe('as an admin', function () {
         });
     });
 
+    describe('storage limits', function () {
+        it('has no storage section while limits are off, and leaves the stored limits alone on save', function () {
+            $grace = giveStorageLimit(User::factory()->create(), 2 * 1024 ** 3);
+
+            Livewire::test(CreateUser::class)->assertDontSee('Unlimited storage');
+
+            Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
+                ->assertDontSee('Unlimited storage')
+                ->fillForm(['name' => 'Grace H.', 'storage_unlimited' => true, 'storage_quota_gb' => 7])
+                ->call('save')
+                ->assertHasNoFormErrors();
+
+            expect($grace->fresh()->name)->toBe('Grace H.')
+                ->and($grace->fresh()->storage_unlimited)->toBeFalse()
+                ->and($grace->fresh()->storage_quota_bytes)->toBe(2 * 1024 ** 3);
+        });
+
+        it('creates a user with their own limit, with no limit, or following the site default', function (array $storage, bool $unlimited, ?int $bytes) {
+            useStorageLimits(defaultGb: 7);
+
+            Livewire::test(CreateUser::class)
+                ->assertSee('Unlimited storage')
+                ->assertSee('Default (7 GB)')
+                ->fillForm(['name' => 'Grace', 'email' => 'grace@example.com', 'send_invitation' => false, 'password' => 'a-long-password', ...$storage])
+                ->call('create')
+                ->assertHasNoFormErrors();
+
+            $grace = User::where('email', 'grace@example.com')->sole();
+            expect($grace->storage_unlimited)->toBe($unlimited)
+                ->and($grace->storage_quota_bytes)->toBe($bytes);
+        })->with([
+            'own limit' => [['storage_quota_gb' => 3], false, 3 * 1024 ** 3],
+            'unlimited' => [['storage_unlimited' => true, 'storage_quota_gb' => 3], true, null],
+            'empty, so the default' => [['storage_quota_gb' => null], false, null],
+        ]);
+
+        it('rejects a storage limit outside the allowed range', function (int $gb, string $rule) {
+            useStorageLimits();
+
+            Livewire::test(CreateUser::class)
+                ->fillForm(['name' => 'Grace', 'email' => 'grace@example.com', 'send_invitation' => false, 'password' => 'a-long-password', 'storage_quota_gb' => $gb])
+                ->call('create')
+                ->assertHasFormErrors(['storage_quota_gb' => $rule]);
+
+            expect(User::where('email', 'grace@example.com')->exists())->toBeFalse();
+        })->with(['zero' => [0, 'min'], 'too large' => [1_000_001, 'max']]);
+
+        it('fills the form from what is stored', function (?int $bytes, bool $unlimited, ?int $gb) {
+            useStorageLimits();
+            $grace = giveStorageLimit(User::factory()->create(), $bytes, $unlimited);
+
+            Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
+                ->assertFormSet(['storage_unlimited' => $unlimited, 'storage_quota_gb' => $gb]);
+        })->with([
+            'own limit' => [4 * 1024 ** 3, false, 4],
+            'unlimited' => [null, true, null],
+            'default' => [null, false, null],
+        ]);
+
+        it('switches a user to unlimited storage and back to the default', function () {
+            useStorageLimits();
+            $grace = giveStorageLimit(User::factory()->create(), 2 * 1024 ** 3);
+
+            Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
+                ->fillForm(['storage_unlimited' => true])
+                ->call('save')
+                ->assertHasNoFormErrors();
+
+            expect($grace->fresh()->storage_unlimited)->toBeTrue()
+                ->and($grace->fresh()->storage_quota_bytes)->toBeNull();
+
+            Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
+                ->assertFormSet(['storage_unlimited' => true])
+                ->fillForm(['storage_unlimited' => false, 'storage_quota_gb' => null])
+                ->call('save')
+                ->assertHasNoFormErrors();
+
+            expect($grace->fresh()->storage_unlimited)->toBeFalse()
+                ->and($grace->fresh()->storage_quota_bytes)->toBeNull();
+        });
+
+        it('empties the limit with "Reset to default" so saving makes the user follow the default', function () {
+            useStorageLimits();
+            $grace = giveStorageLimit(User::factory()->create(), 2 * 1024 ** 3);
+            $reset = TestAction::make('resetStorageQuota')->schemaComponent('storage_quota_gb', schema: 'form');
+
+            Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
+                ->assertActionVisible($reset)
+                ->callAction($reset)
+                ->assertFormSet(['storage_quota_gb' => null])
+                ->call('save')
+                ->assertHasNoFormErrors();
+
+            expect($grace->fresh()->storage_quota_bytes)->toBeNull()
+                ->and($grace->fresh()->storage_unlimited)->toBeFalse();
+        });
+
+        it('keeps the exact stored bytes when the limit shown in GB is not changed', function () {
+            useStorageLimits();
+            $bytes = 2 * 1024 ** 3 + 123;
+            $grace = giveStorageLimit(User::factory()->create(), $bytes);
+
+            Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
+                ->fillForm(['name' => 'Grace H.'])
+                ->call('save');
+
+            expect($grace->fresh()->storage_quota_bytes)->toBe($bytes);
+
+            Livewire::test(EditUser::class, ['record' => $grace->getRouteKey()])
+                ->fillForm(['storage_quota_gb' => 5])
+                ->call('save');
+
+            expect($grace->fresh()->storage_quota_bytes)->toBe(5 * 1024 ** 3);
+        });
+    });
+
     describe('deleting a user', function () {
         it('lists the albums and gives them to the person deleting by default', function () {
             $user = User::factory()->create();

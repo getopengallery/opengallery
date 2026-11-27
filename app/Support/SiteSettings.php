@@ -123,6 +123,12 @@ class SiteSettings
 
     public const UPLOAD_MAX_MB = 'uploads.max_mb';
 
+    /** Whether photo storage per user is limited (App\Support\StorageQuota). Off by default. */
+    public const STORAGE_LIMITS = 'storage.limits_enabled';
+
+    /** Storage each user may use unless they have their own limit or none, in GB. */
+    public const DEFAULT_STORAGE_QUOTA_GB = 'storage.default_quota_gb';
+
     /** Whether visitors get photo files without GPS data (on unless turned off). */
     public const REMOVE_PHOTO_LOCATION = 'photos.remove_location';
 
@@ -207,6 +213,13 @@ class SiteSettings
     public const UPLOAD_MIN_MB = 1;
 
     public const UPLOAD_MAX_MB_LIMIT = 2048;
+
+    /** Allowed range for a storage quota, in GB. */
+    public const STORAGE_QUOTA_MIN_GB = 1;
+
+    public const STORAGE_QUOTA_MAX_GB = 1000000;
+
+    public const STORAGE_QUOTA_DEFAULT_GB = 10;
 
     /** Allowed range for how long activity log entries are kept, in days. */
     public const RETENTION_MIN_DAYS = 1;
@@ -365,6 +378,19 @@ class SiteSettings
     public static function maxUploadMb(): int
     {
         return max(self::UPLOAD_MIN_MB, (int) round((int) config('gallery.max_upload_kb') / 1024));
+    }
+
+    public static function storageLimitsEnabled(): bool
+    {
+        return (bool) Setting::get(self::STORAGE_LIMITS, false);
+    }
+
+    /** Storage each user may use unless they have their own limit, in GB. */
+    public static function defaultStorageQuotaGb(): int
+    {
+        $gb = (int) Setting::get(self::DEFAULT_STORAGE_QUOTA_GB, self::STORAGE_QUOTA_DEFAULT_GB);
+
+        return max(self::STORAGE_QUOTA_MIN_GB, min(self::STORAGE_QUOTA_MAX_GB, $gb));
     }
 
     /** @return list<string> mime types that may be uploaded */

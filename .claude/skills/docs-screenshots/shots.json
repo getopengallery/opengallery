@@ -80,6 +80,17 @@
   "settings-page": { "url": "/admin/settings/general", "as": "admin@example.com" },
   "settings-search-engines": { "url": "/admin/settings/search-engines", "as": "admin@example.com" },
   "settings-tags": { "url": "/admin/settings/tags", "as": "admin@example.com" },
+  "settings-storage": {
+    "url": "/admin/settings/storage", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('storage.limits_enabled', true);",
+    "after_php": "App\\Models\\Setting::put('storage.limits_enabled', false);"
+  },
+  "users-storage": {
+    "url": "/admin/users/{user:mira@example.com}/edit", "as": "admin@example.com",
+    "php": "App\\Models\\Setting::put('storage.limits_enabled', true); App\\Models\\User::where('email', 'mira@example.com')->update(['storage_unlimited' => false, 'storage_quota_bytes' => 25 * 1024 ** 3]);",
+    "after_php": "App\\Models\\Setting::put('storage.limits_enabled', false); App\\Models\\User::where('email', 'mira@example.com')->update(['storage_unlimited' => true, 'storage_quota_bytes' => null]);",
+    "clip": "section.fi-section:has(h2[id*='storage'])", "pad": 8
+  },
   "settings-licenses": {
     "url": "/admin/settings/licenses", "as": "admin@example.com",
     "php": "App\\Models\\Setting::put('licenses.enabled', true); App\\Models\\Setting::put('licenses.default', App\\Models\\License::where('name', 'CC BY 4.0')->value('id'));"

@@ -14,6 +14,8 @@ Click **Upload photos** at the top (you need the permission "Upload photos"). Fi
 
 The **Upload photos** button on the dashboard opens the same dialog.
 
+While [storage limits](../administration/users-and-permissions.md#storage-limits) are on, a photo that does not fit in your limit is refused with "Not enough storage left. You can store up to 10 GB of photos." Photos in the trash still count until they are deleted for good, so emptying the trash makes room. Ask an administrator if you need more space.
+
 ## List and grid
 
 The media library opens as a grid. Switch between the two layouts with the **List** and **Grid** buttons in the toolbar above the table, in the same row as the search and the filters. Your choice is remembered until you log out.

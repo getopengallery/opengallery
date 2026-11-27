@@ -53,6 +53,8 @@ The site settings (pages of the cluster `App\Filament\Clusters\Settings\Settings
 | `LIGHTBOX_FOOTER` | `photos.lightbox_footer` | `SiteSettings::lightboxFooter()`: `App\Enums\LightboxFooter` (`DescriptionAndTaken` by default, also for unknown values); what the lightbox shows below the photo, built per photo by `PhotoGridItems` as the item's `footer` |
 | `SLIDESHOW_ENABLED` | `photos.slideshow_enabled` | `SiteSettings::slideshowEnabled()` (on by default) |
 | `SLIDESHOW_SECONDS` | `photos.slideshow_seconds` | `SiteSettings::slideshowSeconds()` (5 by default, clamped to `SLIDESHOW_SECONDS_MIN` 2 to `SLIDESHOW_SECONDS_MAX` 60) |
+| `STORAGE_LIMITS` | `storage.limits_enabled` | `SiteSettings::storageLimitsEnabled()` (off by default; off = nobody is limited, see [Storage limits](../internals/uploads.md#storage-limits)) |
+| `DEFAULT_STORAGE_QUOTA_GB` | `storage.default_quota_gb` | `SiteSettings::defaultStorageQuotaGb()` (10 by default, clamped to `STORAGE_QUOTA_MIN_GB` 1 to `STORAGE_QUOTA_MAX_GB` 1000000; followed by every user without their own limit) |
 | `TAGGING` | `tags.enabled` | `SiteSettings::taggingEnabled()` (on by default) |
 | `TAGS_ALLOW_CUSTOM` | `tags.allow_custom` | `SiteSettings::allowsCustomTags()` (on by default) |
 | `TAGS_GLOBAL_SUGGESTIONS` | `tags.global_suggestions` | `SiteSettings::globalTagSuggestions()` (off by default, because tag names can be private) |

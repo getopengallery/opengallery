@@ -52,3 +52,10 @@ function useCompression(?int $maxPx = null, ?int $quality = null): void
     Setting::put(SiteSettings::COMPRESSION_REENCODE, $quality !== null);
     Setting::put(SiteSettings::COMPRESSION_QUALITY, $quality ?? SiteSettings::COMPRESSION_QUALITY_DEFAULT);
 }
+
+/** Turns per-user storage limits on, with $defaultGb as the limit of users without their own. */
+function useStorageLimits(int $defaultGb = 10): void
+{
+    Setting::put(SiteSettings::STORAGE_LIMITS, true);
+    Setting::put(SiteSettings::DEFAULT_STORAGE_QUOTA_GB, $defaultGb);
+}

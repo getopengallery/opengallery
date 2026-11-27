@@ -68,6 +68,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             'email_verified_at' => 'datetime',
             'awaiting_approval' => 'boolean',
             'last_login_at' => 'datetime',
+            'storage_quota_bytes' => 'integer',
+            'storage_unlimited' => 'boolean',
             'dashboard_layout' => 'array',
             'password' => 'hashed',
         ];

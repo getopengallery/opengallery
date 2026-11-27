@@ -12,6 +12,7 @@ use App\Filament\Clusters\Settings\Pages\GeneralSettings;
 use App\Filament\Clusters\Settings\Pages\LicenseSettings;
 use App\Filament\Clusters\Settings\Pages\PhotoSettings;
 use App\Filament\Clusters\Settings\Pages\SearchEngineSettings;
+use App\Filament\Clusters\Settings\Pages\StorageSettings;
 use App\Filament\Clusters\Settings\Pages\TagSettings;
 use App\Filament\Clusters\Settings\Pages\UpdateSettings;
 use App\Filament\Clusters\Settings\SettingsCluster;
@@ -89,6 +90,7 @@ describe('who may enter the admin', function () {
         'search engines' => SearchEngineSettings::class,
         'access' => AccessSettings::class,
         'photos' => PhotoSettings::class,
+        'storage' => StorageSettings::class,
         'tags' => TagSettings::class,
         'licenses' => LicenseSettings::class,
         'e-mail' => EmailSettings::class,
@@ -160,7 +162,7 @@ describe('the menu', function () {
         actingAsRole();
 
         expect(adminMenu())->toMatchArray([
-            'Settings' => ['General', 'App', 'Search engines', 'Access', 'Photos', 'Tags', 'Licenses', 'E-mail'],
+            'Settings' => ['General', 'App', 'Search engines', 'Access', 'Photos', 'Storage', 'Tags', 'Licenses', 'E-mail'],
             'System' => ['Statistics', 'Activity log', 'Background jobs', 'Updates'],
         ]);
 
