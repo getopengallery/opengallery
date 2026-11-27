@@ -3,6 +3,7 @@
 use App\Enums\ActivityLevel;
 use App\Enums\ActivityType;
 use App\Enums\Role;
+use App\Enums\StatisticsRange;
 use App\Enums\Visibility;
 use App\Filament\Clusters\Settings\Pages\GeneralSettings;
 use App\Filament\Pages\ThemeSettings;
@@ -17,6 +18,7 @@ use App\Filament\Resources\Licenses\Pages\ListLicenses;
 use App\Filament\Resources\Photos\Pages\ListPhotos;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Http\Controllers\PhotoSelectionDownloadController;
 use App\Models\ActivityEvent;
 use App\Models\Album;
 use App\Models\Group;
@@ -26,8 +28,8 @@ use App\Models\Role as RoleModel;
 use App\Models\Setting;
 use App\Models\SocialAccount;
 use App\Models\User;
-use App\Support\DashboardStats;
 use App\Support\SiteSettings;
+use App\Support\Statistics\VisitStats;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Carbon;
@@ -395,6 +397,26 @@ describe('logins and visits', function () {
             ->user_id->toBe($user->id);
     });
 
+    it('remembers the last login on the account whatever the activity level, without touching the account\'s change history', function (ActivityLevel $level) {
+        config(['gallery.activity_log_level' => $level->value]);
+        $user = User::factory()->create(['updated_at' => '2026-01-01 10:00:00']);
+        $before = (int) ActivityEvent::max('id');
+        $this->travelTo('2026-11-19 12:00');
+
+        $this->post(route('login'), ['email' => $user->email, 'password' => 'wrong']);
+        expect($user->fresh()->last_login_at)->toBeNull();
+
+        $this->post(route('login'), ['email' => $user->email, 'password' => 'password']);
+
+        $fresh = $user->fresh();
+        expect($fresh->last_login_at->toDateTimeString())->toBe('2026-11-19 12:00:00')
+            ->and($fresh->updated_at->toDateTimeString())->toBe('2026-01-01 10:00:00')
+            ->and(ActivityEvent::where('id', '>', $before)->where('type', ActivityType::Updated)->exists())->toBeFalse();
+    })->with([
+        'activity log off' => ActivityLevel::Off,
+        'activity log on' => ActivityLevel::All,
+    ]);
+
     it('records guest album views anonymously, once per day and album', function () {
         $album = Album::factory()->visibility(Visibility::Public)->create();
 
@@ -418,7 +440,7 @@ describe('logins and visits', function () {
         ActivityEvent::factory()->for($ben)->create(['created_at' => '2026-11-10 09:00']);
         ActivityEvent::factory()->guestView()->create(['created_at' => '2026-11-12 10:00']);
 
-        $calendar = DashboardStats::calendar();
+        $calendar = VisitStats::calendar();
         $days = collect($calendar['weeks'])->flatten(1)->keyBy(fn ($day) => $day['date']->toDateString());
 
         expect($days['2026-11-12']['count'])->toBe(2)
@@ -427,7 +449,7 @@ describe('logins and visits', function () {
             ->and($days['2026-11-14']['future'])->toBeTrue()
             ->and($calendar['activeDays'])->toBe(2)
             ->and($calendar['people'])->toBe(2)
-            ->and(DashboardStats::calendar(DashboardStats::GUESTS)['people'])->toBe(1);
+            ->and(VisitStats::calendar(VisitStats::GUESTS)['people'])->toBe(1);
     });
 
     it('ranks the most viewed albums of the last 30 days', function () {
@@ -438,7 +460,7 @@ describe('logins and visits', function () {
         ActivityEvent::factory()->guestView()->for($quiet)->create();
         ActivityEvent::factory()->count(5)->guestView()->for($old)->create(['created_at' => now()->subDays(31)]);
 
-        expect(DashboardStats::popularAlbums(userWithRole())->map(fn ($row) => [$row->album->id, $row->views])->all())
+        expect(VisitStats::topAlbums(StatisticsRange::Month, userWithRole())->map(fn ($row) => [$row->album->id, $row->views])->all())
             ->toBe([[$popular->id, 3], [$quiet->id, 1]]);
     });
 
@@ -451,6 +473,118 @@ describe('logins and visits', function () {
         $this->artisan('model:prune', ['--model' => [ActivityEvent::class]]);
 
         expect(ActivityEvent::where('type', ActivityType::Login)->pluck('id')->all())->toBe([$kept->id]);
+    });
+});
+
+describe('downloads', function () {
+    beforeEach(function () {
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, true);
+        $this->album = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true]);
+        $this->photo = galleryPhoto($this->album, name: 'Beach.jpg', width: 80, height: 60);
+        $this->original = route('media.show', ['media' => $this->photo->original(), 'download' => 1]);
+        $this->downloads = fn () => ActivityEvent::whereIn('type', ActivityType::downloads())->orderBy('id')->get();
+    });
+
+    it('records an original downloaded by a guest anonymously, once per photo and day', function () {
+        $this->get($this->original)->assertOk();
+        $this->get($this->original)->assertOk();
+        // Showing the file, or one of its smaller versions, is no download.
+        $this->get(route('media.show', ['media' => $this->photo->original()]))->assertOk();
+        $this->get(route('media.show', ['media' => $this->photo->original(), 'conversion' => 'thumb', 'download' => 1]))->assertOk();
+
+        $event = ($this->downloads)()->sole();
+        expect($event->type)->toBe(ActivityType::PhotoDownload)
+            ->and($event->user_id)->toBeNull()
+            ->and($event->subject_type)->toBe($this->photo->getMorphClass())
+            ->and($event->subject_id)->toBe($this->photo->id)
+            ->and($event->visitor)->toHaveLength(64);
+
+        $this->travel(1)->day();
+        $this->get($this->original)->assertOk();
+
+        expect(($this->downloads)())->toHaveCount(2);
+    });
+
+    it('records a member\'s download under the member', function () {
+        $member = User::factory()->create();
+
+        $this->actingAs($member)->get($this->original)->assertOk();
+
+        expect(($this->downloads)()->sole())
+            ->user_id->toBe($member->id)
+            ->visitor->toBeNull();
+    });
+
+    it('records an album zip once per album and day, with the number of photos', function () {
+        galleryPhoto($this->album, name: 'Hill.jpg', width: 80, height: 60);
+
+        $this->get(route('albums.download', $this->album))->assertOk();
+        $this->get(route('albums.download', $this->album))->assertOk();
+
+        $event = ($this->downloads)()->sole();
+        expect($event->type)->toBe(ActivityType::ZipDownload)
+            ->and($event->album_id)->toBe($this->album->id)
+            ->and($event->user_id)->toBeNull()
+            ->and($event->visitor)->toHaveLength(64)
+            ->and($event->properties['count'])->toBe(2);
+
+        $this->travel(1)->day();
+        $this->get(route('albums.download', $this->album))->assertOk();
+
+        expect(($this->downloads)())->toHaveCount(2);
+    });
+
+    it('records every zip of a selection from the media library, without an album', function () {
+        $admin = actingAsRole();
+
+        foreach ([1, 2] as $download) {
+            $key = PhotoSelectionDownloadController::prepare([$this->photo->id]);
+            $this->get(route('media.selection.download', $key))->assertOk();
+        }
+
+        $events = ($this->downloads)();
+        expect($events)->toHaveCount(2)
+            ->and($events->pluck('type')->unique()->all())->toBe([ActivityType::ZipDownload])
+            ->and($events->pluck('album_id')->filter()->all())->toBe([])
+            ->and($events->pluck('user_id')->unique()->all())->toBe([$admin->id])
+            ->and($events[0]->properties['count'])->toBe(1);
+    });
+
+    it('records downloads only at the level "everything"', function (ActivityLevel $level, int $recorded) {
+        config(['gallery.activity_log_level' => $level->value]);
+
+        $this->get($this->original)->assertOk();
+        $this->get(route('albums.download', $this->album))->assertOk();
+
+        expect(($this->downloads)())->toHaveCount($recorded);
+    })->with([
+        'off' => [ActivityLevel::Off, 0],
+        'changes only' => [ActivityLevel::Changes, 0],
+        'changes and logins' => [ActivityLevel::ChangesAndLogins, 0],
+        'everything' => [ActivityLevel::All, 2],
+    ]);
+
+    it('records nothing for downloads that are refused or are not counted', function () {
+        $locked = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => true, 'password' => 'lake-2026']);
+        $lockedPhoto = galleryPhoto($locked, name: 'Locked.jpg', width: 80, height: 60);
+        $closed = Album::factory()->visibility(Visibility::Public)->create(['allow_downloads' => false]);
+        $closedPhoto = galleryPhoto($closed, name: 'Closed.jpg', width: 80, height: 60);
+
+        $this->get(route('media.show', ['media' => $lockedPhoto->original(), 'download' => 1]))->assertNotFound();
+        $this->get(route('albums.download', $locked))->assertRedirect(route('albums.show', $locked));
+        $this->get(route('media.show', ['media' => $closedPhoto->original(), 'download' => 1]))->assertNotFound();
+        $this->get(route('albums.download', $closed))->assertNotFound();
+
+        Setting::put(SiteSettings::DOWNLOADS_ENABLED, false);
+        $this->get($this->original)->assertNotFound();
+        $this->get(route('albums.download', $this->album))->assertNotFound();
+
+        // Downloading one's own photos from the profile is no visit either.
+        $owner = User::factory()->create();
+        galleryPhoto(Album::factory()->for($owner, 'owner')->create(), $owner, 'Mine.jpg', 80, 60);
+        $this->actingAs($owner)->get(route('profile.photos.download'))->assertOk();
+
+        expect(($this->downloads)())->toBeEmpty();
     });
 });
 

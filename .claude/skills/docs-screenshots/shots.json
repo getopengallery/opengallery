@@ -16,6 +16,12 @@
     "full_page": true
   },
   "activity-log": { "url": "/admin/activity", "as": "admin@example.com" },
+  "statistics-overview": { "url": "/admin/statistics", "as": "admin@example.com" },
+  "statistics-disk-space": {
+    "url": "/admin/statistics", "as": "admin@example.com",
+    "steps": [{ "scroll": "h2:text-is('Disk space')" }, { "wait": 500 }],
+    "clip": ["section.fi-section:has(h2:text-is('Disk space')) > header", "section.fi-section:has(h2:text-is('Disk space')) .fi-section-content"], "pad": 8
+  },
 
   "admin-navigation": { "url": "/admin", "as": "admin@example.com", "clip": ".fi-sidebar-nav", "pad": 0, "viewport": [1440, 1500] },
   "admin-user-menu": { "url": "/admin", "as": "admin@example.com", "steps": [{ "click": ".og-account-trigger" }, { "wait": 400 }], "clip": [".og-account-trigger", ".og-account .fi-dropdown-panel"], "pad": 8 },

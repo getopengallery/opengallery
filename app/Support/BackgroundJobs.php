@@ -72,6 +72,8 @@ class BackgroundJobs
             'small-thumbnails' => ['interval' => self::MIN_SECONDS, 'run' => fn () => SmallThumbnails::makeMissing()],
             // Photos stored before compression was turned on, after an admin asked for it.
             'compress-existing' => ['interval' => self::MIN_SECONDS, 'run' => fn () => PhotoCompression::compressExisting()],
+            // Sizes of the generated files of photos stored before the statistics recorded them.
+            'media-sizes' => ['interval' => self::MIN_SECONDS, 'run' => fn () => MediaSizes::fillMissing()],
             // The site health checks that scan tables and files, so the dashboard only reads them;
             // then people who change settings are told about new problems.
             'site-health' => ['interval' => SiteHealth::REFRESH_SECONDS, 'run' => function (): void {

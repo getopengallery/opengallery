@@ -19,12 +19,11 @@ The admin dashboard (`App\Filament\Pages\Dashboard`) shows the widgets registere
 | `members` | `MembersOverview` | `manage users` | normal |
 | `pages` | `PagesOverview` | `manage pages` | normal |
 | `library` | `LibraryOverview` | `view activity` | full |
-| `activity-calendar` | `ActivityCalendar` | `view activity` | full |
 | `activity-trends` | `ActivityTrends` | `view activity` | full |
 | `recent-activity` | `RecentActivity` | `view activity` | wide |
 | `popular-albums` | `PopularAlbums` | `view activity` | normal |
 
-Every check also requires `access admin panel`. Core positions run from 0 to 120 (`DashboardWidgets::CORE`).
+Every check also requires `access admin panel`. Core positions run from 0 to 120 (`DashboardWidgets::CORE`). The activity calendar was a core widget (`activity-calendar`) and now lives on the Statistics page; saved layouts that still name the key lose it like any key that is no longer available. The Statistics page itself is not a widget: see [Activity log internals](../internals/activity-log.md#statistics-and-the-dashboard).
 
 ## Writing a widget
 
@@ -65,7 +64,7 @@ class WatermarkQueue extends DashboardWidget
 Filament checks `canView()` before mounting the widget and before every Livewire update, so it is the single place that decides visibility. Rules for the data:
 
 - Scope everything about albums and photos to the viewer: `Album::listableFor()`, `Album::manageableBy()`, `Photo::visibleTo()`, or the owner or uploader for "my …" widgets. Never show album titles, photos or names the viewer could not open elsewhere in the admin.
-- Keep queries in a support class (core: `App\Support\DashboardStats` and `App\Support\Dashboard\*`) and the widget thin. Aggregate in SQL, avoid one query per row, and wrap site-wide totals in `Cache::remember()` with a short time to live. The cache is the file or database store on shared hosting.
+- Keep queries in a support class (core: `App\Support\Statistics\*` and `App\Support\Dashboard\*`) and the widget thin. Aggregate in SQL, avoid one query per row, and wrap site-wide totals in `Cache::remember()` with a short time to live. The cache is the file or database store on shared hosting.
 - Set `protected static bool $isLazy = true;` for a widget whose queries are slow, so the rest of the dashboard renders first.
 - Use the `og-*` classes and theme tokens from `resources/views/filament/partials/theme-styles.blade.php` and Filament's components (`x-filament::section`, `x-filament::badge`), never raw colours, and translate every text (see [Admin UI conventions](../internals/admin-ui.md)).
 

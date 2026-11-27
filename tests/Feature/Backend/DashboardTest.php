@@ -8,6 +8,7 @@ use App\Enums\Role;
 use App\Enums\Visibility;
 use App\Extensions\DashboardWidgets;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Statistics;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Groups\GroupResource;
 use App\Filament\Resources\Photos\PhotoResource;
@@ -32,16 +33,17 @@ use App\Models\Photo;
 use App\Models\Role as RoleModel;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\Dashboard\ActivityStats;
 use App\Support\Dashboard\DashboardLayout;
 use App\Support\Dashboard\SiteHealth as SiteHealthChecks;
-use App\Support\DashboardStats;
 use App\Support\SiteSettings;
+use App\Support\Statistics\VisitStats;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Once;
 use Livewire\Livewire;
 
-$activity = ['library', 'activity-calendar', 'activity-trends', 'recent-activity', 'popular-albums'];
+$activity = ['library', 'activity-trends', 'recent-activity', 'popular-albums'];
 
 $n = DashboardLayout::NORMAL;
 $w = DashboardLayout::WIDE;
@@ -150,7 +152,7 @@ describe('only what the viewer may see', function () {
         ActivityEvent::factory()->create(['type' => ActivityType::Updated, 'subject_type' => $this->private->getMorphClass(), 'subject_id' => $this->private->id]);
         $analyst = userWithRoleOrPermissions([Permission::AccessAdmin, Permission::ViewActivity]);
 
-        expect(DashboardStats::recent($analyst)->pluck('album_id')->filter()->unique()->values()->all())->toBe([$this->public->id]);
+        expect(ActivityStats::recent($analyst)->pluck('album_id')->filter()->unique()->values()->all())->toBe([$this->public->id]);
 
         $this->actingAs($analyst);
         Livewire::test(RecentActivity::class)
@@ -205,7 +207,7 @@ describe('an administrator\'s dashboard', function () {
             ->assertSeeInOrder(['albums', 'photos', 'members', 'groups'])
             ->assertSee('A guest')
             ->assertSee('Summer camp')
-            ->assertSee('og-calendar-grid', false)
+            ->assertDontSee('class="og-calendar-grid"', false)
             ->assertDontSee('<script>alert(1)</script>', false)
             ->assertSee('&lt;script&gt;', false)
             ->assertSeeText($ada->name)
@@ -219,7 +221,7 @@ describe('an administrator\'s dashboard', function () {
 
         expect(collect((new LibraryOverview)->getFigures())->pluck('url')->all())->toBe($urls());
     })->with([
-        'administrator' => [Role::Admin, fn () => [AlbumResource::getUrl(), PhotoResource::getUrl(), UserResource::getUrl(), GroupResource::getUrl(), null]],
+        'administrator' => [Role::Admin, fn () => [AlbumResource::getUrl(), PhotoResource::getUrl(), UserResource::getUrl(), GroupResource::getUrl(), Statistics::getUrl()]],
         // Albums and media are open to every admin user (scoped to what they may see); users and groups are not.
         'staff who may only watch' => [[Permission::AccessAdmin, Permission::ViewActivity], fn () => [AlbumResource::getUrl(), PhotoResource::getUrl(), null, null, null]],
     ]);
@@ -368,25 +370,65 @@ describe('members, pages and site health', function () {
     });
 });
 
-it('counts album views and logins per week', function () {
+it('counts album views, downloads and logins per week', function () {
     $this->travelTo('2026-11-19 12:00'); // a Thursday
     $album = Album::factory()->create();
-    ActivityEvent::factory()->guestView()->for($album)->create(['created_at' => '2026-11-17 10:00']);
-    ActivityEvent::factory()->for(User::factory())->create(['type' => ActivityType::AlbumView, 'album_id' => $album->id, 'created_at' => '2026-11-18 10:00']);
-    ActivityEvent::factory()->create(['created_at' => '2026-11-10 10:00']); // a login the week before
+    $photo = Photo::factory()->inAlbum($album)->create();
+    ActivityEvent::factory()->guestView()->for($album)->create(['created_at' => '2026-11-03 10:00']); // the week before last week
+    ActivityEvent::factory()->guestView()->for($album)->create(['created_at' => '2026-11-10 10:00']);
+    ActivityEvent::factory()->for(User::factory())->create(['type' => ActivityType::AlbumView, 'album_id' => $album->id, 'created_at' => '2026-11-11 10:00']);
+    ActivityEvent::factory()->create(['created_at' => '2026-11-12 10:00']); // a login
+    photoDownloadEvent($photo, at: '2026-11-13 10:00');
+    ActivityEvent::factory()->guestView()->for($album)->create(['created_at' => '2026-11-17 10:00']); // this week, still running
 
-    $weeks = DashboardStats::trends();
+    $weeks = VisitStats::weeks(12);
 
     expect($weeks)->toHaveCount(12)
         ->and($weeks[11]['start']->toDateString())->toBe('2026-11-16')
-        ->and([$weeks[11]['memberViews'], $weeks[11]['guestViews'], $weeks[11]['logins']])->toBe([1, 1, 0])
-        ->and($weeks[10]['logins'])->toBe(1);
+        ->and([$weeks[11]['memberViews'], $weeks[11]['guestViews'], $weeks[11]['logins']])->toBe([0, 1, 0])
+        ->and([$weeks[10]['memberViews'], $weeks[10]['guestViews'], $weeks[10]['logins'], $weeks[10]['downloads']])->toBe([1, 1, 1, 1])
+        ->and($weeks[9]['guestViews'])->toBe(1);
 
     $this->actingAs(userWithRoleOrPermissions(Role::Admin));
-    // Leads with the last full week; the running week (2 views so far) is drawn hatched.
-    Livewire::test(ActivityTrends::class)
-        ->assertSeeInOrder(['og-trend-value og-num">0<', 'album views last week', 'og-trend-value og-num">1<', 'login last week'], false)
-        ->assertSee('og-trend-col is-current', false);
+    // Only the last full week, each figure compared to the week before; the running week is left out.
+    $html = Livewire::test(ActivityTrends::class)->assertSee('Last week')->html();
+    preg_match_all('/og-ledger-value">([^<]+)<\/span>\s*<span class="og-ledger-label">([^<]+)<\/span>\s*<span class="og-ledger-change">([^<]+)</', $html, $figures, PREG_SET_ORDER);
+
+    expect(array_map(fn (array $figure) => array_slice($figure, 1), $figures))->toBe([
+        ['2', 'album views', '100% more than the week before'],
+        ['1', 'download', 'No week to compare with'],
+        ['1', 'login', 'No week to compare with'],
+    ]);
+});
+
+describe('the statistics page', function () {
+    it('is linked from the dashboard only for people who may open it', function (Role|array $type, bool $linked) {
+        $this->actingAs(userWithRoleOrPermissions($type));
+        $link = Statistics::getUrl();
+
+        $widgets = [
+            Livewire::test(ActivityTrends::class)->assertSee('Last week'),
+            Livewire::test(PopularAlbums::class)->assertSee('Most viewed albums'),
+        ];
+        foreach ($widgets as $widget) {
+            $linked ? $widget->assertSeeHtml($link) : $widget->assertDontSeeHtml($link);
+        }
+        $linked ? $widgets[0]->assertSee('All statistics') : $widgets[0]->assertDontSee('All statistics');
+        $linked ? $widgets[1]->assertSee('Show all') : $widgets[1]->assertDontSee('Show all');
+        expect(collect((new LibraryOverview)->getFigures())->last()['url'])->toBe($linked ? $link : null);
+    })->with([
+        'administrator' => [Role::Admin, true],
+        'moderator, who sees the widgets but not the statistics' => [Role::Moderator, false],
+        'analyst' => [[Permission::AccessAdmin, Permission::ViewActivity], false],
+        'analyst who may also see the statistics' => [[Permission::AccessAdmin, Permission::ViewActivity, Permission::ViewStatistics], true],
+    ]);
+
+    it('no longer has the activity calendar on the dashboard', function () {
+        $this->actingAs(userWithRoleOrPermissions(Role::Admin));
+
+        expect(array_keys(app(DashboardWidgets::class)->all()))->not->toContain('activity-calendar');
+        $this->get('/admin')->assertOk()->assertDontSee('class="og-calendar-grid"', false);
+    });
 });
 
 it('keeps the number of queries independent of the size of the library', function (string $widget) {
@@ -467,18 +509,18 @@ describe('the dashboard layout', function () use ($n, $w, $f) {
             ->and(defaultsOf($user))->toBe($expected)
             ->and($user->fresh()->dashboard_layout)->toBeNull();
     })->with([
-        'super-admin' => [Role::SuperAdmin, 'administrator', ['quick-actions' => $f, 'site-health' => $n, 'members' => $n, 'albums-attention' => $n, 'library' => $f, 'your-albums' => $n, 'recent-uploads' => $n, 'pages' => $n, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n, 'activity-calendar' => $f]],
-        'admin' => [Role::Admin, 'administrator', ['quick-actions' => $f, 'site-health' => $n, 'members' => $n, 'albums-attention' => $n, 'library' => $f, 'your-albums' => $n, 'recent-uploads' => $n, 'pages' => $n, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n, 'activity-calendar' => $f]],
-        'moderator' => [Role::Moderator, 'moderator', ['quick-actions' => $f, 'albums-attention' => $n, 'your-albums' => $n, 'recent-uploads' => $n, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n, 'library' => $f, 'activity-calendar' => $f]],
+        'super-admin' => [Role::SuperAdmin, 'administrator', ['quick-actions' => $f, 'site-health' => $n, 'members' => $n, 'albums-attention' => $n, 'library' => $f, 'your-albums' => $n, 'recent-uploads' => $n, 'pages' => $n, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n]],
+        'admin' => [Role::Admin, 'administrator', ['quick-actions' => $f, 'site-health' => $n, 'members' => $n, 'albums-attention' => $n, 'library' => $f, 'your-albums' => $n, 'recent-uploads' => $n, 'pages' => $n, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n]],
+        'moderator' => [Role::Moderator, 'moderator', ['quick-actions' => $f, 'albums-attention' => $n, 'your-albums' => $n, 'recent-uploads' => $n, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n, 'library' => $f]],
         'uploader' => [Role::Uploader, 'uploader', ['quick-actions' => $f, 'your-albums' => $w, 'recent-uploads' => $n]],
-        'analyst' => [[Permission::AccessAdmin, Permission::ViewActivity], 'analyst', ['quick-actions' => $f, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n, 'library' => $f, 'activity-calendar' => $f]],
+        'analyst' => [[Permission::AccessAdmin, Permission::ViewActivity], 'analyst', ['quick-actions' => $f, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n, 'library' => $f]],
         'user manager' => [[Permission::AccessAdmin, Permission::ManageUsers, Permission::ManageGroups], 'user-manager', ['quick-actions' => $f, 'members' => $f]],
         'site operator' => [[Permission::AccessAdmin, Permission::ManageSettings, Permission::ManageThemes], 'site-operator', ['quick-actions' => $f, 'site-health' => $f]],
         'content editor' => [[Permission::AccessAdmin, Permission::ManagePages], 'content-editor', ['quick-actions' => $f, 'pages' => $f]],
         'admin access only' => [[Permission::AccessAdmin], 'user-manager', ['quick-actions' => $f]],
         // Mixed custom roles take the broadest preset that covers them, in its order.
         'uploader who edits pages' => [[Permission::AccessAdmin, Permission::UploadPhotos, Permission::CreateAlbums, Permission::ManagePages], 'administrator', ['quick-actions' => $f, 'your-albums' => $n, 'recent-uploads' => $n, 'pages' => $n]],
-        'analyst who manages users' => [[Permission::AccessAdmin, Permission::ViewActivity, Permission::ManageUsers], 'administrator', ['quick-actions' => $f, 'members' => $n, 'library' => $f, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n, 'activity-calendar' => $f]],
+        'analyst who manages users' => [[Permission::AccessAdmin, Permission::ViewActivity, Permission::ManageUsers], 'administrator', ['quick-actions' => $f, 'members' => $n, 'library' => $f, 'activity-trends' => $f, 'recent-activity' => $w, 'popular-albums' => $n]],
     ]);
 
     it('puts the trash where the preset plans it once it holds something', function () {
@@ -559,6 +601,17 @@ describe('the dashboard layout', function () use ($n, $w, $f) {
         // An invalid size falls back to the uploader preset's width.
         expect($uploader->fresh()->dashboard_layout['widgets'])->toBe([['key' => 'your-albums', 'hidden' => false, 'size' => DashboardLayout::WIDE]]);
         $this->get('/admin')->assertOk()->assertDontSee('Site health')->assertDontSee('Newest members');
+    });
+
+    it('ignores a widget in a saved layout that no longer exists', function () {
+        $this->admin->forceFill(['dashboard_layout' => ['v' => DashboardLayout::VERSION, 'widgets' => [
+            ['key' => 'activity-calendar', 'hidden' => false, 'size' => DashboardLayout::FULL],
+            ['key' => 'pages', 'hidden' => true, 'size' => DashboardLayout::NORMAL],
+        ]]])->saveQuietly();
+
+        expect(layoutKeys($this->admin))->not->toContain('activity-calendar')
+            ->and(collect(layoutOf($this->admin))->firstWhere('key', 'pages')['hidden'])->toBeTrue();
+        $this->get('/admin')->assertOk()->assertDontSee('class="og-calendar-grid"', false);
     });
 
     it('resets to the default layout', function () {

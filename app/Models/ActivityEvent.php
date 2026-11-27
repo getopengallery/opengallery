@@ -112,6 +112,10 @@ class ActivityEvent extends Model
         return match ($this->type) {
             ActivityType::Login => __('logged in'),
             ActivityType::AlbumView => __('opened'),
+            ActivityType::PhotoDownload => __('downloaded'),
+            ActivityType::ZipDownload => $this->album_id
+                ? trans_choice('downloaded :count photo from|downloaded :count photos from', $count)
+                : trans_choice('downloaded :count photo|downloaded :count photos', $count),
             ActivityType::Created => $this->isSignUp() ? __('created an account') : __('created :item', $item),
             ActivityType::Updated => __('changed :item', $item),
             ActivityType::Deleted => __('deleted :item', $item),
@@ -174,8 +178,12 @@ class ActivityEvent extends Model
     /** Name of the thing acted on, as it was at the time. */
     public function subjectLabel(): ?string
     {
-        if ($this->type === ActivityType::AlbumView) {
+        if ($this->type === ActivityType::AlbumView || ($this->type === ActivityType::ZipDownload && $this->album_id)) {
             return $this->album?->title ?? __('a deleted album');
+        }
+
+        if ($this->type === ActivityType::ZipDownload) {
+            return null;
         }
 
         if ($this->isSignUp()) {
@@ -193,7 +201,7 @@ class ActivityEvent extends Model
     /** Where to look at the subject, if it still exists and the current user may open it. */
     public function subjectUrl(): ?string
     {
-        $subject = $this->type === ActivityType::AlbumView ? $this->album : $this->subject;
+        $subject = in_array($this->type, [ActivityType::AlbumView, ActivityType::ZipDownload], true) ? $this->album : $this->subject;
 
         return match (true) {
             $subject instanceof Album && ! $subject->trashed() => route('albums.show', $subject),

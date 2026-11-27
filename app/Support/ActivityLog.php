@@ -54,8 +54,8 @@ class ActivityLog
      */
     private static ?array $batch = null;
 
-    /** Attributes never worth reporting (dashboard_layout: a personal UI preference). */
-    private const IGNORED = ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token', 'share_token', 'slug', 'guard_name', 'tree_path', 'dashboard_layout'];
+    /** Attributes never worth reporting (dashboard_layout: a personal UI preference; last_login_at: set on every login). */
+    private const IGNORED = ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token', 'share_token', 'slug', 'guard_name', 'tree_path', 'dashboard_layout', 'last_login_at'];
 
     /** Readable nouns for logged subjects. */
     public const NOUNS = [
@@ -123,6 +123,64 @@ class ActivityLog
         ]);
 
         if ($request->hasSession()) {
+            $request->session()->put($key, true);
+        }
+    }
+
+    /** A single original downloaded (MediaController with ?download=1): once per visitor, photo and day. */
+    public static function photoDownload(Photo $photo, Request $request): void
+    {
+        if (! SiteSettings::activityLevel()->logsVisits()) {
+            return;
+        }
+
+        $key = 'activity.downloaded.'.$photo->id.'.'.now()->toDateString();
+        if ($request->hasSession() && $request->session()->get($key)) {
+            return;
+        }
+
+        $user = $request->user();
+
+        self::write([
+            'type' => ActivityType::PhotoDownload,
+            'user_id' => $user?->id,
+            'subject_type' => $photo->getMorphClass(),
+            'subject_id' => $photo->id,
+            'visitor' => $user ? null : self::visitor($request),
+            'properties' => ['label' => self::label($photo)],
+        ]);
+
+        if ($request->hasSession()) {
+            $request->session()->put($key, true);
+        }
+    }
+
+    /**
+     * Originals downloaded as one zip: an album (once per visitor, album and
+     * day) or a chosen selection ($album null, every download counts).
+     */
+    public static function zipDownload(?Album $album, int $count, Request $request): void
+    {
+        if (! SiteSettings::activityLevel()->logsVisits()) {
+            return;
+        }
+
+        $key = $album ? 'activity.downloaded.album.'.$album->id.'.'.now()->toDateString() : null;
+        if ($key && $request->hasSession() && $request->session()->get($key)) {
+            return;
+        }
+
+        $user = $request->user();
+
+        self::write([
+            'type' => ActivityType::ZipDownload,
+            'user_id' => $user?->id,
+            'album_id' => $album?->id,
+            'visitor' => $user ? null : self::visitor($request),
+            'properties' => ['count' => $count],
+        ]);
+
+        if ($key && $request->hasSession()) {
             $request->session()->put($key, true);
         }
     }

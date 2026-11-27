@@ -14,6 +14,7 @@ Site-wide capabilities are Spatie permissions. Every permission is a case of `Ap
 | --- | --- | --- |
 | `AccessAdmin` | `access admin panel` | The full admin; needed for every other admin permission. `User::opensAdmin()` also lets people with a collaborator role in, to the Albums section only (see [Collaboration](#collaboration)) |
 | `ViewActivity` | `view activity` | Dashboard figures and the activity log |
+| `ViewStatistics` | `view statistics` | The Statistics page (`App\Filament\Pages\Statistics`, see [Activity log internals](../internals/activity-log.md#statistics-and-the-dashboard)). Admins and super admins have it, moderators do not |
 | `ManageUsers` | `manage users` | The user resource |
 | `ManageGroups` | `manage groups` | The group resource |
 | `ManageRoles` | `manage roles` | The role resource |

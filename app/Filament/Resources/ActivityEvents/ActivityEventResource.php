@@ -106,11 +106,11 @@ class ActivityEventResource extends Resource
                 SelectFilter::make('kind')
                     ->label(__('Kind'))
                     ->placeholder(__('Everything'))
-                    ->options(['visits' => __('Visits (logins, album views)'), 'changes' => __('Changes'), 'security' => __('Security')])
+                    ->options(['visits' => __('Visits (logins, album views, downloads)'), 'changes' => __('Changes'), 'security' => __('Security')])
                     ->query(fn (Builder $query, array $data) => match ($data['value'] ?? null) {
-                        'visits' => $query->whereIn('type', [ActivityType::Login, ActivityType::AlbumView]),
+                        'visits' => $query->whereIn('type', ActivityType::visits()),
                         'security' => $query->whereIn('type', ActivityType::security()),
-                        'changes' => $query->whereNotIn('type', [ActivityType::Login, ActivityType::AlbumView, ...ActivityType::security()]),
+                        'changes' => $query->whereNotIn('type', [...ActivityType::visits(), ...ActivityType::security()]),
                         default => $query,
                     }),
                 SelectFilter::make('type')

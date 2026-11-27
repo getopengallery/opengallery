@@ -20,7 +20,7 @@ OpenGallery is a Laravel 13 application with a Filament 5 admin panel. Visitors 
 | `app/Enums` | `Permission`, `Role`, `Visibility`, `PhotoOrder`, `ActivityType`, `ActivityLevel`, `MailDelivery` |
 | `app/Models`, `app/Models/Pivots` | Eloquent models; pivot models that log their changes (see [Data model](data-model.md)) |
 | `app/Policies` | `AlbumPolicy`, `PhotoPolicy` (see [Access model](access-model.md)) |
-| `app/Support` | Services without a better home: `SiteSettings`, `AlbumAccess`, `AlbumSearch`, `ActivityLog`, `PhotoUploads`, `Theme`, `Locales`, `Documentation`, `DashboardStats` and `Dashboard\*` (queries behind the dashboard widgets), `Avatars`, `AdminTheme`, `Navigation`, and the e-mail helpers `Mailing`, `Invitations`, `ShareNotices`, `AccountNotices` |
+| `app/Support` | Services without a better home: `SiteSettings`, `AlbumAccess`, `AlbumSearch`, `ActivityLog`, `PhotoUploads`, `Theme`, `Locales`, `Documentation`, `Statistics\*` (queries behind the Statistics page and the dashboard figures), `Dashboard\*` (queries and layout of the dashboard widgets), `MediaSizes`, `Avatars`, `AdminTheme`, `Navigation`, and the e-mail helpers `Mailing`, `Invitations`, `ShareNotices`, `AccountNotices` |
 | `app/Notifications` | Notices in the gallery and e-mails, such as `UserInvited`, `AlbumShared`, `AccountCreated`, and the queued mail channel (see [Notifications and e-mails](../internals/emails.md)) |
 | `app/Extensions` | Theme and plugin loading: `ThemeManager`, `PluginManager`, `Manifest`, `PluginSettings`, `LoginOptions`, `DashboardWidgets`, `TranslationLoader` |
 | `app/Filament` | The admin: resources, pages, widgets, relation managers, the media picker action and form field, rich editor blocks, the global search provider |

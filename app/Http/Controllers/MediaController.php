@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Photo;
+use App\Support\ActivityLog;
 use App\Support\AlbumAccess;
 use App\Support\PhotoFileResponse;
 use App\Support\PhotoLocation;
@@ -42,11 +43,17 @@ class MediaController extends Controller
         abort_unless($disk->exists($path), 404);
 
         // ?download=1 (originals only, see above) saves the file instead of showing it.
+        $download = $conversion === null && $request->boolean('download');
+
+        if ($download) {
+            ActivityLog::photoDownload($photo, $request);
+        }
+
         return PhotoFileResponse::make(
             $request,
             $disk,
             $path,
-            $conversion === null && $request->boolean('download') ? $media->file_name : null,
+            $download ? $media->file_name : null,
             PhotoLocation::isHiddenFrom($request->user(), $photo, $conversion === null),
         );
     }

@@ -67,6 +67,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
         return [
             'email_verified_at' => 'datetime',
             'awaiting_approval' => 'boolean',
+            'last_login_at' => 'datetime',
             'dashboard_layout' => 'array',
             'password' => 'hashed',
         ];
@@ -185,5 +186,18 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasLocale
             ->using(AlbumCollaborator::class)
             ->withPivot('role', 'added_by')
             ->withTimestamps();
+    }
+
+    /**
+     * Remembers when this person signed in, for the statistics page. Written
+     * straight to the table: no change-log entry, and updated_at stays as it is.
+     */
+    public function recordLogin(): void
+    {
+        $now = now();
+
+        static::query()->whereKey($this->getKey())->toBase()->update(['last_login_at' => $now]);
+
+        $this->forceFill(['last_login_at' => $now])->syncOriginalAttribute('last_login_at');
     }
 }

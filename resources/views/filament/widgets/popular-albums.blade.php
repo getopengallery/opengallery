@@ -2,6 +2,12 @@
 
 <x-filament-widgets::widget>
     <x-filament::section :heading="__('Most viewed albums')" :description="__('Last 30 days')">
+        @if ($more)
+            <x-slot name="afterHeader">
+                <a href="{{ $more }}" class="og-link">{{ __('Show all') }}</a>
+            </x-slot>
+        @endif
+
         @if ($rows->isEmpty())
             <p class="og-muted">{{ __('No album has been opened in the last 30 days.') }}</p>
         @else

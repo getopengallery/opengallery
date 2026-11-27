@@ -3,15 +3,15 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\Permission;
+use App\Filament\Pages\Statistics;
 use App\Support\Dashboard\DashboardLayout;
-use App\Support\DashboardStats;
 use App\Support\SiteSettings;
-use Carbon\CarbonImmutable;
+use App\Support\Statistics\VisitStats;
 
 /**
- * Album views (members and guests) and logins per week for the last 12
- * weeks. Each measure leads with the last full week and how it compares to
- * the week before; the current, unfinished week is drawn apart (hatched).
+ * Album views, downloads and logins of the last full week (Monday to
+ * Sunday), each compared to the week before. Charts over longer periods are
+ * on the statistics page, linked for people who may open it.
  */
 class ActivityTrends extends DashboardWidget
 {
@@ -26,7 +26,7 @@ class ActivityTrends extends DashboardWidget
 
     public static function dashboardDescription(): ?string
     {
-        return __('Album views and logins per week.');
+        return __('Album views, downloads and logins last week.');
     }
 
     public static function defaultSize(): string
@@ -60,21 +60,18 @@ class ActivityTrends extends DashboardWidget
     /** @return array<string, mixed> */
     protected function getViewData(): array
     {
-        $weeks = DashboardStats::trends();
+        [$before, $last] = VisitStats::weeks(3);
         $views = fn (array $week): int => $week['memberViews'] + $week['guestViews'];
-        [$before, $last] = array_slice($weeks, -3, 2);
-        $lastViews = $views($last);
+        $figure = fn (int $value, int $previous, string $label): array => ['value' => $value, 'label' => $label, 'change' => self::change($value, $previous)];
 
         return [
-            'weeks' => $weeks,
-            'maxViews' => max(1, ...array_map($views, $weeks)),
-            'maxLogins' => max(1, ...array_map(fn (array $week) => $week['logins'], $weeks)),
-            'views' => ['value' => $lastViews, 'change' => self::change($lastViews, $views($before))],
-            'logins' => ['value' => $last['logins'], 'change' => self::change($last['logins'], $before['logins'])],
-            'guestShare' => $lastViews > 0 ? (int) round($last['guestViews'] / $lastViews * 100) : null,
-            'firstWeek' => $weeks[0]['start'],
-            'today' => CarbonImmutable::today(),
+            'figures' => [
+                $figure($views($last), $views($before), trans_choice('album view|album views', $views($last))),
+                $figure($last['downloads'], $before['downloads'], trans_choice('download|downloads', $last['downloads'])),
+                $figure($last['logins'], $before['logins'], trans_choice('login|logins', $last['logins'])),
+            ],
             'level' => SiteSettings::activityLevel(),
+            'more' => Statistics::canAccess() ? Statistics::getUrl() : null,
         ];
     }
 }

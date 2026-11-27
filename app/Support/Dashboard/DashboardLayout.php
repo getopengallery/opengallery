@@ -64,7 +64,6 @@ class DashboardLayout
             'activity-trends' => self::FULL,
             'recent-activity' => self::WIDE, 'popular-albums' => self::NORMAL,
             'library' => self::FULL,
-            'activity-calendar' => self::FULL,
         ],
         'moderator' => [
             'quick-actions' => self::FULL,
@@ -72,7 +71,6 @@ class DashboardLayout
             'activity-trends' => self::FULL,
             'recent-activity' => self::WIDE, 'popular-albums' => self::NORMAL,
             'library' => self::FULL,
-            'activity-calendar' => self::FULL,
             'trash' => self::NORMAL,
         ],
         'administrator' => [
@@ -82,7 +80,6 @@ class DashboardLayout
             'your-albums' => self::NORMAL, 'recent-uploads' => self::NORMAL, 'pages' => self::NORMAL,
             'activity-trends' => self::FULL,
             'recent-activity' => self::WIDE, 'popular-albums' => self::NORMAL,
-            'activity-calendar' => self::FULL,
             'trash' => self::NORMAL,
         ],
     ];

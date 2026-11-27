@@ -242,14 +242,14 @@ To open these settings, go to **System → Activity log** and click **Log settin
   - **Off**: nothing new is recorded. Existing entries stay until they expire.
   - **Changes only**: changes made in the admin and security events, such as failed logins, lockouts, password resets and wrong album passwords.
   - **Changes and logins**: also when members log in.
-  - **Everything**: also album views. Visitors who are not logged in are counted anonymously per day.
+  - **Everything**: also album views and downloads of originals. Visitors who are not logged in are counted anonymously per day.
 - **Keep entries for**: how many days entries are kept (365 by default, between 1 and 3650). Older entries are deleted once a day by the [background jobs](#background-jobs).
 
 See [Dashboard and activity log](activity.md) for what you can do with the recorded entries.
 
 ## Background jobs
 
-Regular housekeeping: deleting activity log entries that are older than **Keep entries for**, removing uploads that were interrupted and never finished, making the small thumbnails phones use for photos uploaded before they existed, repeating the slower [site health](dashboard.md#site-health) checks about every five minutes (and telling the people who change settings about new problems), removing [notifications](../members-and-visitors/notifications.md) older than 180 days, [checking for new versions](#updates) if turned on, sending [e-mails that wait](#e-mail), and making thumbnails that wait in the background (only if your server is set up to [make thumbnails in the background](../getting-started/installation.md#thumbnails-in-the-background-optional)). The clean-ups run at most once a day, the thumbnails every time.
+Regular housekeeping: deleting activity log entries that are older than **Keep entries for**, removing uploads that were interrupted and never finished, making the small thumbnails phones use for photos uploaded before they existed, measuring the sizes of older photos for the [statistics](statistics.md#disk-space), repeating the slower [site health](dashboard.md#site-health) checks about every five minutes (and telling the people who change settings about new problems), removing [notifications](../members-and-visitors/notifications.md) older than 180 days, [checking for new versions](#updates) if turned on, sending [e-mails that wait](#e-mail), and making thumbnails that wait in the background (only if your server is set up to [make thumbnails in the background](../getting-started/installation.md#thumbnails-in-the-background-optional)). The clean-ups run at most once a day, the thumbnails every time.
 
 The page shows when the background jobs last ran and what started them.
 

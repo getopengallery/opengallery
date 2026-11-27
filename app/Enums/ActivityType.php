@@ -7,6 +7,10 @@ enum ActivityType: string
     case Login = 'login';
     case AlbumView = 'album_view';
 
+    /** Downloads of originals: one photo, or a zip of an album or a selection. */
+    case PhotoDownload = 'photo_download';
+    case ZipDownload = 'zip_download';
+
     /** Changes to a subject (album, user, group, role). */
     case Created = 'created';
     case Updated = 'updated';
@@ -43,6 +47,8 @@ enum ActivityType: string
         return match ($this) {
             self::Login => __('Logged in'),
             self::AlbumView => __('Opened album'),
+            self::PhotoDownload => __('Downloaded photo'),
+            self::ZipDownload => __('Downloaded photos as zip'),
             self::Created => __('Created'),
             self::Updated => __('Changed'),
             self::Deleted => __('Deleted'),
@@ -81,9 +87,21 @@ enum ActivityType: string
         return [self::LoginFailed, self::LockedOut, self::PasswordReset, self::AlbumPasswordFailed, self::AlbumGuestCodeFailed, self::AccountLinked, self::AccountUnlinked, self::SessionsSignedOut];
     }
 
-    /** Visits, as opposed to administrative changes. */
+    /** Visits (including downloads), as opposed to administrative changes. */
     public function isVisit(): bool
     {
-        return in_array($this, [self::Login, self::AlbumView], true);
+        return in_array($this, self::visits(), true);
+    }
+
+    /** @return list<self> */
+    public static function visits(): array
+    {
+        return [self::Login, self::AlbumView, ...self::downloads()];
+    }
+
+    /** @return list<self> */
+    public static function downloads(): array
+    {
+        return [self::PhotoDownload, self::ZipDownload];
     }
 }

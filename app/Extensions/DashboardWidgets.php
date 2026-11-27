@@ -2,7 +2,6 @@
 
 namespace App\Extensions;
 
-use App\Filament\Widgets\ActivityCalendar;
 use App\Filament\Widgets\ActivityTrends;
 use App\Filament\Widgets\AlbumsNeedingAttention;
 use App\Filament\Widgets\DashboardWidget;
@@ -44,7 +43,6 @@ class DashboardWidgets
         'members' => [MembersOverview::class, 60],
         'pages' => [PagesOverview::class, 70],
         'library' => [LibraryOverview::class, 80],
-        'activity-calendar' => [ActivityCalendar::class, 90],
         'activity-trends' => [ActivityTrends::class, 100],
         'recent-activity' => [RecentActivity::class, 110],
         'popular-albums' => [PopularAlbums::class, 120],
