@@ -134,11 +134,22 @@ describe('the landing page', function () {
         $this->get(route('home'))
             ->assertSee('Hello, Smith family')
             ->assertSee(route('theme.upload', ['path' => 'themes/default/lake.jpg']), false)
-            ->assertDontSee('Create account');
+            ->assertDontSee('og-btn-secondary px-5 py-2.5', false)
+            ->assertDontSee('backdrop-blur', false);
 
         $this->get(route('theme.upload', ['path' => 'themes/default/lake.jpg']))
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff');
         $this->get(route('theme.upload', ['path' => 'branding/logo.png']))->assertNotFound();
+    });
+
+    it('keeps the menu button, panel and log-in link in the header for a guest on the landing page', function () {
+        applySiteSettings([SiteSettings::PUBLIC_ALBUMS => false]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('aria-controls="site-menu"', false)
+            ->assertSee('id="site-menu"', false)
+            ->assertSee('>Log in</a>', false);
     });
 });

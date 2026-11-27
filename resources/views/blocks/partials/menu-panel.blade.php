@@ -15,7 +15,7 @@
                     @csrf
                     <button type="submit" class="py-2.5 text-muted hover:text-ink">{{ __('Log out') }}</button>
                 </form>
-            @elseif (! \App\Support\Navigation::onLanding())
+            @else
                 <a href="{{ route('login') }}" class="block py-2.5 text-muted hover:text-ink">{{ __('Log in') }}</a>
                 @if (config('gallery.registration_enabled'))
                     <a href="{{ route('register') }}" class="block py-2.5 text-muted hover:text-ink">{{ __('Create account') }}</a>

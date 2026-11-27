@@ -24,7 +24,7 @@
             </form>
         </x-slot>
     </x-dropdown>
-@elseif (! \App\Support\Navigation::onLanding())
+@else
     <a href="{{ route('login') }}" class="rounded-og px-3 py-2 text-sm font-medium text-muted hover:text-ink">{{ __('Log in') }}</a>
     @if (config('gallery.registration_enabled'))
         <a href="{{ route('register') }}" class="og-btn-primary ms-1 py-1.5">{{ __('Create account') }}</a>
