@@ -37,7 +37,7 @@ Each theme decides which of these it offers, so the settings page looks differen
 
 ## Customizing the Default theme
 
-The Default theme shows what themes can do and has the settings below. Other themes may offer different ones. Click **Save theme settings** when you are done, or **View site** to check the result.
+The Default theme shows what themes can do and has the settings below. Other themes may offer different ones. Click **Save** when you are done, or **View site** to check the result.
 
 ![The settings of the Default theme, starting with colours and the header](../../assets/themes-settings.png)
 

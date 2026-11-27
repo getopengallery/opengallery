@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'reset' => 'Ihr Passwort wurde zurückgesetzt.',
-    'sent' => 'Wir haben Ihnen einen Link zum Zurücksetzen des Passworts gesendet.',
-    'throttled' => 'Bitte warten Sie, bevor Sie es erneut versuchen.',
+    'reset' => 'Dein Passwort wurde zurückgesetzt.',
+    'sent' => 'Wir haben dir einen Link zum Zurücksetzen des Passworts gesendet.',
+    'throttled' => 'Bitte warte, bevor du es erneut versuchst.',
     'token' => 'Dieser Link zum Zurücksetzen des Passworts ist ungültig.',
     'user' => 'Wir finden keinen Benutzer mit dieser E-Mail-Adresse.',
 ];

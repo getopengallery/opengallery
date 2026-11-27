@@ -6,7 +6,7 @@ use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * "Open on the site": the record as visitors see it, in a new tab. A gray
+ * "View on site": the record as visitors see it, in a new tab. A gray
  * button in page headers; in table rows add ->iconButton() (the label
  * becomes the tooltip). Set the address with ->url().
  *
@@ -23,7 +23,7 @@ class OpenOnSiteAction extends Action
     {
         parent::setUp();
 
-        $this->label(__('Open on the site'))
+        $this->label(__('View on site'))
             ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
             ->color('gray')
             ->openUrlInNewTab();

@@ -41,7 +41,7 @@ class AlbumGuestInvited extends Notification
                 ? __(':person shared the album ":album" with you at :site.', ['person' => $this->invitedBy, 'album' => $album->title, 'site' => $site])
                 : __('The album ":album" was shared with you at :site.', ['album' => $album->title, 'site' => $site]))
             ->line(__('You do not need an account. When you open the link, we send you a code by e-mail to confirm it is you.'))
-            ->action(__('Open the album'), $this->url)
+            ->action(__('Open album'), $this->url)
             ->line(__('This link is meant for you only. Please do not forward it.'));
     }
 }

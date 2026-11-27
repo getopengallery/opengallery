@@ -10,7 +10,7 @@ OpenGallery uses Laravel's standard translation system. The application (core) s
 
 | Owner | Where | Used as |
 | --- | --- | --- |
-| Core | `lang/{locale}.json` | `__('Save settings')`, keyed by the English text |
+| Core | `lang/{locale}.json` | `__('Save')`, keyed by the English text |
 | Core (framework messages) | `lang/{locale}/{auth,passwords,pagination,validation}.php` | `__('validation.required')` |
 | A plugin | `plugins/{slug}/lang/{locale}/{group}.php` | `__('{slug}::group.key')` |
 | A theme | `themes/{slug}/lang/{locale}/{group}.php` | `__('theme-{slug}::group.key')` |
@@ -86,11 +86,17 @@ A theme's own texts live in `themes/{slug}/lang/{locale}/{group}.php`, under the
 }
 ```
 
-Plain text in `theme.json` is shown exactly as written in every language; it is never looked up in core's translations. The Default theme (`themes/default/lang`) translates its whole settings form this way.
+Plain text in `theme.json` is shown exactly as written in every language; it is never looked up in core's translations. The Default theme (`themes/default/lang`) translates its whole settings form this way (`settings.php`) and keeps the words of its own views, such as the footer's pages heading, in `site.php` (`__('theme-default::site.footer_pages_heading')`). Texts only a theme or plugin needs belong in its namespace, not in core's JSON; it may reuse core keys for texts core already has.
 
 To change core wording, add `lang/{locale}.json` with the core keys you want to change (see [Writing themes](themes.md#wording)). A child theme can override its parent's texts with `lang/vendor/theme-{parent}/{locale}/{group}.php`. Overrides of the active theme are read after core's files, and a child's after its parent's (`App\Extensions\TranslationLoader`).
 
 A theme cannot override core's framework groups (`validation.php` and so on) any more; only core's JSON texts.
+
+## Style of the German translation
+
+- Address the reader informally with lowercase "du", "dein" and "dir", never "Sie", "Ihr" or "Ihnen". This applies to core, themes and plugins alike.
+- Say "Button" for buttons (not "Knopf" or "Schaltfläche") and keep button labels short.
+- The people who run the gallery are "die Administration"; the admin area is "Verwaltung" (not "Adminbereich" or "Admin-Bereich").
 
 ## Adding a language
 

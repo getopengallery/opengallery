@@ -39,7 +39,7 @@ The **What** column uses these descriptions:
 | --- | --- |
 | Visits | Logged in, Opened album |
 | Changes | Created, Changed, Deleted, Restored, Uploaded photos, Added photos, Removed photos, Reordered photos, Reordered albums, Changed settings, Activated theme, Turned plugin on, Turned plugin off, Uploaded theme, Uploaded plugin |
-| Security | Failed login, Locked out, Reset password, Wrong album password, Wrong guest code, Linked sign-in account, Unlinked sign-in account, Signed out sessions |
+| Security | Failed login, Locked out, Password reset, Wrong album password, Wrong guest code, Linked sign-in account, Unlinked sign-in account, Signed out sessions |
 
 **Details** says what was changed, for example which fields of an album or which people were added to a group. Passwords and other secret values are only recorded as "changed", never with their value. "Signed out sessions" says how many devices were signed out; the entry names the person who did it, which is an administrator when they signed someone else out.
 

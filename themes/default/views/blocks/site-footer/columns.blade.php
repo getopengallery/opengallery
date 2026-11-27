@@ -15,7 +15,7 @@
 
         @if ($pages->isNotEmpty())
             <nav aria-labelledby="footer-pages">
-                <h2 id="footer-pages" class="font-semibold text-ink">{{ __('Information') }}</h2>
+                <h2 id="footer-pages" class="font-semibold text-ink">{{ __('theme-default::site.footer_pages_heading') }}</h2>
                 <ul class="mt-3 space-y-2">
                     @foreach ($pages as $page)
                         <li><a href="{{ route('pages.show', $page) }}" class="text-muted hover:text-ink">{{ $page->title }}</a></li>

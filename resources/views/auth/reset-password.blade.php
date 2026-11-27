@@ -14,7 +14,7 @@
 
         <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
+            <x-input-label for="email" :value="__('E-mail')" />
             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
@@ -28,7 +28,7 @@
 
         <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+            <x-input-label for="password_confirmation" :value="__('Confirm password')" />
 
             <x-text-input id="password_confirmation" class="block mt-1 w-full"
                                 type="password"
@@ -39,7 +39,7 @@
 
         <div class="flex items-center justify-end mt-4">
             <x-primary-button>
-                {{ ($invitation ?? false) ? __('Save password and log in') : __('Reset Password') }}
+                {{ ($invitation ?? false) ? __('Save and log in') : __('Reset password') }}
             </x-primary-button>
         </div>
     </form>

@@ -37,7 +37,7 @@ Some people can open an album whatever its visibility, password or end date:
 
 ## Share links for unlisted albums
 
-When you choose **Unlisted (link only)** and save, the album gets a **Share link**. Copy it with the button next to the field, or with **Copy share link** at the top of the album's page on the site, and send it to the people who should see the album. Anyone who opens the link can see the album until they close their browser.
+When you choose **Unlisted (link only)** and save, the album gets a **Share link**. Copy it with the button next to the field, or with **Copy link** at the top of the album's page on the site, and send it to the people who should see the album. Anyone who opens the link can see the album until they close their browser.
 
 The album opens at the share link's own address, so visitors can pass it on by copying it from the address bar. When the link is sent in a messenger or posted somewhere, the preview shows the album's title and its cover, blurred, with a link symbol; with a password, the cover is blurred beyond recognition and shows a lock instead (see [Link previews](../administration/settings.md#link-previews)). Search engines never list unlisted albums.
 

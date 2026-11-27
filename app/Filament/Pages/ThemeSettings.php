@@ -114,7 +114,7 @@ class ThemeSettings extends Page
                 ->livewireSubmitHandler('save')
                 ->footer([
                     Actions::make([
-                        Action::make('save')->label(__('Save theme settings'))->submit('save')->keyBindings(['mod+s']),
+                        Action::make('save')->label(__('Save'))->submit('save')->keyBindings(['mod+s']),
                         Action::make('view')->label(__('View site'))->color('gray')->url(route('home'))->openUrlInNewTab(),
                     ]),
                 ]),

@@ -171,7 +171,7 @@ The base class provides:
 
 - the address `/admin/plugins/{slug}/settings`, reached through the gear icon in the plugin's row of the plugins list; no navigation entry;
 - access only for people with `manage plugins`, and only while the plugin is on (`canAccess()`);
-- the title (the plugin's name), breadcrumbs and a **Save settings** button (also Ctrl/Cmd+S) that calls `save()`;
+- the title (the plugin's name), breadcrumbs and a **Save** button (also Ctrl/Cmd+S) that calls `save()`;
 - `settings($key, $default)` and `putSettings($key, $value)`, which read and write the plugin's settings.
 
 Settings are stored as one array in the setting `plugin.{slug}`, through `App\Extensions\PluginSettings` (`all()`, `get()`, `put()`). Code outside the page reads them with `PluginSettings::get('watermark', 'text')`. Store secrets with `PluginSettings::encrypt()` and read them with `decrypt()`; never show a stored secret in the form again (keep it when the field is left empty), as the identity-providers plugin does with client secrets.

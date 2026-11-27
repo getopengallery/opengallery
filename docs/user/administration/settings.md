@@ -9,7 +9,7 @@ Site-wide settings are in the admin menu, with one page per topic. You need the 
 - **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos), [Tags](#tags) and [E-mail](#e-mail).
 - **System**: [Background jobs](#background-jobs) and [Updates](#updates). The [log settings](#activity-log) open with the **Log settings** button on the activity log.
 
-Each page has its own **Save settings** button and saves only that page. If you try to leave a page with changes you have not saved, the browser asks first. To find a setting, type its name in the search field at the top of the admin, for example "favicon".
+Each page has its own **Save** button and saves only that page. If you try to leave a page with changes you have not saved, the browser asks first. To find a setting, type its name in the search field at the top of the admin, for example "favicon".
 
 ![The site settings page](../../assets/settings-page.png)
 

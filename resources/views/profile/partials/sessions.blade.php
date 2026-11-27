@@ -40,14 +40,14 @@
         class="mt-4"
         x-data=""
         x-on:click.prevent="$dispatch('open-modal', 'confirm-sign-out-others')"
-    >{{ __('Sign out all other devices') }}</x-secondary-button>
+    >{{ __('Sign out other devices') }}</x-secondary-button>
 
     <x-modal name="confirm-sign-out-others" :show="$errors->signOutOthers->isNotEmpty()" focusable>
         <form method="post" action="{{ route('profile.sessions.destroy-others') }}" class="p-6">
             @csrf
             @method('delete')
 
-            <h2 class="text-title font-semibold text-ink">{{ __('Sign out all other devices?') }}</h2>
+            <h2 class="text-title font-semibold text-ink">{{ __('Sign out other devices?') }}</h2>
 
             <p class="mt-1 text-sm text-muted">
                 {{ __('Every other browser is signed out, including ones that remember you. Enter your password to confirm.') }}

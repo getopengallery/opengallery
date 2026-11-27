@@ -18,11 +18,11 @@ The list shows albums as a tree: albums inside another album appear indented bel
 
 Click a row to open the album and edit it. Each row also has:
 
-- **Open on the site**: view the album as visitors see it.
+- **View on site**: view the album as visitors see it.
 - **Add album inside**: create a new album inside this one (in the row's menu).
 - **Move to trash** (in the row's menu).
 
-The album's own page in the admin also has an **Open on the site** button at the top (not while the album is in the trash).
+The album's own page in the admin also has an **View on site** button at the top (not while the album is in the trash).
 
 Search the list by title, or filter it by **Visibility**, **Owner** (only shown to people who see every album) and **Last changed**, a date range (see [Searching and filtering lists](../getting-started/admin-area.md#searching-and-filtering-lists)). Albums in the trash are not in this list; see [Deleting and restoring albums](#deleting-and-restoring-albums).
 

@@ -79,7 +79,7 @@
                 x-on:load="measure($event.target)"
                 x-on:error="previewFailed = hasImage"
             />
-            <span class="og-iu-no-preview" x-show="previewFailed" style="display: none">{{ __('Preview not available') }}</span>
+            <span class="og-iu-no-preview" x-show="previewFailed" style="display: none">{{ __('No preview') }}</span>
             <span class="og-iu-flag og-iu-stage-flag" x-show="isUnsaved" style="display: none">{{ __('Not saved yet') }}</span>
             @if ($chip)
                 <span class="og-iu-chip" x-bind:class="{ 'is-dim': upload }" x-show="! previewFailed">

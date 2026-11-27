@@ -37,7 +37,7 @@ return [
         ],
         'custom_colors' => [
             'label' => 'Eigene Farben verwenden',
-            'help' => 'Überschreibt die Palette für die Farben, die Sie unten festlegen. Lassen Sie eine Farbe leer, um die der Palette zu behalten.',
+            'help' => 'Überschreibt die Palette für die Farben, die du unten festlegst. Lass eine Farbe leer, um die der Palette zu behalten.',
         ],
         'radius' => [
             'label' => 'Ecken',
@@ -157,7 +157,7 @@ return [
         ],
         'custom_css' => [
             'label' => 'CSS',
-            'help' => 'Verwenden Sie die Farb-Tokens, z. B. color: rgb(var(--og-primary));',
+            'help' => 'Verwende die Farb-Tokens, z. B. color: rgb(var(--og-primary));',
         ],
     ],
     'palettes' => [

@@ -60,7 +60,7 @@ enum ActivityType: string
             self::AlbumsReordered => __('Reordered albums'),
             self::LoginFailed => __('Failed login'),
             self::LockedOut => __('Locked out'),
-            self::PasswordReset => __('Reset password'),
+            self::PasswordReset => __('Password reset'),
             self::AlbumPasswordFailed => __('Wrong album password'),
             self::AlbumGuestCodeFailed => __('Wrong guest code'),
             self::AccountLinked => __('Linked sign-in account'),

@@ -67,7 +67,7 @@
                                         },
                                     }"
                                     x-on:click="copy()">
-                                <span x-show="! copied">{{ __('Copy share link') }}</span>
+                                <span x-show="! copied">{{ __('Copy link') }}</span>
                                 <span x-show="copied" x-cloak role="status">{{ __('Link copied') }}</span>
                             </button>
                         @endif

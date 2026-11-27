@@ -7,7 +7,7 @@ return [
         ],
         'whimsy' => [
             'label' => 'Verspieltheit',
-            'description' => 'Wie viel los ist. Schalten Sie Dinge ab, wenn es ruhiger sein soll.',
+            'description' => 'Wie viel los ist. Schalte Dinge ab, wenn es ruhiger sein soll.',
         ],
         'header' => [
             'label' => 'Kopfzeile',
@@ -37,7 +37,7 @@ return [
         ],
         'custom_colors' => [
             'label' => 'Eigene Farben verwenden',
-            'help' => 'Ersetzt die Farben der Palette, die Sie unten festlegen. Sticker-Farben kommen immer aus der Palette.',
+            'help' => 'Ersetzt die Farben der Palette, die du unten festlegst. Sticker-Farben kommen immer aus der Palette.',
         ],
         'radius' => [
             'label' => 'Ecken',
@@ -125,7 +125,7 @@ return [
         ],
         'custom_css' => [
             'label' => 'CSS',
-            'help' => 'Verwenden Sie die Farb-Tokens, z. B. color: rgb(var(--og-pop-1));',
+            'help' => 'Verwende die Farb-Tokens, z. B. color: rgb(var(--og-pop-1));',
         ],
     ],
     'palettes' => [

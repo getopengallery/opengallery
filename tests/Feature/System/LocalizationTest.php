@@ -34,7 +34,7 @@ it('shows a user the site and the admin in their own language, whatever the defa
     $this->actingAs($admin)->get(route('profile.edit'))
         ->assertOk()
         ->assertSee('<html lang="en">', false)
-        ->assertSee('Profile Information');
+        ->assertSee('Profile information');
 
     $this->actingAs($admin)->get(GeneralSettings::getUrl())
         ->assertOk()

@@ -15,7 +15,7 @@
 
             <div>
                 <x-primary-button>
-                    {{ __('Resend Verification Email') }}
+                    {{ __('Resend e-mail') }}
                 </x-primary-button>
             </div>
         </form>
@@ -24,7 +24,7 @@
             @csrf
 
             <button type="submit" class="og-link rounded-og text-sm text-muted hover:text-ink">
-                {{ __('Log Out') }}
+                {{ __('Log out') }}
             </button>
         </form>
     </div>
