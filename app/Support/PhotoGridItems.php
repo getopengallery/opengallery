@@ -2,12 +2,14 @@
 
 namespace App\Support;
 
+use App\Enums\LightboxFooter;
 use App\Models\Album;
 use App\Models\Photo;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Normalises photos into the plain data every photo-grid block variant
@@ -25,6 +27,9 @@ use Illuminate\Support\Collection;
  * whether it is on; null for guests or with favourites off) and the camera
  * details for the "i" panel (`info`, App\Support\PhotoExif; null when that
  * panel is off).
+ * `footer` is what the lightbox shows below the photo, as chosen in
+ * Settings → Photos (App\Enums\LightboxFooter): a `text` line, a muted
+ * `note` line and/or a `license`; null when the photo has nothing to show.
  * For a page of a paginated list it also carries the photo's place in the
  * whole list (`position` of `total`) and the address of its `page`, and the
  * first / last photo carry the address of the previous / next page, so the
@@ -36,7 +41,7 @@ class PhotoGridItems
 {
     /**
      * @param  iterable<Photo>  $photos
-     * @return Collection<int, array{ratio: float, thumb: string, srcset: ?string, loading: string, fetchpriority: string, decoding: string, lightbox: array{id: int, src: string, title: ?string, description: ?string, taken: ?string, download: ?string, favorite: ?array{url: string, active: bool}, info: ?list<array{label: string, value: string}>, license: ?array{name: string, title: ?string, url: ?string}, position?: int, total?: int, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}}>
+     * @return Collection<int, array{ratio: float, thumb: string, srcset: ?string, loading: string, fetchpriority: string, decoding: string, lightbox: array{id: int, src: string, title: ?string, description: ?string, taken: ?string, download: ?string, favorite: ?array{url: string, active: bool}, info: ?list<array{label: string, value: string}>, license: ?array{name: string, title: ?string, url: ?string}, footer: ?array{text: ?string, note: ?string, license: ?array{name: string, title: ?string, url: ?string}}, position?: int, total?: int, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}}>
      */
     public static function from(iterable $photos): Collection
     {
@@ -48,13 +53,14 @@ class PhotoGridItems
         $favorites = Favorites::enabledFor($user);
         $info = SiteSettings::photoInfoEnabled();
         $licenses = $info && Licensing::enabled();
+        $footer = SiteSettings::lightboxFooter();
 
-        if ($licenses) {
+        if ($licenses || ($footer === LightboxFooter::License && Licensing::enabled())) {
             (new EloquentCollection($photos->all()))->loadMissing('license');
         }
 
         $items = $photos
-            ->map(function (Photo $photo) use ($user, $favorites, $info, $licenses) {
+            ->map(function (Photo $photo) use ($user, $favorites, $info, $licenses, $footer) {
                 $media = $photo->getFirstMedia(Photo::COLLECTION);
 
                 if (! $media) {
@@ -79,6 +85,7 @@ class PhotoGridItems
                         'favorite' => $favorites ? ['url' => route('favorites.toggle', $photo), 'active' => Favorites::has($user, $photo)] : null,
                         'info' => $info ? PhotoExif::details($photo) : null,
                         'license' => $licenses ? Licensing::displayFor($photo) : null,
+                        'footer' => self::footer($footer, $photo, $media, $info),
                     ],
                 ];
             })
@@ -86,6 +93,35 @@ class PhotoGridItems
             ->values();
 
         return $paginator ? self::withPages($items, $paginator, self::albumOf($photos->first())) : $items;
+    }
+
+    /**
+     * What the lightbox shows below the photo for the chosen setting. Camera
+     * details follow the "i" panel switch and the license the licensing switch,
+     * so the footer never shows more than the site has turned on.
+     *
+     * @return ?array{text: ?string, note: ?string, license: ?array{name: string, title: ?string, url: ?string}}
+     */
+    private static function footer(LightboxFooter $footer, Photo $photo, Media $media, bool $info): ?array
+    {
+        $taken = DateFormat::date($photo->taken_at);
+
+        [$text, $note, $license] = match ($footer) {
+            LightboxFooter::DescriptionAndTaken => [$photo->description, $taken ? __('Taken').' '.$taken : null, null],
+            LightboxFooter::Title => [$photo->title ?: $media->file_name, null, null],
+            LightboxFooter::FileName => [$media->file_name, null, null],
+            LightboxFooter::Description => [$photo->description, null, null],
+            LightboxFooter::Taken => [null, $taken ? __('Taken').' '.$taken : null, null],
+            LightboxFooter::License => [null, null, Licensing::displayFor($photo)],
+            LightboxFooter::Camera => [$info ? PhotoExif::summary($photo) : null, null, null],
+            LightboxFooter::None => [null, null, null],
+        };
+
+        if (blank($text) && blank($note) && ! $license) {
+            return null;
+        }
+
+        return ['text' => filled($text) ? $text : null, 'note' => $note, 'license' => $license];
     }
 
     /**

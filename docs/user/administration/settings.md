@@ -132,6 +132,17 @@ The symbols use the colours of the active theme. Messengers keep previews for a 
 ### Photo information
 
 - **Show photo information**: on by default. An **i** button in the photo viewer shows the photo's description and camera details, and its [license](#licenses) while licenses are in use. The location is never shown there.
+- **Below the photo**: what the photo viewer shows under each photo. The choices are:
+  - **Description and date taken**: the default.
+  - **Image name**: the photo's title, or its file name when it has no title. The file names of your photos are then visible to visitors.
+  - **File name**: the name of the original file. Visitors can see it.
+  - **Description**.
+  - **Date taken**.
+  - **License**: shown as a link to its text. Needs [licenses](#licenses) to be on; it does not depend on **Show photo information**.
+  - **Camera and settings**: one line such as "Canon EOS R5 · 50 mm · f/1.8 · 1/200 s · ISO 100". Needs **Show photo information** to be on, and never shows the location.
+  - **Nothing**.
+
+  When a photo does not have the chosen detail, nothing is shown below it. Photos and galleries placed in a page do not show anything below the photo.
 
 ### Slideshow
 

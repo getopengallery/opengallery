@@ -45,6 +45,7 @@ The site settings (pages of the cluster `App\Filament\Clusters\Settings\Settings
 | `DOWNLOADS_ENABLED` | `photos.downloads_enabled` | `SiteSettings::downloadsEnabled()` (off by default; master switch above each album's `allow_downloads`, see [Downloads and favourites](access-model.md#downloads-and-favourites)) |
 | `FAVORITES_ENABLED` | `photos.favorites_enabled` | `SiteSettings::favoritesEnabled()` (on by default; `Favorites::enabledFor()` also needs a logged-in user) |
 | `PHOTO_INFO_ENABLED` | `photos.info_enabled` | `SiteSettings::photoInfoEnabled()` (on by default; the lightbox's "i" panel, `App\Support\PhotoExif`) |
+| `LIGHTBOX_FOOTER` | `photos.lightbox_footer` | `SiteSettings::lightboxFooter()`: `App\Enums\LightboxFooter` (`DescriptionAndTaken` by default, also for unknown values); what the lightbox shows below the photo, built per photo by `PhotoGridItems` as the item's `footer` |
 | `SLIDESHOW_ENABLED` | `photos.slideshow_enabled` | `SiteSettings::slideshowEnabled()` (on by default) |
 | `SLIDESHOW_SECONDS` | `photos.slideshow_seconds` | `SiteSettings::slideshowSeconds()` (5 by default, clamped to `SLIDESHOW_SECONDS_MIN` 2 to `SLIDESHOW_SECONDS_MAX` 60) |
 | `TAGGING` | `tags.enabled` | `SiteSettings::taggingEnabled()` (on by default) |

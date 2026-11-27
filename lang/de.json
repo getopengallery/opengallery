@@ -1444,5 +1444,13 @@
     "Anyone may share and change the photo if they credit the photographer, but not for commercial purposes.": "Alle dürfen das Foto teilen und verändern, wenn sie die Urheberin oder den Urheber nennen, aber nicht für kommerzielle Zwecke.",
     "Anyone may share and change the photo if they credit the photographer, not for commercial purposes, and share changed versions under the same license.": "Alle dürfen das Foto teilen und verändern, wenn sie die Urheberin oder den Urheber nennen, nicht für kommerzielle Zwecke, und veränderte Fassungen unter derselben Lizenz weitergeben.",
     "Anyone may share the photo unchanged if they credit the photographer, but not for commercial purposes. Changed versions may not be shared.": "Alle dürfen das Foto unverändert teilen, wenn sie die Urheberin oder den Urheber nennen, aber nicht für kommerzielle Zwecke. Veränderte Fassungen dürfen nicht weitergegeben werden.",
-    "The photographer gives up all rights: anyone may use the photo for any purpose, without credit.": "Die Urheberin oder der Urheber verzichtet auf alle Rechte: Alle dürfen das Foto für jeden Zweck nutzen, auch ohne Namensnennung."
+    "The photographer gives up all rights: anyone may use the photo for any purpose, without credit.": "Die Urheberin oder der Urheber verzichtet auf alle Rechte: Alle dürfen das Foto für jeden Zweck nutzen, auch ohne Namensnennung.",
+    "Description and date taken": "Beschreibung und Aufnahmedatum",
+    "Image name": "Bildname",
+    "File name": "Dateiname",
+    "Date taken": "Aufnahmedatum",
+    "Camera and settings": "Kamera und Einstellungen",
+    "Nothing": "Nichts",
+    "Below the photo": "Unter dem Foto",
+    "What the lightbox shows under each photo. Camera details need photo information to be on, and the license needs licenses to be on. Nothing is shown when a photo has no such detail.": "Was die Lightbox unter jedem Foto zeigt. Kameradaten brauchen eingeschaltete Fotoinformationen, die Lizenz eingeschaltete Lizenzen. Hat ein Foto diese Angabe nicht, wird nichts angezeigt."
 }

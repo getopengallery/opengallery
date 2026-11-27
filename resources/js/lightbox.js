@@ -17,7 +17,7 @@
  * the heart (items carry `favorite`: {url, active}), the "i" panel (items
  * carry `info`: camera details) and the slideshow (seconds per photo).
  *
- * @param {{id: number, src: string, title: string|null, description: string|null, taken: string|null, download?: string|null, favorite?: {url: string, active: boolean}|null, info?: {label: string, value: string}[]|null, position?: number, total?: number, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}[]} items
+ * @param {{id: number, src: string, title: string|null, description: string|null, taken: string|null, download?: string|null, favorite?: {url: string, active: boolean}|null, info?: {label: string, value: string}[]|null, footer?: {text: string|null, note: string|null, license: {name: string, title: string|null, url: string|null}|null}|null, position?: number, total?: number, page?: string, previousPage?: string, nextPage?: string, previousItems?: string, nextItems?: string}[]} items
  */
 export default (items) => {
     /** Neighbouring pages being loaded or loaded: address => Promise of items. */
