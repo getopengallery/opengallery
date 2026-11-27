@@ -161,6 +161,18 @@ class SiteSettings
     /** List of tag names offered to everyone. */
     public const TAGS_PREDEFINED = 'tags.predefined';
 
+    /** Photos carry a license (App\Support\Licensing). Off by default. */
+    public const LICENSING = 'licenses.enabled';
+
+    /** Id of the license new photos get. */
+    public const LICENSE_DEFAULT = 'licenses.default';
+
+    /** Uploaders may give their photos another license than the default. On by default. */
+    public const LICENSES_ALLOW_CHOICE = 'licenses.allow_choice';
+
+    /** List of license ids uploaders may pick from; not set means every active license. */
+    public const LICENSES_CHOOSABLE = 'licenses.choosable';
+
     /** Allowed range for the largest photo, in MB. */
     public const UPLOAD_MIN_MB = 1;
 
@@ -533,6 +545,31 @@ class SiteSettings
     public static function predefinedTags(): array
     {
         return array_values((array) Setting::get(self::TAGS_PREDEFINED, []));
+    }
+
+    public static function licensingEnabled(): bool
+    {
+        return (bool) Setting::get(self::LICENSING, false);
+    }
+
+    public static function defaultLicenseId(): ?int
+    {
+        $id = Setting::get(self::LICENSE_DEFAULT);
+
+        return filled($id) ? (int) $id : null;
+    }
+
+    public static function allowsLicenseChoice(): bool
+    {
+        return (bool) Setting::get(self::LICENSES_ALLOW_CHOICE, true);
+    }
+
+    /** @return list<int>|null null while not set: every active license may be picked */
+    public static function choosableLicenseIds(): ?array
+    {
+        $ids = Setting::get(self::LICENSES_CHOOSABLE);
+
+        return $ids === null ? null : array_values(array_map('intval', (array) $ids));
     }
 
     /** What guests see at "/" while public albums are off: "landing" or "login". */

@@ -6,7 +6,7 @@ order: 10
 
 Site-wide settings are in the admin menu, with one page per topic. You need the permission "Change site settings". Every change is recorded in the activity log.
 
-- **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos), [Tags](#tags) and [E-mail](#e-mail).
+- **Settings**: [General](#general), [App](#app), [Search engines](#search-engines), [Access](#access), [Photos](#photos), [Tags](#tags), [Licenses](#licenses) and [E-mail](#e-mail).
 - **System**: [Background jobs](#background-jobs) and [Updates](#updates). The [log settings](#activity-log) open with the **Log settings** button on the activity log.
 
 Each page has its own **Save** button and saves only that page. If you try to leave a page with changes you have not saved, the browser asks first. To find a setting, type its name in the search field at the top of the admin, for example "favicon".
@@ -131,7 +131,7 @@ The symbols use the colours of the active theme. Messengers keep previews for a 
 
 ### Photo information
 
-- **Show photo information**: on by default. An **i** button in the photo viewer shows the photo's description and camera details. The location is never shown there.
+- **Show photo information**: on by default. An **i** button in the photo viewer shows the photo's description and camera details, and its [license](#licenses) while licenses are in use. The location is never shown there.
 
 ### Slideshow
 
@@ -148,6 +148,34 @@ How people label albums and photos. See [Tags](../content/tags.md) for how taggi
 - **Allow new tags**: on by default. When off, people can only add predefined tags. Tags already on an album or photo stay.
 - **Suggest tags from everyone**: off by default. When on, everyone who tags sees every tag in use, which helps avoid several versions of the same tag. Tag names from private albums are then visible to them. When off, people see predefined tags, their own tags and tags on albums and photos they can open.
 - **Predefined tags**: tags offered to everyone, up to 200. Removing one here does not take it off albums and photos.
+
+## Licenses
+
+Which license a photo carries, for example "CC BY 4.0" or "All rights reserved". See [Licenses](../content/licenses.md) for how people give photos a license and where it is shown.
+
+![The Licenses settings page with the default license and the licenses to choose from](../../assets/settings-licenses.png) <!-- TODO: screenshot of Settings → Licenses with licensing on -->
+
+- **Use licenses**: off by default. When on, every new photo gets the default license, the photo page shows a **License** field and the photo information in the viewer shows the license. When off, licenses are hidden, but photos keep theirs and they come back when you turn it on again.
+- **Default license**: only shown while licenses are on, and required. New uploads get this license; photos uploaded before keep theirs, or stay without a license. Below the field you see the selected license's description in plain words and a **Read the license** link to its full text. The default license cannot be deactivated or deleted.
+- **Uploaders choose the license**: on by default. People who may edit a photo can then give it another license. When off, new photos always get the default license and nobody except people with the permission "Change site settings" can change it.
+- **Licenses to choose from**: only shown while uploaders may choose. A checkbox list of the active licenses, each with its description in plain words. The default license can always be chosen. People with the permission "Change site settings" can always pick any active license, even with choosing turned off.
+
+The **Edit licenses** button at the top opens the list of licenses.
+
+### The list of licenses
+
+The list is opened from this page and is not in the menu; it needs the permission "Change site settings". Click a license to edit it, or **New license** to add one. Each license has:
+
+- **Short name**: shown next to the photo, for example "CC BY 4.0".
+- **Full name**: shown when pointing at the short name.
+- **Link to the license text**.
+- **Description**: what others may do with a photo under this license, in plain words. People see it while choosing a license.
+- **Position**: licenses are listed from the lowest number.
+- **Active**: inactive licenses cannot be chosen any more; photos that have one keep it.
+
+OpenGallery comes with these licenses: All rights reserved, CC BY 4.0, CC BY-SA 4.0, CC BY-ND 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, CC BY-NC-ND 4.0 and CC0 1.0. Their full names and descriptions are translated into the languages of the site; texts you write yourself are shown as written, in every language. Sites that update from an older version get the same licenses.
+
+A license can only be deleted while no photo uses it, trashed photos included; otherwise deactivate it. The default license can be neither deactivated nor deleted: choose another default first. Creating, changing and deleting licenses is recorded in the [activity log](activity.md).
 
 ## E-mail
 

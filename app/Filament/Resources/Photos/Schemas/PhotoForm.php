@@ -7,6 +7,7 @@ use App\Filament\Resources\Photos\Tables\PhotosTable;
 use App\Models\Album;
 use App\Models\Photo;
 use App\Support\AlbumCollaboration;
+use App\Support\Licensing;
 use Closure;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -15,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class PhotoForm
 {
@@ -58,6 +60,7 @@ class PhotoForm
                                     ->helperText(__('The photo appears in every album listed here and can be seen by anyone who can see one of them.')),
                                 PhotoInfolist::coverOfEntry(),
                                 TagPicker::make('tag_names'),
+                                self::licenseField(),
                             ]),
 
                         Section::make(__('History'))
@@ -79,6 +82,27 @@ class PhotoForm
                         PhotoInfolist::cameraSection(),
                     ]),
             ]);
+    }
+
+    /**
+     * The photo's license: offered from the licenses the user may pick, shown
+     * read-only while they may not choose. Hidden while licensing is off.
+     */
+    public static function licenseField(): Select
+    {
+        return Select::make('license_id')
+            ->label(__('License'))
+            ->options(fn (?Photo $record): array => Licensing::optionsFor(auth()->user(), $record))
+            ->placeholder(__('No license given'))
+            ->live()
+            ->helperText(fn (mixed $state): ?HtmlString => Licensing::describe($state))
+            ->disabled(fn (): bool => ! Licensing::canChoose(auth()->user()))
+            ->rule(fn (?Photo $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($record): void {
+                if (! Licensing::allows(auth()->user(), filled($value) ? (int) $value : null, $record)) {
+                    $fail(__('This license cannot be chosen.'));
+                }
+            })
+            ->visible(fn (): bool => Licensing::enabled());
     }
 
     /**

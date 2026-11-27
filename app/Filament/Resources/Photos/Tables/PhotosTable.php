@@ -17,6 +17,7 @@ use App\Models\Album;
 use App\Models\Photo;
 use App\Support\ActivityLog;
 use App\Support\AlbumCollaboration;
+use App\Support\Licensing;
 use App\Support\SiteSettings;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -162,6 +163,18 @@ class PhotosTable
                 ->schema([self::albumSelect(__('Remove from'), 'update')])
                 ->action(fn (Collection $records, array $data) => self::removeFromAlbum($records, (int) $data['album_id']))
                 ->deselectRecordsAfterCompletion(),
+            BulkAction::make('setLicense')
+                ->label(__('Set license'))
+                ->icon(Heroicon::OutlinedScale)
+                ->visible(fn (): bool => Licensing::canChoose(auth()->user()))
+                ->schema([
+                    Select::make('license_id')
+                        ->label(__('License'))
+                        ->options(fn (): array => Licensing::optionsFor(auth()->user()))
+                        ->required(),
+                ])
+                ->action(fn (Collection $records, array $data) => self::setLicense($records, (int) $data['license_id']))
+                ->deselectRecordsAfterCompletion(),
             TrashActions::moveToTrashBulk()
                 ->modalDescription(__('The photos are removed from every album they are in. You can restore them from the trash.'))
                 ->authorizeIndividualRecords('delete'),
@@ -264,6 +277,32 @@ class PhotosTable
     }
 
     /** @param Collection<int, Photo> $photos */
+    /**
+     * Gives the selected photos the license; photos the user may not edit
+     * are left out. Logged once for the batch ("changed 12 photos").
+     *
+     * @param  Collection<int, Photo>  $photos
+     */
+    private static function setLicense(Collection $photos, int $licenseId): void
+    {
+        $user = auth()->user();
+        abort_unless(Licensing::allows($user, $licenseId), 403);
+
+        $editable = $photos->filter(fn (Photo $photo): bool => $user->can('update', $photo));
+        $editable->each(function (Photo $photo) use ($licenseId): void {
+            if ($photo->update(['license_id' => $licenseId]) && $photo->wasChanged('license_id')) {
+                ActivityLog::changedInBulk($photo);
+            }
+        });
+        $refused = $photos->count() - $editable->count();
+
+        Notification::make()
+            ->title(trans_choice('License set for :count photo|License set for :count photos', $editable->count()))
+            ->body($refused > 0 ? trans_choice(':count photo was left out because you cannot edit it.|:count photos were left out because you cannot edit them.', $refused) : null)
+            ->{$refused > 0 ? 'warning' : 'success'}()
+            ->send();
+    }
+
     private static function addToAlbum(Collection $photos, int $albumId): void
     {
         $album = Album::findOrFail($albumId);

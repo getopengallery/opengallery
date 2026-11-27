@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Album;
 use App\Models\Photo;
 use App\Models\User;
+use App\Support\Licensing;
 use App\Support\PhotoUploads;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,7 @@ class AddPhotoToAlbum
         // In the trash until it is ready, so no grid shows it without its images.
         $photo = new Photo([
             'uploader_id' => $uploader?->id,
+            'license_id' => Licensing::forNewPhoto(),
             'title' => pathinfo($originalName, PATHINFO_FILENAME),
             'taken_at' => $this->takenAt($exif),
             'width' => $width,

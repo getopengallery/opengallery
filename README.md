@@ -30,6 +30,7 @@ A self-hosted, privacy-focused photo gallery for individuals, families, clubs an
 - **Photos** can be in several albums at once without copying files. Sort them by hand (drag and drop) or by date taken, upload date or name.
 - **Photo viewer** with a slideshow, photo information (date taken and camera details) and downloads of single photos or whole albums, each of which admins can turn off.
 - **Tags** for albums and photos, found by the site search.
+- **Licenses** per photo, such as CC BY 4.0 or All rights reserved: a default for new uploads, a choice for uploaders if you allow it, and shown in the photo viewer.
 - **Favorites**: members mark photos with a heart and find them again on their own page.
 - **Media library** in the admin, as a list or a grid, with filters by album, uploader and date. Every photo chooser in the admin uses the same picker, with uploads included.
 - **Uploads** in chunks, so large photos work with small PHP upload limits. Thumbnails and camera data are read automatically.

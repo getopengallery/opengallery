@@ -165,7 +165,7 @@ export default (items) => {
 
         /** Whether the open photo has anything for the "i" panel. */
         get hasInfo() {
-            return this.photoInfo && Boolean(this.current?.description || this.current?.taken || this.current?.info?.length);
+            return this.photoInfo && Boolean(this.current?.description || this.current?.taken || this.current?.info?.length || this.current?.license);
         },
 
         /** Like or unlike the open photo; the heart changes at once and goes back if that fails. */

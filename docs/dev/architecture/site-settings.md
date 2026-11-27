@@ -51,6 +51,10 @@ The site settings (pages of the cluster `App\Filament\Clusters\Settings\Settings
 | `TAGS_ALLOW_CUSTOM` | `tags.allow_custom` | `SiteSettings::allowsCustomTags()` (on by default) |
 | `TAGS_GLOBAL_SUGGESTIONS` | `tags.global_suggestions` | `SiteSettings::globalTagSuggestions()` (off by default, because tag names can be private) |
 | `TAGS_PREDEFINED` | `tags.predefined` | `SiteSettings::predefinedTags()` (list of names, see [Tags](data-model.md#tags)) |
+| `LICENSING` | `licenses.enabled` | `SiteSettings::licensingEnabled()` (off by default; `Licensing::enabled()`) |
+| `LICENSE_DEFAULT` | `licenses.default` | `SiteSettings::defaultLicenseId()` (id of the license new photos get; required while licensing is on) |
+| `LICENSES_ALLOW_CHOICE` | `licenses.allow_choice` | `SiteSettings::allowsLicenseChoice()` (on by default; people who manage settings may choose regardless) |
+| `LICENSES_CHOOSABLE` | `licenses.choosable` | `SiteSettings::choosableLicenseIds()` (list of license ids; null while never saved = every active license; the default can always be chosen) |
 | `MAIL_DELIVERY` | `mail.delivery` | `config('mail.default')` through `App\Enums\MailDelivery` (`server`, `smtp`, `sendmail`, `mailbox` for the test mailbox) |
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_SCHEME`, `MAIL_USERNAME`, `MAIL_PASSWORD` | `mail.host`, `mail.port`, `mail.scheme`, `mail.username`, `mail.password` | `config('mail.mailers.smtp.*')` |
 | `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | `mail.from_address`, `mail.from_name` | `config('mail.from.*')` |

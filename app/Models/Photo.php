@@ -24,7 +24,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * Metadata row for one image. The binary itself (plus thumbnails) is managed
  * by spatie/laravel-medialibrary in the "original" collection.
  */
-#[Fillable(['uploader_id', 'title', 'description', 'taken_at', 'width', 'height', 'exif'])]
+#[Fillable(['uploader_id', 'license_id', 'title', 'description', 'taken_at', 'width', 'height', 'exif'])]
 class Photo extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;
@@ -228,5 +228,15 @@ class Photo extends Model implements HasMedia
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploader_id');
+    }
+
+    /**
+     * Null when no license was given. Shown only while licensing is on (App\Support\Licensing).
+     *
+     * @return BelongsTo<License, $this>
+     */
+    public function license(): BelongsTo
+    {
+        return $this->belongsTo(License::class);
     }
 }

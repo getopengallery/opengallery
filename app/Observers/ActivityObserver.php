@@ -7,7 +7,8 @@ use App\Support\ActivityLog;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Logs creation, changes and deletion of albums, users, groups and roles.
+ * Logs creation, changes and deletion of albums, users, groups, roles,
+ * pages, photos and licenses.
  * Relationship changes come from the custom pivot models (App\Models\Pivots).
  */
 class ActivityObserver

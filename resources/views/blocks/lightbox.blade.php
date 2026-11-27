@@ -81,6 +81,14 @@
                         <dd class="text-end" x-text="detail.value"></dd>
                     </div>
                 </template>
+                <div x-show="current?.license" class="flex justify-between gap-4">
+                    <dt class="text-white/50">{{ __('License') }}</dt>
+                    <dd class="text-end">
+                        <a x-show="current?.license?.url" :href="current?.license?.url" :title="current?.license?.title" target="_blank" rel="license noopener noreferrer"
+                           class="underline decoration-white/40 underline-offset-2 hover:decoration-white focus-visible:outline-white" x-text="current?.license?.name"></a>
+                        <span x-show="! current?.license?.url" :title="current?.license?.title" x-text="current?.license?.name"></span>
+                    </dd>
+                </div>
             </dl>
         </aside>
     </div>

@@ -9,6 +9,7 @@ use App\Filament\Pages\ThemeSettings;
 use App\Filament\Resources\ActivityEvents\ActivityEventResource;
 use App\Filament\Resources\Albums\AlbumResource;
 use App\Filament\Resources\Groups\GroupResource;
+use App\Filament\Resources\Licenses\LicenseResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Photos\PhotoResource;
 use App\Filament\Resources\Roles\RoleResource;
@@ -75,6 +76,7 @@ it('renders the admin and the site in German without untranslated texts', functi
     $album = Album::factory()->for($admin, 'owner')->create();
     $page = Page::factory()->create();
     $group = Group::factory()->create();
+    $license = packLicense('CC0 1.0');
 
     $urls = [
         '/admin',
@@ -83,6 +85,7 @@ it('renders the admin and the site in German without untranslated texts', functi
         PageResource::getUrl(), PageResource::getUrl('create'), PageResource::getUrl('edit', ['record' => $page]),
         UserResource::getUrl(), UserResource::getUrl('create'), UserResource::getUrl('edit', ['record' => $admin]),
         GroupResource::getUrl(), GroupResource::getUrl('edit', ['record' => $group]),
+        LicenseResource::getUrl(), LicenseResource::getUrl('create'), LicenseResource::getUrl('edit', ['record' => $license]),
         RoleResource::getUrl(), RoleResource::getUrl('edit', ['record' => RoleModel::findByName(Role::Uploader->value)]),
         ActivityEventResource::getUrl(),
         ...array_map(fn (string $page): string => $page::getUrl(), SettingsCluster::getClusteredComponents()),
