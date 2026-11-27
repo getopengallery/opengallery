@@ -123,6 +123,7 @@ class PhotoUploads
             'chunkTooLarge' => __('The server refused the upload size. Ask the administrator to lower the upload chunk size.'),
             'failed' => __('The upload failed several times. Check your connection and try again.'),
             'status' => __('Uploading :current of :total · :sent of :size'),
+            'leave' => __('Photos are still uploading. Leave this page and stop the upload?'),
         ];
     }
 

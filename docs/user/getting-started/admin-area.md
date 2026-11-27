@@ -14,6 +14,8 @@ Log in on the site. If you may use the admin, the menu under your picture and na
 
 The navigation on the left groups the admin's screens. You only see the entries you have permission for, so a moderator sees fewer than an administrator.
 
+Moving between admin pages is quick: only the page changes, without reloading the whole window. Links to the site, to photo files and downloads open as ordinary pages.
+
 ![The admin navigation with its groups](../../assets/admin-navigation.webp)
 
 | Entry | What it is for | Permission needed |

@@ -94,6 +94,7 @@ Every file a visitor sees goes through one of these controllers:
 - There is no admin login page: guests are sent to the site's `/login`, which also shows sign-in buttons from plugins. Access needs the permission `access admin panel` (`User::canAccessPanel()`).
 - Resources and pages are discovered in `app/Filament` (the dashboard is `App\Filament\Pages\Dashboard`); plugin settings pages are added from `PluginManager::settingsPages()`. Dashboard widgets come from `App\Extensions\DashboardWidgets` (see [Dashboard widgets](../extending/dashboard-widgets.md)).
 - Navigation groups come from `App\Filament\Navigation\NavigationGroup`; colours from `App\Support\AdminTheme`, so the admin follows the active theme.
+- The panel uses SPA mode: admin links swap only the page content, links that leave the admin (built by `App\Support\AdminNavigation`) load a full page. Inline scripts in render hooks run on every page change; see [Admin UI conventions](../internals/admin-ui.md#page-changes-without-a-reload).
 - Render hooks add the theme's corner and button styles, the chunked photo uploader script and a fix for global search results in Safari.
 - Global search is `App\Filament\GlobalSearch\AdminSearchProvider` (admin screens, records and the documentation), opened with Ctrl/Cmd+K.
 

@@ -12,6 +12,7 @@ use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\SetLocale;
 use App\Livewire\DatabaseNotifications;
 use App\Models\User;
+use App\Support\AdminNavigation;
 use App\Support\AdminTheme;
 use App\Support\SiteSettings;
 use Filament\Facades\Filament;
@@ -55,6 +56,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             // No separate admin login: unauthenticated visitors are sent to the
             // site's login page (which also offers OAuth).
+            // Admin pages change without a full reload; links that leave the admin still
+            // load a whole page (App\Support\AdminNavigation).
+            ->spa()
+            ->spaUrlExceptions(fn (): array => AdminNavigation::fullPageUrls(Filament::getCurrentOrDefaultPanel()->getPath()))
             ->brandName(fn () => config('app.name'))
             ->brandLogo(fn () => view('filament.partials.brand', ['dark' => false]))
             ->darkModeBrandLogo(fn () => view('filament.partials.brand', ['dark' => true]))

@@ -167,6 +167,20 @@ describe('the menu', function () {
         $this->get(SettingsCluster::getUrl())->assertRedirect(GeneralSettings::getUrl());
         $this->get(GeneralSettings::getUrl())->assertOk()->assertDontSee('fi-page-has-sub-navigation');
     });
+
+    it('changes admin pages without a reload but leaves the admin with a full page load', function () {
+        actingAsRole();
+
+        $html = $this->get('/admin')->assertOk()->getContent();
+        preg_match_all('/<a\b[^>]*>/', $html, $anchors);
+        $anchors = collect($anchors[0]);
+
+        $albums = $anchors->first(fn (string $tag): bool => str_contains($tag, 'href="'.AlbumResource::getUrl().'"'));
+        $viewSite = $anchors->first(fn (string $tag): bool => str_contains($tag, 'href="'.route('home').'"'));
+
+        expect($albums)->not->toBeNull()->toContain('wire:navigate');
+        expect($viewSite)->not->toBeNull()->not->toContain('wire:navigate');
+    });
 });
 
 describe('the top bar', function () {

@@ -171,6 +171,29 @@ ImageUpload::make('icon')
 - **Saving**: uploads stay temporary until the form saves. `ImageUpload::saveUploadedFiles()` then dispatches the browser event `og-image-upload-saved`, which clears the "Not saved yet" notice. A page that replaces or removes a stored image still deletes the old file itself on save, as `SettingsPage::save()` does.
 - **Filament upgrades**: the component relies on `$wire.upload`, the field's `getUploadedFiles` and `removeUploadedFile` methods and the `form-processing-started` / `form-processing-finished` events. Check them when upgrading.
 
+## Page changes without a reload
+
+The panel runs in Filament's SPA mode (`->spa()` in `AdminPanelProvider`, Livewire's `wire:navigate`): a click on an admin link swaps only the page content, shows a loading bar at the top and keeps scripts, styles, Livewire and Alpine loaded. Plugin pages registered under the panel path work the same way.
+
+Links that leave the admin load a whole page, because the site has its own styles and scripts: the site, photo files, downloads, login and every plugin route outside `/admin`. Filament only takes URL patterns for this (`spaUrlExceptions()`), so `App\Support\AdminNavigation::fullPageUrls($panelPath)` builds them from every GET route outside the panel path. Nothing has to be registered for a plugin's own routes.
+
+What this means for scripts:
+
+- Inline `<script>` in a render hook in the body (`SCRIPTS_BEFORE`, `SCRIPTS_AFTER`) runs again on every admin page change. Add `data-navigate-once` for setup that must run only once, such as a global event listener or an `Alpine.data()` registration. The core partials `global-search-fix`, `media-grid-script`, `photo-uploader-script` and `image-upload-script` do.
+- For work that belongs to each page, use `document.addEventListener('livewire:navigated', ...)` instead of `DOMContentLoaded` or `load`. `livewire:navigated` also fires on the first load.
+- Scripts in `<head>` (`HEAD_END`) run only on the first load.
+- `beforeunload` does not fire on an admin page change. Listen for `livewire:navigate`, which can be cancelled with `event.preventDefault()`. The photo uploader does this to ask before an upload is stopped (see [Photo uploads](uploads.md#flow)). Keep `beforeunload` as well for reloads and links that leave the admin.
+
+```blade
+<script data-navigate-once>
+    document.addEventListener('livewire:navigate', (event) => {
+        if (window.myPluginHasUnsavedWork && ! window.confirm('{{ __('Leave this page?') }}')) {
+            event.preventDefault()
+        }
+    })
+</script>
+```
+
 ## Global search
 
 The search field in the top bar is served by `App\Filament\GlobalSearch\AdminSearchProvider` (registered with `->globalSearch()` in `AdminPanelProvider`, shortcut `mod+k`). It returns, in this order:
@@ -179,7 +202,7 @@ The search field in the top bar is served by `App\Filament\GlobalSearch\AdminSea
 - **Records**: Filament's resource search. Every resource with a `$recordTitleAttribute` takes part; set what it searches with `getGloballySearchableAttributes()` (relationship columns such as `media.file_name` work), the subtitle with `getGlobalSearchResultDetails()` and scoping with `modifyGlobalSearchQuery()` or `getEloquentQuery()`. Results without a URL the user may open (no view/edit permission) are dropped, so keep the search query close to the policy to avoid empty result lists. Plugins that register resources join automatically.
 - **Documentation**: `App\Support\Documentation::search()` over `/docs`.
 
-Safari does not focus a link on click, which made Filament close the results before the click landed. `resources/views/filament/partials/global-search-fix.blade.php` (render hook `SCRIPTS_AFTER`) keeps the focus in the search field while a result is pressed; keep it when upgrading Filament until upstream fixes this.
+Safari does not focus a link on click, which made Filament close the results before the click landed. `resources/views/filament/partials/global-search-fix.blade.php` (render hook `SCRIPTS_AFTER`, `data-navigate-once`) keeps the focus in the search field while a result is pressed; keep it when upgrading Filament until upstream fixes this.
 
 ## Plugin and theme lists
 

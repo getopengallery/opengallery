@@ -13,7 +13,7 @@
     them back before the browser paints. Inline (like theme-styles) so it
     works without rebuilding the frontend.
 --}}
-<script>
+<script data-navigate-once>
     (() => {
         if (window.ogJustifiedRows) {
             return
@@ -149,6 +149,9 @@
 
         // Dragging pauses the layout; pick it up again once the photo is dropped.
         ;['pointerup', 'touchend', 'dragend'].forEach((type) => document.addEventListener(type, () => requestAnimationFrame(layoutAll), { passive: true }))
+
+        // After an admin page change without a reload (SPA mode) the new page's grids are laid out too.
+        document.addEventListener('livewire:navigated', queueLayout)
 
         layoutAll()
     })()

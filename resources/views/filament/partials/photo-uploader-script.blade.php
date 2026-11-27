@@ -17,7 +17,7 @@
     Texts come translated from PhotoUploads::uploaderConfig() (config.messages);
     t() fills in their :placeholders.
 --}}
-<script>
+<script data-navigate-once>
     (() => {
         /** Files uploaded at the same time; each turns into a photo on the server, which takes memory. */
         const PARALLEL_FILES = 2
@@ -84,10 +84,19 @@
                     }
                 }
                 window.addEventListener('beforeunload', this.onUnload)
+
+                // Admin pages change without a reload (SPA mode), which would end the upload without asking.
+                this.onNavigate = (event) => {
+                    if (this.running && ! window.confirm(t('leave'))) {
+                        event.preventDefault()
+                    }
+                }
+                document.addEventListener('livewire:navigate', this.onNavigate)
             },
 
             destroy() {
                 window.removeEventListener('beforeunload', this.onUnload)
+                document.removeEventListener('livewire:navigate', this.onNavigate)
                 this.stopErrorDialogs.forEach((stop) => stop?.())
                 this.destroyed = true
                 clearTimeout(this.flushTimer)
